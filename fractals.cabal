@@ -1,0 +1,19 @@
+name:          fractals
+version:       0.1.0.0
+synopsis:      Render fractals
+homepage:      github.com/daoo/fractals
+license:       PublicDomain
+author:        daoo
+category:      Graphics
+build-type:    Simple
+cabal-version: >=1.8
+
+executable fractals
+  main-is: Main.hs
+  build-depends:
+    base       == 4.6.*,
+    repa       >= 3.2,
+    repa-devil >= 0.3,
+    QuickCheck == 2.5.*
+  hs-source-dirs: src
+  ghc-options: -Wall
