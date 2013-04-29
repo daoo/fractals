@@ -2,23 +2,18 @@ module Main where
 
 import Data.Complex
 import Data.Ratio
-import Fractals
-import Generator
+import Fractals.Complex
+import Fractals.Definitions
+import Fractals.Generator
 
 example :: [[Int]]
-example = generate maxAbs iterations (mandelbrot 2) topleft delta screen
+example = generate maxAbs iterations (julia ((-0.4):+0.6)) (centered screen plane)
   where
-    screen :: (Int, Int)
-
     maxAbs     = 4.0
     iterations = 200
 
-    screen@(w, h) = (273, 78)
-
-    plane = 4.1 :+ 2.1
-
-    topleft = negate (realPart plane / 2.0) :+ negate (imagPart plane / 2.0)
-    delta = realPart plane / realToFrac w :+ imagPart plane / realToFrac h
+    screen = (273, 78)
+    plane  = (4.1, 2.1)
 
 showASCII :: Int -> Int -> Char
 showASCII m i = chars !! index
