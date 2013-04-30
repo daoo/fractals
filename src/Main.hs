@@ -1,7 +1,6 @@
 module Main where
 
 import Data.Complex
-import Data.Ratio
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Generator
@@ -15,11 +14,10 @@ example = generate maxAbs iterations (julia ((-0.4):+0.6)) (centered screen plan
     screen = (273, 78)
     plane  = (4.1, 2.1)
 
+{-# INLINE showASCII #-}
 showASCII :: Int -> Int -> Char
-showASCII m i = chars !! index
+showASCII m i = chars !! ((i * length chars) `div` m)
   where
-    index = truncate ((i % m) * len)
-    len   = fromIntegral $ length chars
     chars = " -~=e@$"
 
 main :: IO ()
