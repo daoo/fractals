@@ -20,4 +20,4 @@ screenToPlane area x y = calcReal area x :+ calcImag area y
 generate :: R -> Int -> Definition -> Area -> [[Int]]
 generate maxAbs maxIter fractal area = grid
   (imageWidth area, imageHeight area)
-  (\x y -> countIterations maxAbs (maxIter - 1) fractal $ screenToPlane area x y)
+  (\x y -> fractal (screenToPlane area x y) maxAbs maxIter)

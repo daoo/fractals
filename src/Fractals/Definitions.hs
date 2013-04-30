@@ -4,33 +4,32 @@ module Fractals.Definitions
   , mandelbrot
   , burningShip
   , julia
-  , countIterations
   ) where
 
 import Fractals.Complex
 import Fractals.Utility
 
-type Definition = Comp -> Comp -> Comp
+type Definition = Comp -> Double -> Int -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot 0 c _ = c
-mandelbrot 1 c z = z + c
-mandelbrot 2 c z = z * z + c
-mandelbrot a c z = z ^ a + c
+mandelbrot 1 p = countIterations (0:+0) (+p)
+mandelbrot 2 p = countIterations (0:+0) (\z -> z * z + p)
+mandelbrot a p = countIterations (0:+0) (\z -> z ^ a + p)
 
 {-# INLINE burningShip #-}
 burningShip :: Definition
-burningShip (r :+ i) c = square (abs r :+ abs i) + c
+burningShip p = countIterations (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
 
 {-# INLINE julia #-}
 julia :: Comp -> Definition
-julia p _ z = z * z + p
+julia c p = countIterations p (\z -> z * z + c)
 
 {-# INLINE countIterations #-}
-countIterations :: R -> Int -> Definition -> Comp -> Int
-countIterations maxAbs maxIter fractal p = go 1 p
+-- |Count the number of iterations in a point
+countIterations :: Comp -> (Comp -> Comp) -> Double -> Int -> Int
+countIterations z0 znext maxAbs maxIter = go 0 z0
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
       then i
-      else go (i + 1) (fractal p z)
+      else go (i + 1) (znext z)

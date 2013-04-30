@@ -6,7 +6,7 @@ import Data.List
 
 {-# INLINE showASCII #-}
 showASCII :: Int -> Int -> Char
-showASCII m i = chars !! ((i * length chars) `div` m)
+showASCII m i = chars !! ((i * length chars) `div` (m + 1))
   where
     chars = " -~+*=#%@&$"
 
