@@ -1,6 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
 module Fractals.Utility where
 
+{-# INLINE square #-}
+square :: Num a => a -> a
+square x = x * x
+
 {-# INLINE grid #-}
 grid :: (Int, Int) -> (Int -> Int -> a) -> [[a]]
 grid (w, h) f = goy 0

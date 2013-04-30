@@ -8,12 +8,9 @@ module Fractals.Definitions
   ) where
 
 import Fractals.Complex
+import Fractals.Utility
 
 type Definition = Comp -> Comp -> Comp
-
-{-# INLINE square #-}
-square :: Num a => a -> a
-square x = x * x
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
