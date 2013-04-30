@@ -15,6 +15,6 @@ ctags:
 	echo ":ctags" | cabal-dev ghci -isrc/ -v0 src/Main.hs
 
 lint:
-	hlint src -c
+	hlint src
 
 .PHONY: build clean ctags lint

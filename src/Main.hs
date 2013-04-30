@@ -23,4 +23,4 @@ showASCII m i = chars !! index
     chars = " -~=e@$"
 
 main :: IO ()
-main = mapM_ putStrLn $ (map . map) (showASCII 200) example
+main = mapM_ (putStrLn . map (showASCII 200)) example

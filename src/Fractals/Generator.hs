@@ -12,7 +12,7 @@ generate maxAbs maxIter fractal area = goy (complexY area) 0
     iters = countIterations maxAbs (maxIter - 1) fractal
 
     goy :: Double -> Int -> [[Int]]
-    goy !imag !y | y < imageHeight area = gox (complexX area) 0 : goy (imag + (complexDY area)) (y + 1)
+    goy !imag !y | y < imageHeight area = gox (complexX area) 0 : goy (imag + complexDY area) (y + 1)
                  | otherwise            = []
       where
         gox :: Double -> Int -> [Int]

@@ -31,5 +31,5 @@ centered (sw, sh) (cw, ch) = Area sw sh cw ch x y dx dy
     x = -cw / 2
     y = ch / 2
 
-    dx = (cw / fromIntegral sw)
-    dy = (-ch / fromIntegral sh)
+    dx = cw / fromIntegral sw
+    dy = -ch / fromIntegral sh
