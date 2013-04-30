@@ -1,24 +1,43 @@
 module Main where
 
+import Control.Applicative
+import Control.Monad.State
 import Data.Complex
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Generator
+import Fractals.Fractal
+import Fractals.Output
+import System.Environment
 
-example :: [[Int]]
-example = generate maxAbs iterations (julia ((-0.4):+0.6)) (centered screen plane)
-  where
-    maxAbs     = 4.0
-    iterations = 200
+pop :: State [String] String
+pop = fmap head get >>= \s -> modify tail >> return s
 
-    screen = (273, 78)
-    plane  = (4.1, 2.1)
+popPoint :: Read a => State [String] (a, a)
+popPoint = do
+  x <- pop
+  y <- pop
+  return (read x, read y)
 
-{-# INLINE showASCII #-}
-showASCII :: Int -> Int -> Char
-showASCII m i = chars !! ((i * length chars) `div` m)
-  where
-    chars = " -~=e@$"
+popComp :: State [String] Comp
+popComp = uncurry (:+) `fmap` popPoint
+
+parseArgs :: State [String] Fractal
+parseArgs = do
+  str <- pop
+
+  fractal <- case str of
+    "mandelbrot"  -> (mandelbrot . read) <$> pop
+    "burningship" -> return burningShip
+    "julia"       -> julia <$> popComp
+    _             -> undefined
+
+  iters   <- read <$> pop
+  screen  <- popPoint
+  topleft <- popPoint
+  plane   <- popPoint
+  return $ Fractal fractal iters topleft plane screen
 
 main :: IO ()
-main = mapM_ (putStrLn . map (showASCII 200)) example
+main = do
+  fractal <- evalState parseArgs <$> getArgs
+  putStrLn $ showFractal (fractalIter fractal) $ render fractal
