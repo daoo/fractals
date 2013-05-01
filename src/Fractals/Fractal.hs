@@ -15,4 +15,4 @@ data Fractal = Fractal
 
 render :: Fractal -> [[Int]]
 render (Fractal frac iter topleft plane screen) =
-  generate (fromInteger 4) iter frac (rectangles screen plane topleft)
+  generate 4 iter frac (rectangles screen plane topleft)
