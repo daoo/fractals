@@ -31,7 +31,7 @@ julia :: Comp -> Definition
 julia p _ z = z * z + p
 
 {-# INLINE countIterations #-}
-countIterations :: Double -> Int -> Definition -> Comp -> Int
+countIterations :: R -> Int -> Definition -> Comp -> Int
 countIterations maxAbs maxIter fractal p = go 1 p
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs

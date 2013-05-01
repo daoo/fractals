@@ -4,24 +4,26 @@ module Fractals.Area
   , centered
   ) where
 
+import Fractals.Complex
+
 data Area = Area
   { imageWidth    :: {-# UNPACK #-} !Int
   , imageHeight   :: {-# UNPACK #-} !Int
-  , complexWidth  :: {-# UNPACK #-} !Double
-  , complexHeight :: {-# UNPACK #-} !Double
-  , complexX      :: {-# UNPACK #-} !Double
-  , complexY      :: {-# UNPACK #-} !Double
-  , complexDX     :: {-# UNPACK #-} !Double
-  , complexDY     :: {-# UNPACK #-} !Double
+  , complexWidth  :: {-# UNPACK #-} !R
+  , complexHeight :: {-# UNPACK #-} !R
+  , complexX      :: {-# UNPACK #-} !R
+  , complexY      :: {-# UNPACK #-} !R
+  , complexDX     :: {-# UNPACK #-} !R
+  , complexDY     :: {-# UNPACK #-} !R
   }
 
-rectangles :: (Int, Int) -> (Double, Double) -> (Double, Double) -> Area
+rectangles :: (Int, Int) -> (R, R) -> (R, R) -> Area
 rectangles (sw, sh) (cw, ch) (x, y) = Area sw sh cw ch x y dx dy
   where
     dx = cw / fromIntegral sw
     dy = -ch / fromIntegral sh
 
-centered :: (Int, Int) -> (Double, Double) -> Area
+centered :: (Int, Int) -> (R, R) -> Area
 centered (sw, sh) (cw, ch) = Area sw sh cw ch x y dx dy
   where
     x = -cw / 2

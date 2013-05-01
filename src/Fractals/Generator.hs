@@ -7,7 +7,7 @@ import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Utility
 
-generate :: Double -> Int -> Definition -> Area -> [[Int]]
+generate :: R -> Int -> Definition -> Area -> [[Int]]
 generate maxAbs maxIter fractal area = grid
   (imageWidth area, imageHeight area)
   (complexX area, complexY area)
