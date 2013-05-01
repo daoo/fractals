@@ -34,6 +34,6 @@ julia p _ z = z * z + p
 countIterations :: Double -> Int -> Definition -> Comp -> Int
 countIterations maxAbs maxIter fractal p = go 1 p
   where
-    go !i !z = if i >= maxIter || magSquared z >= maxAbs
+    go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
       then i
       else go (i + 1) (fractal p z)

@@ -2,7 +2,6 @@ module Main where
 
 import Control.Applicative
 import Control.Monad.State
-import Data.Complex
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Fractal

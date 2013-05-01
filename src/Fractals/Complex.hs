@@ -1,13 +1,34 @@
 module Fractals.Complex
-  ( module Data.Complex
-  , magSquared
-  , Comp
+  ( Comp(..)
+  , magnitude
+  , magnitudeSquared
   ) where
 
-import Data.Complex
+type R = Double
 
-type Comp = Complex Double
+data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
 
-{-# INLINE magSquared #-}
-magSquared :: Num a => Complex a -> a
-magSquared (r :+ i) = r * r + i * i
+magnitude :: Comp -> R
+magnitude (a:+b) = sqrt (a*a + b*b)
+
+{-# INLINE magnitudeSquared #-}
+magnitudeSquared :: Comp -> R
+magnitudeSquared (a :+ b) = a*a + b*b
+
+instance Num Comp where
+  {-# INLINE (+) #-}
+  {-# INLINE (-) #-}
+  {-# INLINE (*) #-}
+  (a:+b) + (c:+d) = (a + c) :+ (b + d)
+  (a:+b) - (c:+d) = (a - c) :+ (b - d)
+  (a:+b) * (c:+d) = (a*c - b*d) :+ (b*c + a*d)
+
+  {-# INLINE negate #-}
+  {-# INLINE abs #-}
+  {-# INLINE signum #-}
+  {-# INLINE fromInteger #-}
+  negate (a:+b)   = negate a :+ negate b
+  abs z           = magnitude z :+ 0
+  signum (0:+0)   = 0
+  signum z@(a:+b) = (a/r) :+ (b/r) where r = magnitude z
+  fromInteger n   = fromInteger n :+ 0
