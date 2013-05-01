@@ -7,14 +7,14 @@ module Fractals.Area
 import Fractals.Complex
 
 data Area = Area
-  { imageWidth    :: {-# UNPACK #-} !Int
-  , imageHeight   :: {-# UNPACK #-} !Int
-  , complexWidth  :: {-# UNPACK #-} !R
-  , complexHeight :: {-# UNPACK #-} !R
-  , complexX      :: {-# UNPACK #-} !R
-  , complexY      :: {-# UNPACK #-} !R
-  , complexDX     :: {-# UNPACK #-} !R
-  , complexDY     :: {-# UNPACK #-} !R
+  { imageWidth  :: {-# UNPACK #-} !Int
+  , imageHeight :: {-# UNPACK #-} !Int
+  , planeWidth  :: {-# UNPACK #-} !R
+  , planeHeight :: {-# UNPACK #-} !R
+  , planeMinX   :: {-# UNPACK #-} !R
+  , planeMinY   :: {-# UNPACK #-} !R
+  , planeDeltaX :: {-# UNPACK #-} !R
+  , planeDeltaY :: {-# UNPACK #-} !R
   }
 
 rectangles :: (Int, Int) -> (R, R) -> (R, R) -> Area

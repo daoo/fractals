@@ -10,6 +10,6 @@ import Fractals.Utility
 generate :: R -> Int -> Definition -> Area -> [[Int]]
 generate maxAbs maxIter fractal area = grid
   (imageWidth area, imageHeight area)
-  (complexX area, complexY area)
-  (complexDX area, complexDY area)
+  (planeMinX area, planeMinY area)
+  (planeDeltaX area, planeDeltaY area)
   (\a b -> countIterations maxAbs (maxIter - 1) fractal (a :+ b))
