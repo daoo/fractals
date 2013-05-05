@@ -34,7 +34,7 @@ parseArgs = do
   screen  <- popPoint
   topleft <- popPoint
   plane   <- popPoint
-  return $ Fractal fractal iters topleft plane screen
+  return $ Fractal fractal iters 4 topleft plane screen
 
 main :: IO ()
 main = do
