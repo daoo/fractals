@@ -1,13 +1,21 @@
 {-# LANGUAGE LambdaCase #-}
 module Fractals.Args
   ( parseArgs
+  , Fractal(..)
   ) where
 
 import Control.Applicative
 import Control.Monad.State
+import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Fractal
+
+data Fractal = Fractal
+  { fractalDefinition :: Definition
+  , fractalIter :: Int
+  , fractalMaxAbs :: R
+  , fractalArea :: Area
+  }
 
 {-# INLINE pop #-}
 pop :: State [String] String
@@ -25,7 +33,7 @@ popComp :: State [String] Comp
 popComp = uncurry (:+) `fmap` popPoint
 
 parseArgs :: [String] -> (Fractal, [String])
-parseArgs args = (`runState` args) $ newFractal
+parseArgs args = (`runState` args) $ Fractal
   <$> (pop >>= \case
     "mandelbrot"  -> (mandelbrot . read) <$> pop
     "burningship" -> return burningShip
@@ -33,6 +41,4 @@ parseArgs args = (`runState` args) $ newFractal
     _             -> undefined)
   <*> (read <$> pop)
   <*> pure 4
-  <*> popPoint
-  <*> popPoint
-  <*> popPoint
+  <*> (fromRectangle <$> popPoint <*> popPoint <*> popPoint)
