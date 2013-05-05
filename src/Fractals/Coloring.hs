@@ -18,4 +18,3 @@ ascii m i = chars !! scale (length chars) m i
 {-# INLINE greyscale #-}
 greyscale :: Int -> Int -> Word8
 greyscale m i = fromIntegral $ scale 255 m i
-
