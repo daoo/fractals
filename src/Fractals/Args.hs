@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Fractals.Args where
 
 import Control.Applicative
@@ -19,17 +20,14 @@ popComp :: State [String] Comp
 popComp = uncurry (:+) `fmap` popPoint
 
 parseArgs :: [String] -> Fractal
-parseArgs args = (`evalState` args) $ do
-  str <- pop
-
-  fractal <- case str of
+parseArgs args = (`evalState` args) $ Fractal
+  <$> (pop >>= \case
     "mandelbrot"  -> (mandelbrot . read) <$> pop
     "burningship" -> return burningShip
     "julia"       -> julia <$> popComp
-    _             -> undefined
-
-  iters   <- read <$> pop
-  screen  <- popPoint
-  topleft <- popPoint
-  plane   <- popPoint
-  return $ Fractal fractal iters 4 topleft plane screen
+    _             -> undefined)
+  <*> (read <$> pop)
+  <*> pure 4
+  <*> popPoint
+  <*> popPoint
+  <*> popPoint
