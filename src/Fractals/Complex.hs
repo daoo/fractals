@@ -7,6 +7,7 @@ module Fractals.Complex
 type R = Double
 
 data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
+  deriving Show
 
 {-# INLINE magnitudeSquared #-}
 magnitudeSquared :: Comp -> R
