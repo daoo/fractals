@@ -9,7 +9,7 @@ module Fractals.Definitions
 import Fractals.Complex
 import Fractals.Utility
 
-type Definition = Comp -> Double -> Int -> Int
+type Definition = Comp -> R -> Int -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
