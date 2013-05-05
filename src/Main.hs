@@ -8,4 +8,4 @@ import System.Environment
 main :: IO ()
 main = do
   fractal <- parseArgs `fmap` getArgs
-  putStrLn $ showFractal (fractalIter fractal) $ render fractal
+  putStr $ showFractal (fractalIter fractal) $ render fractal
