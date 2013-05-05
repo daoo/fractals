@@ -27,7 +27,7 @@ julia c p = countIterations p (\z -> z * z + c)
 
 {-# INLINE countIterations #-}
 -- |Count the number of iterations in a point
-countIterations :: Comp -> (Comp -> Comp) -> Double -> Int -> Int
+countIterations :: Comp -> (Comp -> Comp) -> R -> Int -> Int
 countIterations z0 znext maxAbs maxIter = go 0 z0
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
