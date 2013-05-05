@@ -10,11 +10,11 @@ square :: Num a => a -> a
 square x = x * x
 
 {-# INLINE grid #-}
-grid :: (Int, Int) -> (Int -> Int -> a) -> [[a]]
-grid (!w, !h) f = goy 0
+grid :: (Ord a, Num a, Num b) => (a, a) -> (b, b) -> (b, b) -> (b -> b -> c) -> [[c]]
+grid (!w, !h) (!x1, !y1) (!dx, !dy) f = goi 0 y1
   where
-    goy !y | y < h     = gox 0 : goy (y + 1)
-           | otherwise = []
+    goi !i !y | i < h     = goj 0 x1 : goi (i + 1) (y + dy)
+              | otherwise = []
       where
-        gox !x | x < w     = f x y : gox (x + 1)
-               | otherwise = []
+        goj !j !x | j < w     = f x y : goj (j + 1) (x + dx)
+                  | otherwise = []

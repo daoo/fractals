@@ -17,5 +17,5 @@ fromRectangle :: (R, R) -> (R, R) -> (Int, Int) -> Area
 fromRectangle topleft plane@(pw, ph) screen@(w, h) =
   Area topleft plane (dx, dy) screen
   where
-    dx =   pw / fromIntegral w
-    dy = - ph / fromIntegral h
+    dx =   pw / realToFrac w
+    dy = - ph / realToFrac h

@@ -15,12 +15,7 @@ main = do
 
 {-# INLINE showFractal #-}
 showFractal :: Definition -> Int -> R -> Area -> String
-showFractal fractal iter maxabs (Area (px, py) _ (dx, dy) screen) =
-  unlines $ grid screen (ascii iter .: func)
+showFractal fractal iter maxabs (Area topleft _ delta screen) =
+  unlines $ grid screen topleft delta (ascii iter .: func)
   where
-    func x y = fractal (screenToPlane x y) maxabs iter
-
-    real x = px + fromIntegral x * dx
-    imag y = py + fromIntegral y * dy
-
-    screenToPlane x y = real x :+ imag y
+    func x y = fractal (x :+ y) maxabs iter

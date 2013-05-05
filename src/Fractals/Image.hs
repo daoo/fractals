@@ -27,10 +27,10 @@ writeFractal fractal iter maxabs area fp = write fp $ R.fromFunction (Z :. h :. 
     (px, py) = areaTopLeft area
     (pw, ph) = areaPlane area
 
-    dx =   pw / fromIntegral w
-    dy = - ph / fromIntegral h
+    dx =   pw / realToFrac w
+    dy = - ph / realToFrac h
 
-    real x = px + fromIntegral x * dx
-    imag y = py + fromIntegral y * dy
+    real x = px + realToFrac x * dx
+    imag y = py + realToFrac y * dy
 
     screenToPlane x y = real x :+ imag y
