@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeOperators #-}
 module Fractals.Output
-  ( showASCII
-  , showFractal
+  ( showFractal
   ) where
 
 import Data.Array.Repa (Array(..), D, Z(..), DIM2, (:.)(..))
