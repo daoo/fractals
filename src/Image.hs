@@ -7,5 +7,5 @@ import System.Environment
 
 main :: IO ()
 main = do
-  fractal <- parseArgs `fmap` getArgs
-  putStr $ showFractal (fractalIter fractal) $ render fractal
+  (fractal, [img]) <- parseArgs `fmap` getArgs
+  writeFractal (fractalIter fractal) img $ render fractal

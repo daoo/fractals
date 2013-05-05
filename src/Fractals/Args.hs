@@ -19,8 +19,8 @@ popPoint = do
 popComp :: State [String] Comp
 popComp = uncurry (:+) `fmap` popPoint
 
-parseArgs :: [String] -> Fractal
-parseArgs args = (`evalState` args) $ Fractal
+parseArgs :: [String] -> (Fractal, [String])
+parseArgs args = (`runState` args) $ Fractal
   <$> (pop >>= \case
     "mandelbrot"  -> (mandelbrot . read) <$> pop
     "burningship" -> return burningShip
