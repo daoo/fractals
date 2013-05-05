@@ -2,7 +2,7 @@ module Fractals.Output
   ( showFractal
   ) where
 
-import Data.List
+import Fractals.Utility
 
 {-# INLINE showASCII #-}
 showASCII :: Int -> Int -> Char
@@ -11,4 +11,4 @@ showASCII m i = chars !! ((i * length chars) `div` (m + 1))
     chars = " -~+*=#%@&$"
 
 showFractal :: Int -> [[Int]] -> String
-showFractal iters = intercalate "\n" . map (map $ showASCII iters)
+showFractal = showGrid . showASCII
