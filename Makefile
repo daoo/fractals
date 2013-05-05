@@ -7,6 +7,9 @@ prof:
 release:
 	@cabal-dev build --ghc-options="-O2"
 
+configure:
+	@cabal-dev install --enable-library-profiling --enable-executable-profiling
+
 ghci:
 	@cabal-dev ghci
 
