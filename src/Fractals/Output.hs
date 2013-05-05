@@ -1,5 +1,6 @@
 module Fractals.Output
-  ( showFractal
+  ( showASCII
+  , showFractal
   ) where
 
 import Fractals.Utility
