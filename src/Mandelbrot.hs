@@ -2,10 +2,10 @@ module Main where
 
 import Fractals.Definitions
 import Fractals.Fractal
-import Fractals.Output
+import Fractals.Image
 
 main :: IO ()
-main = writeFractal (fractalIter fractal) "dist/mandelbrot.png" $ render fractal
+main = writeFractal fractal "dist/mandelbrot.png"
   where
     screen@(w, h) = (1920, 1080)
     aspect = fromIntegral w / fromIntegral h
