@@ -16,6 +16,7 @@ library
     Fractals.Complex,
     Fractals.Definitions,
     Fractals.Image,
+    Fractals.Show,
     Fractals.Utility
   build-depends: base, mtl, repa, repa-devil
   hs-source-dirs: src
@@ -28,5 +29,10 @@ executable fractals-ascii
 
 executable fractals-image
   main-is: src/Image.hs
+  build-depends: fractals, base, mtl
+  ghc-options: -O2 -Wall
+
+executable mandelbrot
+  main-is: src/Mandelbrot.hs
   build-depends: fractals, base, mtl
   ghc-options: -O2 -Wall
