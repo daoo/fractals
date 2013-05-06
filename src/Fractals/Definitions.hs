@@ -14,9 +14,10 @@ type Definition = Comp -> R -> Int -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot !1 !p = countIterations (0:+0) (\ !z -> z + p)
-mandelbrot !2 !p = countIterations (0:+0) (\ !z -> z * z + p)
-mandelbrot !a !p = countIterations (0:+0) (\ !z -> z ^ a + p)
+mandelbrot !1 !p = countIterations (0:+0) (+p)
+mandelbrot !2 !p = countIterations (0:+0) (\z -> z * z + p)
+mandelbrot !3 !p = countIterations (0:+0) (\z -> z * z * z + p)
+mandelbrot !a !p = countIterations (0:+0) (\z -> z ^ a + p)
 
 {-# INLINE burningShip #-}
 burningShip :: Definition
