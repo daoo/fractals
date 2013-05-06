@@ -12,7 +12,7 @@ import System.Environment
 {-# INLINE parse #-}
 parse :: [String] -> (Fractal, [String])
 #ifdef MANDELBROT2
-parse = parseFractal1 (return mandelbrot 2)
+parse = parseFractal1 (return mandelbrot2')
 #elif MANDELBROT
 parse = parseFractal1 parseMandelbrot
 #elif JULIA
