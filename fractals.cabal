@@ -19,38 +19,14 @@ library
     Fractals.Utility
   build-depends: base, mtl, repa, repa-devil
   hs-source-dirs: src
-  ghc-options: -Wall
+  ghc-options: -O2 -Wall -fno-warn-orphans -funbox-strict-fields
 
 executable fractals-ascii
   main-is: src/ASCII.hs
   build-depends: fractals, base, mtl
-  ghc-options: -Wall
-
-executable fractals-ascii-mandelbrot
-  main-is: src/ASCII.hs
-  build-depends: fractals, base, mtl
-  ghc-options: -Wall
-  cpp-options: -DMANDELBROT
-
-executable fractals-ascii-mandelbrot2
-  main-is: src/ASCII.hs
-  build-depends: fractals, base, mtl
-  ghc-options: -Wall
-  cpp-options: -DMANDELBROT2
-
-executable fractals-ascii-julia
-  main-is: src/ASCII.hs
-  build-depends: fractals, base, mtl
-  ghc-options: -Wall
-  cpp-options: -DJULIA
-
-executable fractals-ascii-burningship
-  main-is: src/ASCII.hs
-  build-depends: fractals, base, mtl
-  ghc-options: -Wall
-  cpp-options: -DBURNINGSHIP
+  ghc-options: -O2 -Wall
 
 executable fractals-image
   main-is: src/Image.hs
-  build-depends: fractals, base
-  ghc-options: -Wall
+  build-depends: fractals, base, mtl
+  ghc-options: -O2 -Wall
