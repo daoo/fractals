@@ -13,7 +13,7 @@ unsafeQuot (I# x) (I# y) = I# (quotInt# x y)
 
 {-# INLINE scale #-}
 scale :: Int -> Int -> Int -> Int
-scale t m i = i * t `unsafeQuot` (m + 1)
+scale t m i = (i * t) `unsafeQuot` (m + 1)
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
