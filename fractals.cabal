@@ -18,7 +18,7 @@ library
     Fractals.Image,
     Fractals.Show,
     Fractals.Utility
-  build-depends: base, mtl, repa, repa-devil
+  build-depends: base, mtl, repa, repa-devil, ghc-prim
   hs-source-dirs: src
   ghc-options: -O2 -Wall -fno-warn-orphans -funbox-strict-fields
 
