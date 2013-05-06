@@ -17,9 +17,18 @@ scale t m i = (i * t) `unsafeQuot` (m + 1)
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
-ascii m i = chars !! scale (length chars) m i
-  where
-    chars = " -~+*=#%@&$"
+ascii m i = case scale 11 m i of
+  1  -> '-'
+  2  -> '~'
+  3  -> '+'
+  4  -> '*'
+  5  -> '='
+  6  -> '#'
+  7  -> '%'
+  8  -> '@'
+  9  -> '&'
+  10 -> '$'
+  _  -> ' '
 
 {-# INLINE greyscale #-}
 greyscale :: Int -> Int -> Word8
