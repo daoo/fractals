@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Main where
 
 import Fractals.Area
@@ -8,9 +9,23 @@ import Fractals.Definitions
 import Fractals.Utility
 import System.Environment
 
+{-# INLINE parse #-}
+parse :: [String] -> (Fractal, [String])
+#ifdef MANDELBROT2
+parse = parseFractal1 (return mandelbrot 2)
+#elif MANDELBROT
+parse = parseFractal1 parseMandelbrot
+#elif JULIA
+parse = parseFractal1 parseJulia
+#elif BURNINGSHIP
+parse = parseFractal1 (return burningShip)
+#else
+parse = parseFractal
+#endif
+
 main :: IO ()
 main = do
-  (f, _) <- parseFractal `fmap` getArgs
+  (f, _) <- parse `fmap` getArgs
   putStr $ showFractal (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f)
 
 {-# INLINE showFractal #-}

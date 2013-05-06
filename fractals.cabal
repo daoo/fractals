@@ -26,6 +26,30 @@ executable fractals-ascii
   build-depends: fractals, base, mtl
   ghc-options: -Wall
 
+executable fractals-ascii-mandelbrot
+  main-is: src/ASCII.hs
+  build-depends: fractals, base, mtl
+  ghc-options: -Wall
+  cpp-options: -DMANDELBROT
+
+executable fractals-ascii-mandelbrot2
+  main-is: src/ASCII.hs
+  build-depends: fractals, base, mtl
+  ghc-options: -Wall
+  cpp-options: -DMANDELBROT2
+
+executable fractals-ascii-julia
+  main-is: src/ASCII.hs
+  build-depends: fractals, base, mtl
+  ghc-options: -Wall
+  cpp-options: -DJULIA
+
+executable fractals-ascii-burningship
+  main-is: src/ASCII.hs
+  build-depends: fractals, base, mtl
+  ghc-options: -Wall
+  cpp-options: -DBURNINGSHIP
+
 executable fractals-image
   main-is: src/Image.hs
   build-depends: fractals, base
