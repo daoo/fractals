@@ -6,5 +6,5 @@ import System.Environment
 
 main :: IO ()
 main = do
-  (f, [img]) <- parseArgs `fmap` getArgs
+  (f, [img]) <- parseFractal `fmap` getArgs
   writeFractal (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f) img

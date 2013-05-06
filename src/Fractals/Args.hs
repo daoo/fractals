@@ -1,7 +1,14 @@
 {-# LANGUAGE LambdaCase #-}
 module Fractals.Args
-  ( parseArgs
-  , Fractal(..)
+  ( Fractal(..)
+  , pop
+  , popPoint
+  , popComp
+  , parseArea
+  , parseMandelbrot
+  , parseJulia
+  , parseFractal
+  , parseFractal1
   ) where
 
 import Control.Applicative
@@ -32,13 +39,30 @@ popPoint = do
 popComp :: State [String] Comp
 popComp = uncurry (:+) `fmap` popPoint
 
-parseArgs :: [String] -> (Fractal, [String])
-parseArgs args = (`runState` args) $ Fractal
-  <$> (pop >>= \case
-    "mandelbrot"  -> (mandelbrot . read) <$> pop
+{-# INLINE parseArea #-}
+parseArea :: State [String] Area
+parseArea = fromRectangle <$> popPoint <*> popPoint <*> popPoint
+
+{-# INLINE parseMandelbrot #-}
+{-# INLINE parseJulia #-}
+parseMandelbrot :: State [String] Definition
+parseMandelbrot = (read <$> pop) >>= return . \case
+  2 -> mandelbrot2'
+  n -> mandelbrot n
+
+parseJulia :: State [String] Definition
+parseJulia = julia <$> popComp
+
+{-# INLINE parseFractal #-}
+parseFractal :: [String] -> (Fractal, [String])
+parseFractal = parseFractal1
+  (pop >>= \case
+    "mandelbrot"  -> parseMandelbrot
     "burningship" -> return burningShip
-    "julia"       -> julia <$> popComp
+    "julia"       -> parseJulia
     _             -> undefined)
-  <*> (read <$> pop)
-  <*> pure 4
-  <*> (fromRectangle <$> popPoint <*> popPoint <*> popPoint)
+
+{-# INLINE parseFractal1 #-}
+parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])
+parseFractal1 frac args = (`runState` args) $ Fractal
+  <$> frac <*> (read <$> pop) <*> pure 4 <*> parseArea

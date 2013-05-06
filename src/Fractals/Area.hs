@@ -13,8 +13,8 @@ data Area = Area
   }
 
 {-# INLINE fromRectangle #-}
-fromRectangle :: (R, R) -> (R, R) -> (Int, Int) -> Area
-fromRectangle topleft plane@(pw, ph) screen@(w, h) =
+fromRectangle :: (Int, Int) -> (R, R) -> (R, R) -> Area
+fromRectangle screen@(w, h) topleft plane@(pw, ph) =
   Area topleft plane (dx, dy) screen
   where
     dx =   pw / realToFrac w
