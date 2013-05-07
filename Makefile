@@ -5,7 +5,7 @@ prof:
 	@cabal-dev build --ghc-options="-rtsopts -prof -fprof-auto -H64m"
 
 release:
-	@cabal-dev build --ghc-options="-O2"
+	@cabal-dev build --ghc-options="-O2 -fllvm"
 
 configure:
 	@cabal-dev install --enable-library-profiling --enable-executable-profiling
