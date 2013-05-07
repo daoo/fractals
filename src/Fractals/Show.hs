@@ -20,6 +20,6 @@ showFractal fractal iter maxabs (Area topleft _ delta screen) =
 grid :: (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> Char) -> String
 grid (!w, !h) (!x1, !y1) (!dx, !dy) f = go 0 0 x1 y1
   where
-    go !i !j !x !y | i == w    = '\n' : go 0 (j+1) x1 (y + dy)
+    go !i !j !x !y | i == w    = '\n' : go 0 (j+1) x1 (y+dy)
                    | j == h    = []
-                   | otherwise = f x y : go (i+1) j (x + dx) y
+                   | otherwise = f x y : go (i+1) j (x+dx) y
