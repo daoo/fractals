@@ -1,5 +1,5 @@
 build:
-	@cabal-dev build --ghc-options="-H64m"
+	@cabal-dev build --ghc-options="-H64m -rtsopts"
 
 prof:
 	@cabal-dev build --ghc-options="-rtsopts -prof -fprof-auto -H64m"

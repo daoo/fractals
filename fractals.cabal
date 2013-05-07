@@ -18,21 +18,21 @@ library
     Fractals.Image,
     Fractals.Show,
     Fractals.Utility
-  build-depends: base, mtl, repa, repa-devil, ghc-prim
+  build-depends: base, mtl, array, Codec-Image-DevIL, ghc-prim
   hs-source-dirs: src
-  ghc-options: -O2 -Wall -fno-warn-orphans -funbox-strict-fields
+  ghc-options: -Wall -fno-warn-orphans -funbox-strict-fields
 
 executable fractals-ascii
   main-is: src/ASCII.hs
   build-depends: fractals, base, mtl
-  ghc-options: -O2 -Wall
+  ghc-options: -Wall
 
 executable fractals-image
   main-is: src/Image.hs
   build-depends: fractals, base, mtl
-  ghc-options: -O2 -Wall
+  ghc-options: -Wall
 
 executable mandelbrot
   main-is: src/Mandelbrot.hs
   build-depends: fractals, base, mtl
-  ghc-options: -O2 -Wall
+  ghc-options: -Wall
