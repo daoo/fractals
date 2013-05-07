@@ -27,13 +27,13 @@ build (!w, !h) (!x1, !y1) (!dx, !dy) f = newArray_ ((0, 0, 0), (h-1, w-1, 3)) >>
   where
     n = 4 * w * h
 
+    write arr i (r, g, b) = do
+      unsafeWrite arr i r
+      unsafeWrite arr (i + 1) g
+      unsafeWrite arr (i + 2) b
+      unsafeWrite arr (i + 3) 255
+
     go !i !j !x !y !arr
       | i == w    = go 0 j x1 (y+dy) arr
       | j == n    = return arr
-      | otherwise = do
-        let (r, g, b) = f x y
-        unsafeWrite arr (j + 0) r
-        unsafeWrite arr (j + 1) g
-        unsafeWrite arr (j + 2) b
-        unsafeWrite arr (j + 3) 255
-        go (i+1) (j+4) (x+dx) y arr
+      | otherwise = write arr j (f x y) >> go (i+1) (j+4) (x+dx) y arr
