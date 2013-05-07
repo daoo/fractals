@@ -31,5 +31,5 @@ ascii m i = case scale 11 m i of
   _  -> ' '
 
 {-# INLINE greyscale #-}
-greyscale :: Int -> Int -> Word8
-greyscale m i = fromIntegral $ scale 255 m i
+greyscale :: Int -> Int -> (Word8, Word8, Word8)
+greyscale m i = (c, c, c) where c = fromIntegral $ scale 255 m i

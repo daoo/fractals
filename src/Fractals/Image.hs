@@ -1,36 +1,39 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE BangPatterns, FlexibleContexts #-}
 module Fractals.Image
   ( writeFractal
   ) where
 
-import Data.Array.Repa (Array(..), D, DIM2, Z(..), (:.)(..))
-import Data.Array.Repa.IO.DevIL
-import Data.Word
+import Codec.Image.DevIL
+import Data.Array.Base (unsafeWrite)
+import Data.Array.ST
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
-import qualified Data.Array.Repa as R
-
-{-# INLINE write #-}
-write :: FilePath -> Array D DIM2 Word8 -> IO ()
-write fp = runIL . writeImage fp . Grey . R.computeS
 
 {-# INLINE writeFractal #-}
 writeFractal :: Definition -> Int -> R -> Area -> FilePath -> IO ()
-writeFractal fractal iter maxabs area fp = write fp $ R.fromFunction (Z :. h :. w) $
-  \(Z :. y :. x) -> greyscale iter $ func x y
+writeFractal !fractal !iter !maxabs !area !fp = do
+  ilInit
+  writeImage fp $ runSTUArray $ build (areaScreen area) (areaTopLeft area) (areaDelta area) func
   where
-    func x y = fractal (screenToPlane x y) maxabs iter
+    func !x !y = greyscale iter $ fractal (x:+y) maxabs iter
 
-    (w, h)   = areaScreen area
-    (px, py) = areaTopLeft area
-    (pw, ph) = areaPlane area
+type Index = (Int, Int, Int)
 
-    dx =   pw / realToFrac w
-    dy = - ph / realToFrac h
+{-# INLINE build #-}
+build :: (MArray a Word8 m) => (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> (Word8, Word8, Word8)) -> m (a Index Word8)
+build (!w, !h) (!x1, !y1) (!dx, !dy) f = newArray_ ((0, 0, 0), (h-1, w-1, 3)) >>= go 0 0 x1 y1
+  where
+    n = 4 * w * h
 
-    real x = px + realToFrac x * dx
-    imag y = py + realToFrac y * dy
-
-    screenToPlane x y = real x :+ imag y
+    go !i !j !x !y !arr
+      | i == w    = go 0 j x1 (y+dy) arr
+      | j == n    = return arr
+      | otherwise = do
+        let (r, g, b) = f x y
+        unsafeWrite arr (j + 0) r
+        unsafeWrite arr (j + 1) g
+        unsafeWrite arr (j + 2) b
+        unsafeWrite arr (j + 3) 255
+        go (i+1) (j+4) (x+dx) y arr
