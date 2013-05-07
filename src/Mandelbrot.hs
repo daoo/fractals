@@ -2,10 +2,10 @@ module Main where
 
 import Fractals.Area
 import Fractals.Definitions
-import Fractals.Show
+import Fractals.Image
 
 main :: IO ()
-main = putStr $ showFractal (mandelbrot 2) 200 4 area
+main = writeFractal mandelbrot2' 200 4 area "dist/mandelbrot.png"
   where
     screen@(w, h) = (1920, 1080)
     aspect = realToFrac w / realToFrac h
