@@ -19,7 +19,7 @@ library
     Fractals.Utility
   build-depends: base, mtl, array, ghc-prim
   hs-source-dirs: src
-  ghc-options: -Wall -fno-warn-orphans -funbox-strict-fields
+  ghc-options: -Wall
 
 executable fractals-ascii
   main-is: src/ASCII.hs
