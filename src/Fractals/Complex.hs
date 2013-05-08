@@ -1,10 +1,16 @@
+{-# LANGUAGE CPP #-}
 module Fractals.Complex
   ( Comp(..)
   , R
   , magnitudeSquared
   ) where
 
+#ifdef RATIONAL
+import Data.Ratio
+type R = Rational
+#else
 type R = Double
+#endif
 
 -- |Definition of a complex number
 data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
