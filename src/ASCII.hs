@@ -5,6 +5,4 @@ import Fractals.Output
 import System.Environment
 
 main :: IO ()
-main = do
-  (f, _) <- parseFractal `fmap` getArgs
-  putStr $ string (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f)
+main = getArgs >>= (putStr . call string . fst . parseFractal)

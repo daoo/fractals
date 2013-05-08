@@ -9,6 +9,7 @@ module Fractals.Args
   , parseJulia
   , parseFractal
   , parseFractal1
+  , call
   ) where
 
 import Control.Applicative
@@ -66,3 +67,7 @@ parseFractal = parseFractal1
 parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])
 parseFractal1 frac args = (`runState` args) $ Fractal
   <$> frac <*> (read <$> pop) <*> pure 4 <*> parseArea
+
+{-# INLINE call #-}
+call :: (Definition -> Int -> R -> Area -> a) -> Fractal -> a
+call g (Fractal def iter maxabs area) = g def iter maxabs area

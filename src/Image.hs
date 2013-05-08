@@ -7,9 +7,5 @@ import Fractals.Output
 import System.Environment
 
 main :: IO ()
-main = do
-  ilInit
-  (f, [img]) <- parseFractal `fmap` getArgs
-  a <- array (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f)
-  a' <- unsafeFreeze a
-  writeImage img a'
+main = ilInit >> parseFractal `fmap` getArgs >>= \(f, [img]) ->
+  call array f >>= unsafeFreeze >>= writeImage img
