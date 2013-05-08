@@ -14,8 +14,8 @@ test def = void $ array def 100 4 area
 
     area = fromRectangle
       screen
-      (-4.3 / 2.0, 4.3 / aspect / 2.0)
       (4.3, 4.3 / aspect)
+      (-4.3 / 2.0, 4.3 / aspect / 2.0)
 
 main :: IO ()
 main = defaultMain

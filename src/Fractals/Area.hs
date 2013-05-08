@@ -6,16 +6,13 @@ module Fractals.Area
 import Fractals.Complex
 
 data Area = Area
-  { areaTopLeft :: (R, R)
+  { areaScreen  :: (Int, Int)
   , areaPlane   :: (R, R)
+  , areaTopLeft :: (R, R)
   , areaDelta   :: (R, R)
-  , areaScreen  :: (Int, Int)
   }
 
 {-# INLINE fromRectangle #-}
 fromRectangle :: (Int, Int) -> (R, R) -> (R, R) -> Area
-fromRectangle screen@(w, h) topleft plane@(pw, ph) =
-  Area topleft plane (dx, dy) screen
-  where
-    dx =   pw / realToFrac w
-    dy = - ph / realToFrac h
+fromRectangle screen@(w, h) plane@(pw, ph) topleft =
+  Area screen plane topleft (pw / realToFrac w, - ph / realToFrac h)
