@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, UnboxedTuples #-}
+{-# LANGUAGE BangPatterns #-}
 module Fractals.Render
   ( rgbaArray
   , lists
