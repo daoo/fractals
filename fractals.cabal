@@ -15,7 +15,7 @@ library
     Fractals.Coloring,
     Fractals.Complex,
     Fractals.Definitions,
-    Fractals.Output,
+    Fractals.Render,
     Fractals.Utility
   build-depends: base, mtl, array, ghc-prim
   hs-source-dirs: src

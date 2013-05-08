@@ -1,7 +1,7 @@
 module Main where
 
 import Fractals.Args
-import Fractals.Output
+import Fractals.Render
 import System.Environment
 
 main :: IO ()

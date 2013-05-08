@@ -4,7 +4,7 @@ import Codec.Image.DevIL
 import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Definitions
-import Fractals.Output
+import Fractals.Render
 
 main :: IO ()
 main = ilInit >> rgbaArray mandelbrot2' 200 4 area >>= unsafeFreeze >>= writeImage "dist/mandelbrot.png"

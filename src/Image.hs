@@ -3,7 +3,7 @@ module Main where
 import Codec.Image.DevIL
 import Data.Array.Unsafe
 import Fractals.Args
-import Fractals.Output
+import Fractals.Render
 import System.Environment
 
 main :: IO ()

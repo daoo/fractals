@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, UnboxedTuples #-}
-module Fractals.Output
+module Fractals.Render
   ( rgbaArray
   , lists
   , string

@@ -4,7 +4,7 @@ import Control.Monad
 import Criterion.Main
 import Fractals.Area
 import Fractals.Definitions
-import Fractals.Output
+import Fractals.Render
 
 test :: Definition -> IO ()
 test def = void $ rgbaArray def 100 4 area
