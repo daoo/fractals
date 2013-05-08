@@ -8,4 +8,4 @@ import System.Environment
 
 main :: IO ()
 main = ilInit >> parseFractal `fmap` getArgs >>= \(f, [img]) ->
-  call array f >>= unsafeFreeze >>= writeImage img
+  call rgbaArray f >>= unsafeFreeze >>= writeImage img

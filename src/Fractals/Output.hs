@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns, UnboxedTuples #-}
 module Fractals.Output
-  ( array
+  ( rgbaArray
   , lists
   , string
   ) where
@@ -48,17 +48,17 @@ buildString (!w, !h) (!x1, !y1) (!dx, !dy) f = go 0 0 x1 y1
       | j == h    = []
       | otherwise = f x y : go (i+1) j (x+dx) y
 
-{-# INLINE array #-}
-array :: Definition -> Int -> R -> Area -> IO (IOUArray (Int, Int, Int) Word8)
-array !fractal !iter !maxabs !area = buildArray
+{-# INLINE rgbaArray #-}
+rgbaArray :: Definition -> Int -> R -> Area -> IO (IOUArray (Int, Int, Int) Word8)
+rgbaArray !fractal !iter !maxabs !area = buildRgbaArray
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
   (\x y -> greyscale iter $ fractal (x:+y) maxabs iter)
 
-{-# INLINE buildArray #-}
-buildArray :: (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> (Word8, Word8, Word8)) -> IO (IOUArray (Int, Int, Int) Word8)
-buildArray (!w, !h) (!x1, !y1) (!dx, !dy) f =
+{-# INLINE buildRgbaArray #-}
+buildRgbaArray :: (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> (Word8, Word8, Word8)) -> IO (IOUArray (Int, Int, Int) Word8)
+buildRgbaArray (!w, !h) (!x1, !y1) (!dx, !dy) f =
   newArray_ ((0,0,0), (h-1,w-1,3)) >>= go 0 0 x1 y1
   where
     n = 4 * w * h

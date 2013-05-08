@@ -7,7 +7,7 @@ import Fractals.Definitions
 import Fractals.Output
 
 main :: IO ()
-main = ilInit >> array mandelbrot2' 200 4 area >>= unsafeFreeze >>= writeImage "dist/mandelbrot.png"
+main = ilInit >> rgbaArray mandelbrot2' 200 4 area >>= unsafeFreeze >>= writeImage "dist/mandelbrot.png"
   where
     screen@(w, h) = (1920, 1080)
     aspect = realToFrac w / realToFrac h

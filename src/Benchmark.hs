@@ -7,7 +7,7 @@ import Fractals.Definitions
 import Fractals.Output
 
 test :: Definition -> IO ()
-test def = void $ array def 100 4 area
+test def = void $ rgbaArray def 100 4 area
   where
     screen@(w, h) = (1000, 1000)
     aspect = realToFrac w / realToFrac h
