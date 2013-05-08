@@ -35,3 +35,8 @@ executable mandelbrot
   main-is: src/Mandelbrot.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
+
+executable benchmark
+  main-is: src/Benchmark.hs
+  build-depends: fractals, base, mtl, criterion
+  ghc-options: -Wall
