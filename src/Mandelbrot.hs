@@ -1,11 +1,13 @@
 module Main where
 
+import Codec.Image.DevIL
+import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Definitions
-import Fractals.Image
+import Fractals.Output
 
 main :: IO ()
-main = writeFractal mandelbrot2' 200 4 area "dist/mandelbrot.png"
+main = array mandelbrot2' 200 4 area >>= unsafeFreeze >>= writeImage "dist/mandelbrot.png"
   where
     screen@(w, h) = (1920, 1080)
     aspect = realToFrac w / realToFrac h

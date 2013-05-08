@@ -1,10 +1,14 @@
 module Main where
 
+import Codec.Image.DevIL
+import Data.Array.Unsafe
 import Fractals.Args
-import Fractals.Image
+import Fractals.Output
 import System.Environment
 
 main :: IO ()
 main = do
   (f, [img]) <- parseFractal `fmap` getArgs
-  writeFractal (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f) img
+  a <- array (fractalDefinition f) (fractalIter f) (fractalMaxAbs f) (fractalArea f)
+  a' <- unsafeFreeze a
+  writeImage img a'
