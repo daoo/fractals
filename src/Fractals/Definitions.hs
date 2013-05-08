@@ -14,9 +14,9 @@ type Definition = Comp -> R -> Int -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot !1 !p = countIterations (0:+0) (+p)
-mandelbrot !2 !p = countIterations (0:+0) (\z -> z * z + p)
-mandelbrot !3 !p = countIterations (0:+0) (\z -> z * z * z + p)
+mandelbrot  1 !p = countIterations (0:+0) (+p)
+mandelbrot  2 !p = countIterations (0:+0) (\z -> z * z + p)
+mandelbrot  3 !p = countIterations (0:+0) (\z -> z * z * z + p)
 mandelbrot !a !p = countIterations (0:+0) (\z -> z ^ a + p)
 
 {-# INLINE burningShip #-}
@@ -38,7 +38,7 @@ countIterations !z0 znext !maxAbs !maxIter = go 0 z0
 
 {-# INLINE mandelbrot2' #-}
 mandelbrot2' :: Definition
-mandelbrot2' !(px :+ py) !maxAbs !maxIter = go 0 (0, 0) (0, 0)
+mandelbrot2' (px :+ py) !maxAbs !maxIter = go 0 (0, 0) (0, 0)
   where
     go !i (!x, !y) (!xx, !yy) = if i >= maxIter || (xx + yy) >= maxAbs
       then i

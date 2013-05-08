@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 module Fractals.Args
   ( Fractal(..)
   , pop
@@ -47,21 +46,22 @@ parseArea = fromRectangle <$> popPoint <*> popPoint <*> popPoint
 {-# INLINE parseMandelbrot #-}
 {-# INLINE parseJulia #-}
 parseMandelbrot :: State [String] Definition
-parseMandelbrot = (read <$> pop) >>= return . \case
-  2 -> mandelbrot2'
-  n -> mandelbrot n
+parseMandelbrot = f . read <$> pop
+  where
+    f 2 = mandelbrot2'
+    f n = mandelbrot n
 
 parseJulia :: State [String] Definition
 parseJulia = julia <$> popComp
 
 {-# INLINE parseFractal #-}
 parseFractal :: [String] -> (Fractal, [String])
-parseFractal = parseFractal1
-  (pop >>= \case
-    "mandelbrot"  -> parseMandelbrot
-    "burningship" -> return burningShip
-    "julia"       -> parseJulia
-    _             -> undefined)
+parseFractal = parseFractal1 (pop >>= f)
+  where
+    f "mandelbrot"  = parseMandelbrot
+    f "burningship" = return burningShip
+    f "julia"       = parseJulia
+    f _             = undefined
 
 {-# INLINE parseFractal1 #-}
 parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])

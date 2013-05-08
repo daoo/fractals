@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Fractals.Utility where
 
 -- |Square a number
