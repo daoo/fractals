@@ -5,7 +5,7 @@ module Fractals.Image
 
 import Codec.Image.DevIL
 import Data.Array.Base (unsafeWrite)
-import Data.Array.ST
+import Data.Array.IO
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
@@ -13,17 +13,14 @@ import Fractals.Definitions
 
 {-# INLINE writeFractal #-}
 writeFractal :: Definition -> Int -> R -> Area -> FilePath -> IO ()
-writeFractal !fractal !iter !maxabs !area !fp = do
-  ilInit
-  writeImage fp $ runSTUArray $ build (areaScreen area) (areaTopLeft area) (areaDelta area) func
+writeFractal !fractal !iter !maxabs !area !fp = ilInit >> build' >>= freeze >>= writeImage fp
   where
-    func !x !y = greyscale iter $ fractal (x:+y) maxabs iter
-
-type Index = (Int, Int, Int)
+    build'   = build (areaScreen area) (areaTopLeft area) (areaDelta area) func
+    func x y = greyscale iter $ fractal (x:+y) maxabs iter
 
 {-# INLINE build #-}
-build :: (MArray a Word8 m) => (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> (Word8, Word8, Word8)) -> m (a Index Word8)
-build (!w, !h) (!x1, !y1) (!dx, !dy) f = newArray_ ((0, 0, 0), (h-1, w-1, 3)) >>= go 0 0 x1 y1
+build :: (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> (Word8, Word8, Word8)) -> IO (IOUArray (Int, Int, Int) Word8)
+build (!w, !h) (!x1, !y1) (!dx, !dy) f = newArray_ ((0,0,0), (h-1,w-1,3)) >>= go 0 0 x1 y1
   where
     n = 4 * w * h
 
