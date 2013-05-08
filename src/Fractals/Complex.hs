@@ -6,10 +6,13 @@ module Fractals.Complex
 
 type R = Double
 
+-- |Definition of a complex number
 data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
   deriving Show
 
 {-# INLINE magnitudeSquared #-}
+-- |The magintude of a complex number squared.
+-- Avoids the expensive square root.
 magnitudeSquared :: Comp -> R
 magnitudeSquared (a :+ b) = a*a + b*b
 
