@@ -21,6 +21,7 @@ lists fractal iter maxabs area = buildLists
   (areaDelta area)
   (\x y -> fractal (x:+y) maxabs iter)
 
+{-# INLINE buildLists #-}
 buildLists :: (Int, Int) -> (R, R) -> (R, R) -> (R -> R -> Int) -> [[Int]]
 buildLists (!w, !h) (!x1, !y1) (!dx, !dy) f = goy 0 y1
   where
