@@ -47,3 +47,8 @@ benchmark bench
   main-is: src/Benchmark.hs
   build-depends: fractals, base, mtl, criterion
   ghc-options: -Wall
+
+test-suite properties
+  type: exitcode-stdio-1.0
+  main-is: src/Properties.hs
+  build-depends: fractals, base, smallcheck
