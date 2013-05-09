@@ -36,13 +36,13 @@ executable mandelbrot
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
-executable benchmark
-  main-is: src/Benchmark.hs
-  build-depends: fractals, base, mtl, criterion
-  ghc-options: -Wall
-
 executable fractals-image-rational
   main-is: src/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
   cpp-options: -DRATIONAL
+
+executable benchmark
+  main-is: src/Benchmark.hs
+  build-depends: fractals, base, mtl, criterion
+  ghc-options: -Wall
