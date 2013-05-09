@@ -1,19 +1,10 @@
-{-# LANGUAGE MagicHash #-}
 module Fractals.Coloring
   ( ascii
   , greyscale
   ) where
 
 import Data.Word
-import GHC.Exts
-
-{-# INLINE unsafeQuot #-}
-unsafeQuot :: Int -> Int -> Int
-unsafeQuot (I# x) (I# y) = I# (quotInt# x y)
-
-{-# INLINE scale #-}
-scale :: Int -> Int -> Int -> Int
-scale t m i = (i * t) `unsafeQuot` (m + 1)
+import Fractals.Utility
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
