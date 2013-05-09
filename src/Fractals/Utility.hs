@@ -16,7 +16,7 @@ square x = x * x
 scale :: Int -- ^ End of the first range [0, a], must be greater than zero
       -> Int -- ^ End of the second range [0, b], must be greater than zero
       -> Int -- ^ The number within range [0, a]
-      -> Int
-scale a b i = (i * a) `unsafeQuot` (b + 1)
+      -> Int -- ^ Number in range [0, b]
+scale a b i = (i * b) `unsafeQuot` a
   where
     unsafeQuot (I# x) (I# y) = I# (quotInt# x y)

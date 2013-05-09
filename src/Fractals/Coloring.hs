@@ -8,7 +8,8 @@ import Fractals.Utility
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
-ascii m i = case scale 11 m i of
+ascii m i = case scale m 10 i of
+  0  -> ' '
   1  -> '-'
   2  -> '~'
   3  -> '+'
@@ -19,8 +20,8 @@ ascii m i = case scale 11 m i of
   8  -> '@'
   9  -> '&'
   10 -> '$'
-  _  -> ' '
+  _  -> undefined
 
 {-# INLINE greyscale #-}
 greyscale :: Int -> Int -> (Word8, Word8, Word8)
-greyscale m i = (c, c, c) where c = fromIntegral $ scale 256 m i
+greyscale m i = (c, c, c) where c = fromIntegral $ scale m 255 i
