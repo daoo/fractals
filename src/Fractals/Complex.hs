@@ -12,6 +12,8 @@ type R = Rational
 type R = Double
 #endif
 
+infix 1 :+
+
 -- |Definition of a complex number
 data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
   deriving Show

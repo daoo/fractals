@@ -41,7 +41,7 @@ popComp = uncurry (:+) `fmap` popPoint
 
 {-# INLINE parseArea #-}
 parseArea :: State [String] Area
-parseArea = fromRectangle <$> popPoint <*> popPoint <*> popPoint
+parseArea = fromRectangle <$> popPoint <*> popComp <*> popComp
 
 {-# INLINE parseMandelbrot #-}
 {-# INLINE parseJulia #-}

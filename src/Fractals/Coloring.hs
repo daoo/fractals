@@ -1,10 +1,13 @@
 module Fractals.Coloring
-  ( ascii
+  ( RGB
+  , ascii
   , greyscale
   ) where
 
 import Data.Word
 import Fractals.Utility
+
+type RGB = (Word8, Word8, Word8)
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
@@ -23,5 +26,5 @@ ascii m i = case scale m 10 i of
   _  -> undefined
 
 {-# INLINE greyscale #-}
-greyscale :: Int -> Int -> (Word8, Word8, Word8)
+greyscale :: Int -> Int -> RGB
 greyscale m i = (c, c, c) where c = fromIntegral $ scale m 255 i
