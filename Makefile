@@ -8,6 +8,11 @@ release:
 	@cabal-dev build --ghc-options="-fllvm -H64m"
 
 configure:
+	@cabal-dev configure \
+		--enable-library-profiling \
+		--enable-executable-profiling \
+		--enable-benchmarks \
+		--enable-tests
 	@cabal-dev install \
 		--force-reinstalls \
 		--enable-library-profiling \
