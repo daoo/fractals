@@ -1,13 +1,6 @@
 module Fractals.Args
   ( Fractal(..)
-  , pop
-  , popPoint
-  , popComp
-  , parseArea
-  , parseMandelbrot
-  , parseJulia
   , parseFractal
-  , parseFractal1
   , call
   ) where
 
@@ -44,13 +37,13 @@ parseArea :: State [String] Area
 parseArea = fromRectangle <$> popPoint <*> popComp <*> popComp
 
 {-# INLINE parseMandelbrot #-}
-{-# INLINE parseJulia #-}
 parseMandelbrot :: State [String] Definition
 parseMandelbrot = f . read <$> pop
   where
     f 2 = mandelbrot2'
     f n = mandelbrot n
 
+{-# INLINE parseJulia #-}
 parseJulia :: State [String] Definition
 parseJulia = julia <$> popComp
 
