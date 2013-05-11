@@ -42,6 +42,11 @@ executable fractals-image-rational
   ghc-options: -Wall
   cpp-options: -DRATIONAL
 
+executable fractals-opengl
+  main-is: src/OpenGL.hs
+  build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLUT
+  ghc-options: -Wall
+
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: src/Benchmark.hs
