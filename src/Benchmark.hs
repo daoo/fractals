@@ -24,5 +24,8 @@ test def = void $ rgbaArray (greyscaleToRgba `xy` greyscale) def 100 4 area
 main :: IO ()
 main = defaultMain
   [ bench "mandelbrot 2" $ test (mandelbrot 2)
-  , bench "mandelbrot2'" $ test burningShip
+  , bench "mandelbrot2"  $ test mandelbrot2
+  , bench "mandelbrot 3" $ test (mandelbrot 3)
+  , bench "mandelbrot3"  $ test mandelbrot3
+  , bench "burningship"  $ test burningShip
   ]
