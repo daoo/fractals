@@ -22,5 +22,4 @@ test def = void $ rgbaArray def 100 4 area
 main :: IO ()
 main = defaultMain
   [ bench "mandelbrot 2" $ test (mandelbrot 2)
-  , bench "mandelbrot2'" $ test mandelbrot2'
   ]

@@ -38,10 +38,7 @@ parseArea = fromRectangle <$> popPoint <*> popComp <*> popComp
 
 {-# INLINE parseMandelbrot #-}
 parseMandelbrot :: State [String] Definition
-parseMandelbrot = f . read <$> pop
-  where
-    f 2 = mandelbrot2'
-    f n = mandelbrot n
+parseMandelbrot = mandelbrot . read <$> pop
 
 {-# INLINE parseJulia #-}
 parseJulia :: State [String] Definition
