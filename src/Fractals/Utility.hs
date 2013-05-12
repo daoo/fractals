@@ -3,6 +3,9 @@ module Fractals.Utility where
 
 import GHC.Exts
 
+xy :: (a -> b) -> (t1 -> t2 -> a) -> t1 -> t2 -> b
+xy f g a b = f (g a b)
+
 -- |Square a number
 {-# INLINE square #-}
 square :: Num a => a -> a

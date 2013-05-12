@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, FlexibleContexts #-}
 module Fractals.Render
   ( rgbaArray
   , lists
@@ -48,34 +48,39 @@ buildString (!w, !h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
       | j == h    = []
       | otherwise = f x y : go (i+1) j (x+dx) y
 
-type RgbaArray = IOUArray (Int, Int, Int) Word8
-
-{-# INLINE newRgbaArray #-}
-newRgbaArray :: Area -> IO RgbaArray
-newRgbaArray area = newArray_ ((0,0,0), (h-1,w-1,3))
-  where (w, h) = areaScreen area
+writeRGBA :: (Monad m, MArray a Word8 m, Ix i) => a i Word8 -> Int -> RGBA -> m ()
+writeRGBA arr n (r, g, b, a) = do
+  unsafeWrite arr n r
+  unsafeWrite arr (n+1) g
+  unsafeWrite arr (n+2) b
+  unsafeWrite arr (n+3) a
 
 {-# INLINE rgbaArray #-}
-rgbaArray :: Definition -> Int -> R -> Area -> IO (IOUArray (Int, Int, Int) Word8)
-rgbaArray !fractal !iter !maxabs !area = newRgbaArray area >>= fillRgbaArray
+rgbaArray :: (Int -> Int -> RGBA) -> Definition -> Int -> R -> Area -> IO (IOUArray (Int, Int, Int) Word8)
+rgbaArray !color !fractal !iter !maxabs !area = newArray_ ((0,0,0), (h-1,w-1,3)) >>= fillArray
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\x y -> greyscale iter $ fractal (x:+y) maxabs iter)
+  (\arr n x y -> writeRGBA arr n $ color iter $ fractal (x:+y) maxabs iter)
+  (+4)
 
-{-# INLINE fillRgbaArray #-}
-fillRgbaArray :: (Int, Int) -> Comp -> Comp -> (R -> R -> RGB) -> RgbaArray -> IO RgbaArray
-fillRgbaArray (!w, !h) (x1:+y1) (dx:+dy) f arr = go 0 0 x1 y1
+  where
+    (w, h) = areaScreen area
+
+{-# INLINE fillArray #-}
+fillArray :: (Monad m, MArray a e m)
+  => (Int, Int)
+  -> Comp
+  -> Comp
+  -> (a i e -> Int -> R -> R -> m ())
+  -> (Int -> Int)
+  -> a i e
+  -> m (a i e)
+fillArray (!w, !h) (x1:+y1) (dx:+dy) f next arr = go 0 0 x1 y1
   where
     n = 4 * w * h
-
-    write i (r, g, b) = do
-      unsafeWrite arr i r
-      unsafeWrite arr (i + 1) g
-      unsafeWrite arr (i + 2) b
-      unsafeWrite arr (i + 3) 255
 
     go !i !j !x !y
       | i == w    = go 0 j x1 (y+dy)
       | j == n    = return arr
-      | otherwise = write j (f x y) >> go (i+1) (j+4) (x+dx) y
+      | otherwise = f arr j x y >> go (i+1) (next j) (x+dx) y
