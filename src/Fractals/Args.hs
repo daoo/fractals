@@ -53,7 +53,7 @@ parseFractal = parseFractal1 (pop >>= f)
     f "mandelbrot3" = return mandelbrot3
     f "burningship" = return burningShip
     f "julia"       = parseJulia
-    f _             = undefined
+    f _             = return mandelbrot2
 
 {-# INLINE parseFractal1 #-}
 parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])
