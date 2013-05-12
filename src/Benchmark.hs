@@ -16,10 +16,7 @@ test def = void $ rgbaArray (greyscaleToRgba `xy` greyscale) def 100 4 area
     screen@(w, h) = (1000, 1000)
     aspect = realToFrac w / realToFrac h
 
-    area = fromRectangle
-      screen
-      (4.3        :+ 4.3 / aspect)
-      (-4.3 / 2.0 :+ 4.3 / aspect / 2.0)
+    area = aspectCentered (1920, 1080) 4.3 (-2.0:+0)
 
 main :: IO ()
 main = defaultMain

@@ -1,6 +1,7 @@
 module Fractals.Area
   ( Area(..)
   , fromRectangle
+  , aspectCentered
   ) where
 
 import Fractals.Complex
@@ -20,3 +21,14 @@ data Area = Area
 fromRectangle :: (Int, Int) -> Comp -> Comp -> Area
 fromRectangle screen@(w, h) plane@(pw:+ph) topleft =
   Area screen plane topleft (pw / realToFrac w :+ - ph / realToFrac h)
+
+{-# INLINE aspectCentered #-}
+aspectCentered :: (Int, Int) -> R -> Comp -> Area
+aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
+  where
+    w'            = realToFrac w
+    h'            = realToFrac h
+    aspect        = w' / h'
+    plane@(_:+ph) = pw :+ pw / aspect
+    topleft       = x - pw / 2 :+ y + ph / 2
+    delta         = pw / w' :+ - ph / h'
