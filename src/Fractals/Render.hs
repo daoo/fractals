@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 module Fractals.Render
   ( rgbaArray
+  , fillRgbaArray
   , lists
   , string
   ) where

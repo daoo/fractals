@@ -5,6 +5,8 @@ import Data.Array.IO
 import Data.IORef
 import Data.Word
 import Fractals.Area
+import Fractals.Coloring
+import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Render
 import Graphics.Rendering.OpenGL
@@ -42,10 +44,6 @@ checkedLinkProgram prog = do
     get (programInfoLog prog) >>= putStrLn
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
-
-data State = State
-  { glFbTexture :: TextureObject
-  }
 
 fragmentShader :: String
 fragmentShader =
@@ -115,16 +113,34 @@ main = do
   mainLoop
 
 type Array = IOUArray (Int, Int, Int) Word8
-data State = State Array Size Area
+data State = State Array !Int Area
 
-render :: Array -> Size -> Area -> IO ()
-render = undefined
+maxabs :: R
+maxabs = 4
+
+render :: Array -> Int -> Area -> IO ()
+render arr iter area = void $ fillRgbaArray
+  (areaScreen area)
+  (areaTopLeft area)
+  (areaDelta area)
+  (\x y -> greyscale iter $ mandelbrot2' (x:+y) maxabs iter)
+  arr
 
 reshape :: IORef State -> Size -> IO ()
-reshape = render
+reshape ref (Size w h) = do
+  State arr iter area <- readIORef ref
+  let area' = area { areaScreen = (fromIntegral w, fromIntegral h) }
+  render arr iter area
+  writeIORef ref (State arr iter area')
+
+texturize :: IORef State -> IO ()
+texturize ref = do
+  State arr iter area <- readIORef ref
+  let (w, h) = areaScreen area
+  --texImage2D Nothing 0 RGBA8 (TextureSize2D w h) 0 (PixelData<
+  return ()
 
 display :: IORef State -> IO ()
 display ref = do
   clear [ ColorBuffer ]
-  
   flush
