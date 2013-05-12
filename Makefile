@@ -5,18 +5,17 @@ prof:
 	@cabal-dev build --ghc-options="-rtsopts -prof -fprof-auto -H64m"
 
 release:
-	@cabal-dev build --ghc-options="-fllvm -H64m"
+	@cabal-dev build --ghc-options="-fllvm -H64m -O2"
 
 configure:
-	@cabal-dev configure \
+	@cabal-dev install \
+		--reinstall \
+		--force-reinstalls \
 		--enable-library-profiling \
 		--enable-executable-profiling \
 		--enable-benchmarks \
 		--enable-tests
-	@cabal-dev install \
-		--force-reinstalls \
-		--enable-library-profiling \
-		--enable-executable-profiling \
+	@cabal-dev configure \
 		--enable-benchmarks \
 		--enable-tests
 
