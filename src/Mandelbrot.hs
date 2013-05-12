@@ -12,7 +12,7 @@ import Fractals.Utility
 main :: IO ()
 main = do
   ilInit
-  arr <- rgbaArray (greyscaleToRgba `xy` greyscale) (mandelbrot 2) 200 4 area
+  arr <- rgbaArray (greyscaleToRgba `xy` greyscale) mandelbrot2 200 4 area
   unsafeFreeze arr >>= writeImage "dist/mandelbrot.png"
   where
     screen@(w, h) = (1920, 1080)

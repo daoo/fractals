@@ -49,6 +49,8 @@ parseFractal :: [String] -> (Fractal, [String])
 parseFractal = parseFractal1 (pop >>= f)
   where
     f "mandelbrot"  = parseMandelbrot
+    f "mandelbrot2" = return mandelbrot2
+    f "mandelbrot3" = return mandelbrot3
     f "burningship" = return burningShip
     f "julia"       = parseJulia
     f _             = undefined

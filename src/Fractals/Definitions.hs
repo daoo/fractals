@@ -2,6 +2,8 @@
 module Fractals.Definitions
   ( Definition
   , mandelbrot
+  , mandelbrot2
+  , mandelbrot3
   , burningShip
   , julia
   ) where
@@ -13,10 +15,15 @@ type Definition = Comp -> R -> Int -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot  1 !p = countIterations (0:+0) (+p)
-mandelbrot  2 !p = countIterations (0:+0) (\z -> z * z + p)
-mandelbrot  3 !p = countIterations (0:+0) (\z -> z * z * z + p)
 mandelbrot !a !p = countIterations (0:+0) (\z -> z ^ a + p)
+
+{-# INLINE mandelbrot2 #-}
+mandelbrot2 :: Definition
+mandelbrot2 !p = countIterations (0:+0) (\z -> z * z + p)
+
+{-# INLINE mandelbrot3 #-}
+mandelbrot3 :: Definition
+mandelbrot3 !p = countIterations (0:+0) (\z -> z * z * z + p)
 
 {-# INLINE burningShip #-}
 burningShip :: Definition
