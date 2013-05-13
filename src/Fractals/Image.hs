@@ -35,7 +35,7 @@ instance ImageArray Greyscale IOUArray (Int, Int) Word8 IO where
       (areaTopLeft area)
       (areaDelta area)
       (\n x y -> write i n $ color iter $ fractal (x:+y) maxabs iter)
-      (+1)
+      1
     return i
 
 instance ImageArray RGBA IOUArray (Int, Int, Int) Word8 IO where
@@ -57,7 +57,7 @@ instance ImageArray RGBA IOUArray (Int, Int, Int) Word8 IO where
       (areaTopLeft area)
       (areaDelta area)
       (\n x y -> write i n $ color iter $ fractal (x:+y) maxabs iter)
-      (+4)
+      4
     return i
 
 {-# INLINE fillArray #-}
@@ -66,13 +66,13 @@ fillArray :: (Monad m)
   -> Comp
   -> Comp
   -> (Int -> R -> R -> m ())
-  -> (Int -> Int)
+  -> Int
   -> m ()
-fillArray (!w, !h) (x1:+y1) (dx:+dy) f next = go 0 0 x1 y1
+fillArray (w, h) (x1:+y1) (dx:+dy) f d = go 0 0 x1 y1
   where
-    n = 4 * w * h
+    n = d * w * h
 
     go !i !j !x !y
       | i == w    = go 0 j x1 (y+dy)
       | j == n    = return ()
-      | otherwise = f j x y >> go (i+1) (next j) (x+dx) y
+      | otherwise = f j x y >> go (i+1) (j+d) (x+dx) y
