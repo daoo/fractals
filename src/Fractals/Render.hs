@@ -2,6 +2,7 @@
 module Fractals.Render
   ( rgbaArray
   , fillArray
+  , fillRgbaArray
   , lists
   , string
   ) where
@@ -76,6 +77,22 @@ rgbaArray !color !fractal !iter !maxabs !area =
     (areaDelta area)
     (\arr n x y -> writeRGBA arr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
     (+4)
+
+{-# INLINE fillRgbaArray #-}
+fillRgbaArray :: (Color c)
+  => (Int -> Int -> c)
+  -> Definition
+  -> Int
+  -> R
+  -> Area
+  -> IOUArray (Int, Int, Int) Word8
+  -> IO (IOUArray (Int, Int, Int) Word8)
+fillRgbaArray color fractal iter maxabs area = fillArray
+  (areaScreen area)
+  (areaTopLeft area)
+  (areaDelta area)
+  (\arr n x y -> writeRGBA arr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
+  (+4)
 
 {-# INLINE fillArray #-}
 fillArray :: (Monad m, MArray a e m)
