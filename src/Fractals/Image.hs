@@ -3,7 +3,7 @@ module Fractals.Image where
 
 import Control.Applicative
 import Data.Array.Base (unsafeWrite)
-import Data.Array.IO hiding (unsafeFreeze)
+import Data.Array.IO
 import Data.Word
 import Fractals.Area
 import Fractals.Coloring
