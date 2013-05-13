@@ -1,8 +1,9 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 module Fractals.Coloring
   ( Greyscale
   , RGB
   , RGBA
-  , greyscaleToRgba
+  , Color(..)
   , ascii
   , greyscale
   ) where
@@ -14,9 +15,12 @@ type Greyscale = Word8
 type RGB       = (Word8, Word8, Word8)
 type RGBA      = (Word8, Word8, Word8, Word8)
 
-{-# INLINE greyscaleToRgba #-}
-greyscaleToRgba :: Greyscale -> RGBA
-greyscaleToRgba c = (c, c, c, 255)
+class Color c where
+  toRgba :: c -> RGBA
+
+instance Color Greyscale where
+  {-# INLINE toRgba #-}
+  toRgba c = (c, c, c, 255)
 
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char

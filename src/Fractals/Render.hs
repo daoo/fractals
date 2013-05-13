@@ -61,18 +61,19 @@ newRgbaArray :: (Int, Int) -> IO (IOUArray (Int, Int, Int) Word8)
 newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1,3))
 
 {-# INLINE rgbaArray #-}
-rgbaArray :: (Int -> Int -> RGBA)
-          -> Definition
-          -> Int
-          -> R
-          -> Area
-          -> IO (IOUArray (Int, Int, Int) Word8)
+rgbaArray :: (Color c)
+  => (Int -> Int -> c)
+  -> Definition
+  -> Int
+  -> R
+  -> Area
+  -> IO (IOUArray (Int, Int, Int) Word8)
 rgbaArray !color !fractal !iter !maxabs !area =
   newRgbaArray (areaScreen area) >>= fillArray
     (areaScreen area)
     (areaTopLeft area)
     (areaDelta area)
-    (\arr n x y -> writeRGBA arr n $ color iter $ fractal (x:+y) maxabs iter)
+    (\arr n x y -> writeRGBA arr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
     (+4)
 
 {-# INLINE fillArray #-}
