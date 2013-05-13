@@ -119,11 +119,12 @@ maxabs :: R
 maxabs = 4
 
 render :: Array -> Int -> Area -> IO ()
-render arr iter area = void $ fillArray
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\x y -> greyscale iter $ mandelbrot2 (x:+y) maxabs iter)
+render arr iter area = void $ fillRgbaArray
+  greyscale
+  mandelbrot2
+  iter
+  maxabs
+  area
   arr
 
 reshape :: IORef State -> Size -> IO ()
