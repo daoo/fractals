@@ -38,10 +38,7 @@ parseArea = fromRectangle <$> popPoint <*> popComp <*> popComp
 
 {-# INLINE parseMandelbrot #-}
 parseMandelbrot :: State [String] Definition
-parseMandelbrot = f . read <$> pop
-  where
-    f 2 = mandelbrot2'
-    f n = mandelbrot n
+parseMandelbrot = mandelbrot . read <$> pop
 
 {-# INLINE parseJulia #-}
 parseJulia :: State [String] Definition
@@ -52,9 +49,11 @@ parseFractal :: [String] -> (Fractal, [String])
 parseFractal = parseFractal1 (pop >>= f)
   where
     f "mandelbrot"  = parseMandelbrot
+    f "mandelbrot2" = return mandelbrot2
+    f "mandelbrot3" = return mandelbrot3
     f "burningship" = return burningShip
     f "julia"       = parseJulia
-    f _             = undefined
+    f _             = return mandelbrot2
 
 {-# INLINE parseFractal1 #-}
 parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])
