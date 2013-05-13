@@ -49,6 +49,7 @@ buildString (!w, !h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
       | j == h    = []
       | otherwise = f x y : go (i+1) j (x+dx) y
 
+{-# INLINE writeRGBA #-}
 writeRGBA :: (Monad m, MArray a Word8 m, Ix i) => a i Word8 -> Int -> RGBA -> m ()
 writeRGBA arr n (r, g, b, a) = do
   unsafeWrite arr n r
@@ -56,17 +57,25 @@ writeRGBA arr n (r, g, b, a) = do
   unsafeWrite arr (n+2) b
   unsafeWrite arr (n+3) a
 
-{-# INLINE rgbaArray #-}
-rgbaArray :: (Int -> Int -> RGBA) -> Definition -> Int -> R -> Area -> IO (IOUArray (Int, Int, Int) Word8)
-rgbaArray !color !fractal !iter !maxabs !area = newArray_ ((0,0,0), (h-1,w-1,3)) >>= fillArray
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\arr n x y -> writeRGBA arr n $ color iter $ fractal (x:+y) maxabs iter)
-  (+4)
+{-# INLINE newRgbaArray #-}
+newRgbaArray :: (Int, Int) -> IO (IOUArray (Int, Int, Int) Word8)
+newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1,3))
 
-  where
-    (w, h) = areaScreen area
+{-# INLINE rgbaArray #-}
+rgbaArray :: (Color c)
+  => (Int -> Int -> c)
+  -> Definition
+  -> Int
+  -> R
+  -> Area
+  -> IO (IOUArray (Int, Int, Int) Word8)
+rgbaArray !color !fractal !iter !maxabs !area =
+  newRgbaArray (areaScreen area) >>= fillArray
+    (areaScreen area)
+    (areaTopLeft area)
+    (areaDelta area)
+    (\arr n x y -> writeRGBA arr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
+    (+4)
 
 {-# INLINE fillArray #-}
 fillArray :: (Monad m, MArray a e m)
