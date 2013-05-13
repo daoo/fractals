@@ -31,6 +31,12 @@ instance Color RGB where
   toRgb            = id
   toRgba (r, g, b) = (r, g, b, 255)
 
+instance Color RGBA where
+  {-# INLINE toRgb #-}
+  {-# INLINE toRgba #-}
+  toRgb (r, g, b, _) = (r, g, b)
+  toRgba             = id
+
 {-# INLINE ascii #-}
 ascii :: Int -> Int -> Char
 ascii m i = case scale m 10 i of
