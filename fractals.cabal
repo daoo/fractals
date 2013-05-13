@@ -51,7 +51,7 @@ executable fractals-opengl
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: src/Benchmark.hs
-  build-depends: fractals, base, mtl, criterion
+  build-depends: fractals, base, mtl, criterion, array
   ghc-options: -Wall
 
 test-suite properties
