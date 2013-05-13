@@ -1,17 +1,36 @@
 module Main where
 
 import Control.Monad
-import Data.Array.IO
+import Data.Array.Storable
 import Data.IORef
 import Data.Word
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Render
+import Fractals.Image
 import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 import System.Exit
+
+type Array = Image RGB StorableArray (Int, Int, Int) Word8
+data State = State Array !Int Area
+
+newStateRef :: IO (IORef State)
+newStateRef = do
+  img <- new (1920, 1080)
+  newIORef $ State img 100 (aspectCentered (1920, 1080) 4.3 (-2.0:+0))
+
+maxabs :: R
+maxabs = 4
+
+render :: Array -> Int -> Area -> IO ()
+render img iter area = void $ fillArray
+  (areaScreen area)
+  (areaTopLeft area)
+  (areaDelta area)
+  (\n x y -> write img n $ toRgb $ greyscale iter $ mandelbrot2 (x:+y) maxabs iter)
+  3
 
 createShader :: Shader s => String -> IO s
 createShader src = do
@@ -76,6 +95,7 @@ vertexShader =
 
 initGL :: IO ()
 initGL = do
+  -- Shaders
   vs <- createShader vertexShader
   fs <- createShader fragmentShader
   prog <- createProgram vs fs
@@ -87,11 +107,15 @@ initGL = do
         reportErrors
         uniform location $= val
 
+  -- Framebuffer texture
   [fbTexture] <- genObjectNames 1 :: IO [TextureObject]
   textureFilter Texture2D  $= ((Linear', Nothing), Linear')
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just fbTexture
   setUniform "frambuffer" (TextureUnit 0)
+
+  -- VBO
+  -- TODO
 
 input :: KeyboardMouseCallback
 input key state _ _ =
@@ -106,26 +130,11 @@ main = do
   initialDisplayMode $= [ SingleBuffered, RGBMode ]
   _ <- createWindow progname
   initGL
-  ref <- newIORef undefined
+  ref <- newStateRef
   reshapeCallback $= Just (reshape ref)
   keyboardMouseCallback $= Just input
   displayCallback $= (display ref)
   mainLoop
-
-type Array = IOUArray (Int, Int, Int) Word8
-data State = State Array !Int Area
-
-maxabs :: R
-maxabs = 4
-
-render :: Array -> Int -> Area -> IO ()
-render arr iter area = void $ fillRgbaArray
-  greyscale
-  mandelbrot2
-  iter
-  maxabs
-  area
-  arr
 
 reshape :: IORef State -> Size -> IO ()
 reshape ref (Size w h) = do
@@ -136,12 +145,17 @@ reshape ref (Size w h) = do
 
 texturize :: IORef State -> IO ()
 texturize ref = do
-  State arr iter area <- readIORef ref
-  let (w, h) = areaScreen area
-  --texImage2D Nothing 0 RGBA8 (TextureSize2D w h) 0 (PixelData<
-  return ()
+  State (Image arr) _ area <- readIORef ref
+  withStorableArray arr (\ptr -> tex (size $ areaScreen area) (PixelData RGB UnsignedByte ptr))
+
+  where
+    size (w, h) = TextureSize2D (fromIntegral w) (fromIntegral h)
+    tex s pixeldata = texImage2D Nothing NoProxy 0 RGB8 s 0 pixeldata
 
 display :: IORef State -> IO ()
 display ref = do
   clear [ ColorBuffer ]
+  State img iter area <- readIORef ref
+  render img iter area
+  texturize ref
   flush
