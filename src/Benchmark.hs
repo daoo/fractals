@@ -6,11 +6,12 @@ import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Render
+import Fractals.Image
+import Fractals.Utility
 
 {-# INLINE test #-}
 test :: Definition -> IO ()
-test def = void $ rgbaArray greyscale def 100 4 area
+test def = void $ (create (toRgba `xy` greyscale) def 100 4 area :: IO RgbaImage)
   where
     area = aspectCentered (1000, 1000) 4.3 (-2.0:+0)
 
