@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 module Fractals.Complex
   ( Comp(..)
+  , realPart
+  , imgPart
   , R
   , magnitudeSquared
   ) where
@@ -17,6 +19,14 @@ infix 1 :+
 -- |Definition of a complex number
 data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
   deriving Show
+
+{-# INLINE realPart #-}
+realPart :: Comp -> R
+realPart (r:+_) = r
+
+{-# INLINE imgPart #-}
+imgPart :: Comp -> R
+imgPart (_:+i) = i
 
 {-# INLINE magnitudeSquared #-}
 -- |The magintude of a complex number squared.
