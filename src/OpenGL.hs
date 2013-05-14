@@ -35,6 +35,7 @@ resize ref size = do
     { stateImg  = img
     , stateArea = resizeScreen size (stateArea s)
     })
+  render ref
 
 render :: IORef State -> IO ()
 render ref = readIORef ref >>= \(State img iter area) -> fillArray
@@ -120,7 +121,7 @@ initGL = do
         uniform location $= val
 
   -- Framebuffer texture
-  [fbTexture] <- genObjectNames 1 :: IO [TextureObject]
+  [fbTexture] <- genObjectNames 1
   textureFilter Texture2D  $= ((Linear', Nothing), Linear')
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just fbTexture
@@ -141,26 +142,27 @@ main = do
   (progname, _) <- getArgsAndInitialize
   initialDisplayMode $= [ SingleBuffered, RGBMode ]
   _ <- createWindow progname
+
   initGL
   ref <- newStateRef
-  reshapeCallback $= Just (reshape ref)
+
+  reshapeCallback       $= Just (reshape ref)
   keyboardMouseCallback $= Just input
-  displayCallback $= (display ref)
+  displayCallback       $= display ref
+
   mainLoop
 
 reshape :: IORef State -> Size -> IO ()
-reshape ref (Size w h) = do
-  resize ref (fromIntegral w, fromIntegral h)
-  render ref
+reshape ref (Size w h) = resize ref (fromIntegral w, fromIntegral h)
 
 texturize :: IORef State -> IO ()
 texturize ref = do
   State (Image arr) _ area <- readIORef ref
-  withStorableArray arr (\ptr -> tex (size $ areaScreen area) (PixelData RGB UnsignedByte ptr))
+  withStorableArray arr (tex (size $ areaScreen area) . PixelData RGB UnsignedByte)
 
   where
     size (w, h) = TextureSize2D (fromIntegral w) (fromIntegral h)
-    tex s pixeldata = texImage2D Nothing NoProxy 0 RGB8 s 0 pixeldata
+    tex s = texImage2D Nothing NoProxy 0 RGB8 s 0
 
 display :: IORef State -> IO ()
 display ref = do
