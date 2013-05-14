@@ -1,7 +1,9 @@
 module Fractals.Area
   ( Area(..)
+  , areaCenter
   , fromRectangle
   , aspectCentered
+  , resizeScreen
   ) where
 
 import Fractals.Complex
@@ -15,6 +17,13 @@ data Area = Area
   , areaTopLeft :: Comp
   , areaDelta   :: Comp
   }
+
+{-# INLINE areaCenter #-}
+areaCenter :: Area -> Comp
+areaCenter area = pw / 2.0 + px :+ ph / 2.0 + py
+  where
+    (pw:+ph) = areaPlane area
+    (px:+py) = areaTopLeft area
 
 -- |Construct a Area from render size, and a rectangle in the complex plane.
 {-# INLINE fromRectangle #-}
@@ -32,3 +41,8 @@ aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
     plane@(_:+ph) = pw :+ pw / aspect
     topleft       = x - pw / 2 :+ y + ph / 2
     delta         = pw / w' :+ - ph / h'
+
+{-# INLINE resizeScreen #-}
+resizeScreen :: (Int, Int) -> Area -> Area
+resizeScreen (nw, nh) area =
+  aspectCentered (nw, nh) (realPart $ areaPlane area) (areaCenter area)
