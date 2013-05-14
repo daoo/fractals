@@ -4,6 +4,8 @@ import Control.Monad
 import Data.Array.Storable
 import Data.IORef
 import Data.Word
+import Foreign.Ptr
+import Foreign.Storable
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
@@ -127,8 +129,25 @@ initGL = do
   textureBinding Texture2D $= Just fbTexture
   setUniform "frambuffer" (TextureUnit 0)
 
-  -- VBO
-  -- TODO
+  -- VAO
+  let quad :: [GLfloat]
+      quad =
+        [  1.0, -1.0, 0.0
+        ,  1.0,  1.0, 0.0
+        , -1.0, -1.0, 0.0
+        , -1.0,  1.0, 0.0
+        ]
+
+  [positionBuffer] <- genObjectNames 1
+  bindBuffer ArrayBuffer $= Just positionBuffer
+  let n = fromIntegral $ (length quad) * sizeOf (undefined :: GLfloat)
+  arr <- newListArray (0, length quad - 1) quad
+  withStorableArray arr $ \ptr ->
+    bufferData ArrayBuffer $= (n, ptr, StaticDraw)
+
+  [vao] <- genObjectNames 1
+  bindVertexArrayObject                  $= Just vao
+  vertexAttribPointer (AttribLocation 0) $= (ToFloat, VertexArrayDescriptor 3 Float 0 nullPtr)
 
 input :: KeyboardMouseCallback
 input key state _ _ =
