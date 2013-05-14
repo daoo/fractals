@@ -17,11 +17,11 @@ area = aspectCentered (1000, 1000) 4.3 (-2.0:+0)
 
 {-# INLINE test #-}
 test :: Definition -> IO ()
-test def = void $ create (toRgba `xy` greyscale) def 100 4 area :: IO RgbaImage
+test def = void (create (toRgba `xy` greyscale) def 100 4 area :: IO RgbaImage)
 
 {-# INLINE test2 #-}
 test2 :: Definition -> IO ()
-test2 def = void $ create greyscale def 100 4 area :: IO (Image Greyscale IOUArray (Int, Int) Word8)
+test2 def = void (create greyscale def 100 4 area :: IO (Image Greyscale IOUArray (Int, Int) Word8))
 
 main :: IO ()
 main = defaultMain
