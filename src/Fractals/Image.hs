@@ -25,8 +25,7 @@ instance ImageArray Greyscale IOUArray (Int, Int) Word8 IO where
   new (w, h) = Image <$> newArray_ ((0,0), (h-1,w-1))
 
   {-# INLINE write #-}
-  write (Image arr) n c = do
-    unsafeWrite arr n c
+  write = unsafeWrite . mkArray
 
   {-# INLINE create #-}
   create !color !fractal !iter !maxabs !area = do
