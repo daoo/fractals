@@ -13,8 +13,12 @@ import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 import System.Exit
 
-type Array = Image RGB StorableArray (Int, Int, Int) Word8
-data State = State Array !Int Area
+type ImgOpenGL = Image RGB StorableArray (Int, Int, Int) Word8
+data State = State
+  { stateImg :: ImgOpenGL
+  , stateIter :: !Int
+  , stateArea :: Area
+  }
 
 newStateRef :: IO (IORef State)
 newStateRef = do
@@ -24,8 +28,16 @@ newStateRef = do
 maxabs :: R
 maxabs = 4
 
-render :: Array -> Int -> Area -> IO ()
-render img iter area = void $ fillArray
+resize :: IORef State -> (Int, Int) -> IO ()
+resize ref size = do
+  img <- new size
+  modifyIORef ref (\s -> s
+    { stateImg  = img
+    , stateArea = resizeScreen size (stateArea s)
+    })
+
+render :: IORef State -> IO ()
+render ref = readIORef ref >>= \(State img iter area) -> fillArray
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
@@ -138,10 +150,8 @@ main = do
 
 reshape :: IORef State -> Size -> IO ()
 reshape ref (Size w h) = do
-  State arr iter area <- readIORef ref
-  let area' = area { areaScreen = (fromIntegral w, fromIntegral h) }
-  render arr iter area
-  writeIORef ref (State arr iter area')
+  resize ref (fromIntegral w, fromIntegral h)
+  render ref
 
 texturize :: IORef State -> IO ()
 texturize ref = do
@@ -155,7 +165,6 @@ texturize ref = do
 display :: IORef State -> IO ()
 display ref = do
   clear [ ColorBuffer ]
-  State img iter area <- readIORef ref
-  render img iter area
+  render ref
   texturize ref
   flush
