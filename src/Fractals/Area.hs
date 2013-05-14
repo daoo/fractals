@@ -16,7 +16,7 @@ data Area = Area
   , areaPlane   :: Comp
   , areaTopLeft :: Comp
   , areaDelta   :: Comp
-  }
+  } deriving Show
 
 {-# INLINE areaCenter #-}
 areaCenter :: Area -> Comp
