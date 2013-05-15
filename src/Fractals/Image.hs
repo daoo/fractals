@@ -13,8 +13,6 @@ import Fractals.Definitions
 newtype Image c a i e = Image { mkArray :: a i e }
   deriving Show
 
-type RgbaImage = Image RGBA IOUArray (Int, Int, Int) Word8
-
 class (Monad m, MArray a e m, Color c, Ix i) => ImageArray c a i e m where
   new :: (Int, Int) -> m (Image c a i e)
   write :: Image c a i e -> Int -> c -> m ()
