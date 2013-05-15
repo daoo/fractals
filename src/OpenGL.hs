@@ -69,8 +69,8 @@ createProgram vs fs = do
   deleteObjectNames [fs]
   return prog
 
-bufferList :: Storable a => [a] -> IO BufferObject
-bufferList xs = do
+createBuffer :: Storable a => [a] -> IO BufferObject
+createBuffer xs = do
   let c = length xs
       n = fromIntegral $ c * sizeOf (head xs)
   [buffer] <- genObjectNames 1
@@ -146,10 +146,9 @@ initGL = do
   reportErrors
 
   -- Framebuffer texture
-  [fbTexture] <- genObjectNames 1
-  textureFilter Texture2D  $= ((Linear', Nothing), Linear')
+  [tex] <- genObjectNames 1
   activeTexture            $= TextureUnit 0
-  textureBinding Texture2D $= Just fbTexture
+  textureBinding Texture2D $= Just tex
   setUniform "frambuffer" (TextureUnit 0)
   reportErrors
 
@@ -162,7 +161,7 @@ initGL = do
         , -1.0,  1.0, 0.0
         ]
 
-  vao <- bufferList quad >>= createVAO
+  vao <- createBuffer quad >>= createVAO
   reportErrors
   bindVertexArrayObject $= Just vao
 
@@ -196,11 +195,12 @@ reshape ref size@(Size w h) = do
 texturize :: IORef State -> IO ()
 texturize ref = do
   State (Image arr) _ area <- readIORef ref
-  withStorableArray arr (tex (size $ areaScreen area) . PixelData RGB UnsignedByte)
-
+  withStorableArray arr (tex (areaScreen area) . PixelData RGB UnsignedByte)
   where
-    size (w, h) = TextureSize2D (fromIntegral w) (fromIntegral h)
-    tex s = texImage2D Nothing NoProxy 0 RGB8 s 0
+    tex (w, h) = texImage2D
+      Nothing NoProxy 0 RGB8
+      (TextureSize2D (fromIntegral w) (fromIntegral h))
+      0
 
 display :: IORef State -> IO ()
 display ref = do
