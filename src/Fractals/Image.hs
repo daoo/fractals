@@ -13,110 +13,50 @@ import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 
-newtype ArrayImage a i c e = ArrayImage { mkArray :: a i e }
-newtype PtrImage c e = PtrImage { mkPtr :: Ptr e }
+{-# INLINE newRgbPtr #-}
+newRgbPtr :: (Int, Int) -> IO (Ptr Word8)
+newRgbPtr (w, h) = mallocArray $ w * h * 3
 
-freePtrImage :: PtrImage c e -> IO ()
-freePtrImage = free . mkPtr
+freeRgbPtr :: Ptr Word8 -> IO ()
+freeRgbPtr = free
 
-class (Monad m, Color c) => ImageArray c e i m where
-  new   :: (Int, Int) -> m (i c e)
-  write :: i c e -> Int -> c -> m ()
-  fill  :: (Int -> Int -> c) -> Definition -> Int -> R -> Area -> i c e -> m ()
+newRgbaArray :: (MArray a Word8 m) => (Int, Int) -> m (a (Int, Int, Int) Word8)
+newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1,3))
 
-instance (Functor m, MArray a Word8 m) => ImageArray Greyscale Word8 (ArrayImage a (Int, Int)) m where
-  {-# INLINE new #-}
-  new (w, h) = ArrayImage `fmap` newArray_ ((0,0), (h-1,w-1))
+{-# INLINE writeRgbPtr #-}
+writeRgbPtr :: Color c => Ptr Word8 -> Int -> c -> IO ()
+writeRgbPtr ptr n c = do
+  let (r, g, b) = toRgb c
+      ptr' = plusPtr ptr n
+  poke ptr' r
+  poke (plusPtr ptr' 1) g
+  poke (plusPtr ptr' 2) b
 
-  {-# INLINE write #-}
-  write = unsafeWrite . mkArray
+{-# INLINE writeRgbaArray #-}
+writeRgbaArray :: (Color c, MArray a Word8 m) => a (Int, Int, Int) Word8 -> Int -> c -> m ()
+writeRgbaArray t n c = do
+  let (r, g, b) = toRgb c
+  unsafeWrite t n r
+  unsafeWrite t (n+1) g
+  unsafeWrite t (n+2) b
+  unsafeWrite t (n+3) (255 :: Word8)
 
-  {-# INLINE fill #-}
-  fill = fill' 1
-
-instance (Functor m, MArray a Word8 m) => ImageArray RGB Word8 (ArrayImage a (Int, Int, Int)) m where
-  {-# INLINE new #-}
-  new (w, h) = ArrayImage `fmap` newArray_ ((0,0,0), (h-1,w-1,2))
-
-  {-# INLINE write #-}
-  write (ArrayImage arr) n (r, g, b) = do
-    unsafeWrite arr n r
-    unsafeWrite arr (n+1) g
-    unsafeWrite arr (n+2) b
-
-  {-# INLINE fill #-}
-  fill = fill' 3
-
-instance (Functor m, MArray a Word8 m) => ImageArray RGBA Word8 (ArrayImage a (Int, Int, Int)) m where
-  {-# INLINE new #-}
-  new (w, h) = ArrayImage `fmap` newArray_ ((0,0,0), (h-1,w-1,3))
-
-  {-# INLINE write #-}
-  write (ArrayImage arr) n (r, g, b, a) = do
-    unsafeWrite arr n r
-    unsafeWrite arr (n+1) g
-    unsafeWrite arr (n+2) b
-    unsafeWrite arr (n+3) a
-
-  {-# INLINE fill #-}
-  fill = fill' 4
-
-instance ImageArray Greyscale Word8 PtrImage IO where
-  {-# INLINE new #-}
-  new (w, h) = PtrImage `fmap` mallocArray (w * h)
-
-  {-# INLINE write #-}
-  write (PtrImage ptr) n = poke (plusPtr ptr n)
-
-  {-# INLINE fill #-}
-  fill = fill' 1
-
-instance ImageArray RGB Word8 PtrImage IO where
-  {-# INLINE new #-}
-  new (w, h) = PtrImage `fmap` mallocArray (w * h * 3)
-
-  {-# INLINE write #-}
-  write (PtrImage ptr) n (r, g, b) = do
-    let p = plusPtr ptr n
-    poke p r
-    poke (plusPtr p 1) g
-    poke (plusPtr p 2) b
-
-  {-# INLINE fill #-}
-  fill = fill' 3
-
-instance ImageArray RGBA Word8 PtrImage IO where
-  {-# INLINE new #-}
-  new (w, h) = PtrImage `fmap` mallocArray (w * h * 4)
-
-  {-# INLINE write #-}
-  write (PtrImage ptr) n (r, g, b, a) = do
-    let p = plusPtr ptr n
-    poke p r
-    poke (plusPtr p 1) g
-    poke (plusPtr p 2) b
-    poke (plusPtr p 3) a
-
-  {-# INLINE fill #-}
-  fill = fill' 4
-
-{-# INLINE fill' #-}
-fill' :: ImageArray c e i m =>
-  Int ->
+{-# INLINE fillRgbaArray #-}
+fillRgbaArray :: (Color c, MArray a Word8 m) =>
   (Int -> Int -> c)
   -> Definition
   -> Int
   -> R
   -> Area
-  -> i c e
+  -> a (Int, Int, Int) Word8
   -> m ()
-fill' steps color fractal iter maxabs area img =
+fillRgbaArray color fractal iter maxabs area arr =
   filler
-    steps
+    4
     (areaScreen area)
     (areaTopLeft area)
     (areaDelta area)
-    (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
+    (\n x y -> writeRgbaArray arr n $ color iter $ fractal (x:+y) maxabs iter)
 
 {-# INLINE filler #-}
 filler :: Monad m
