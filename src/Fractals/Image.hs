@@ -12,6 +12,7 @@ import Fractals.Complex
 import Fractals.Definitions
 
 newtype Image c a i e = Image { mkArray :: a i e }
+  deriving Show
 
 type RgbaImage = Image RGBA IOUArray (Int, Int, Int) Word8
 
