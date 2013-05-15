@@ -119,6 +119,8 @@ initGL = do
         location <- get (uniformLocation prog var)
         reportErrors
         uniform location $= val
+  currentProgram $= Just prog
+  reportErrors
 
   -- Framebuffer texture
   [fbTexture] <- genObjectNames 1
@@ -126,6 +128,7 @@ initGL = do
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just fbTexture
   setUniform "frambuffer" (TextureUnit 0)
+  reportErrors
 
   -- VAO
   let quad :: [GLfloat]
@@ -146,6 +149,7 @@ initGL = do
   [vao] <- genObjectNames 1
   bindVertexArrayObject                  $= Just vao
   vertexAttribPointer (AttribLocation 0) $= (ToFloat, VertexArrayDescriptor 3 Float 0 nullPtr)
+  reportErrors
 
 input :: KeyboardMouseCallback
 input key state _ _ =
@@ -170,7 +174,9 @@ main = do
   mainLoop
 
 reshape :: IORef State -> Size -> IO ()
-reshape ref (Size w h) = resize ref (fromIntegral w, fromIntegral h)
+reshape ref size@(Size w h) = do
+  viewport $= (Position 0 0, size)
+  resize ref (fromIntegral w, fromIntegral h)
 
 texturize :: IORef State -> IO ()
 texturize ref = do
@@ -184,6 +190,6 @@ texturize ref = do
 display :: IORef State -> IO ()
 display ref = do
   clear [ ColorBuffer ]
-  render ref
   texturize ref
+  drawArrays TriangleStrip 0 4
   flush
