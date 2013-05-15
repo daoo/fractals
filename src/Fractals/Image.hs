@@ -4,7 +4,6 @@ module Fractals.Image where
 import Control.Applicative
 import Data.Array.Base (unsafeWrite)
 import Data.Array.IO
-import Data.Array.Storable
 import Data.Word
 import Fractals.Area
 import Fractals.Coloring
@@ -21,7 +20,7 @@ class (Monad m, MArray a e m, Color c, Ix i) => ImageArray c a i e m where
   write :: Image c a i e -> Int -> c -> m ()
   create :: MArray a e m => (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m (Image c a i e)
 
-instance ImageArray Greyscale IOUArray (Int, Int) Word8 IO where
+instance (Functor m, MArray a Word8 m) => ImageArray Greyscale a (Int, Int) Word8 m where
   {-# INLINE new #-}
   new (w, h) = Image <$> newArray_ ((0,0), (h-1,w-1))
 
@@ -39,7 +38,28 @@ instance ImageArray Greyscale IOUArray (Int, Int) Word8 IO where
       1
     return i
 
-instance ImageArray RGBA IOUArray (Int, Int, Int) Word8 IO where
+instance (Functor m, MArray a Word8 m) => ImageArray RGB a (Int, Int, Int) Word8 m where
+  {-# INLINE new #-}
+  new (w, h) = Image <$> newArray_ ((0,0,0), (h-1,w-1,2))
+
+  {-# INLINE write #-}
+  write (Image arr) n (r, g, b) = do
+    unsafeWrite arr n r
+    unsafeWrite arr (n+1) g
+    unsafeWrite arr (n+2) b
+
+  {-# INLINE create #-}
+  create !color !fractal !iter !maxabs !area = do
+    i <- new (areaScreen area)
+    fillArray
+      (areaScreen area)
+      (areaTopLeft area)
+      (areaDelta area)
+      (\n x y -> write i n $ color iter $ fractal (x:+y) maxabs iter)
+      3
+    return i
+
+instance (Functor m, MArray a Word8 m) => ImageArray RGBA a (Int, Int, Int) Word8 m where
   {-# INLINE new #-}
   new (w, h) = Image <$> newArray_ ((0,0,0), (h-1,w-1,3))
 
@@ -59,27 +79,6 @@ instance ImageArray RGBA IOUArray (Int, Int, Int) Word8 IO where
       (areaDelta area)
       (\n x y -> write i n $ color iter $ fractal (x:+y) maxabs iter)
       4
-    return i
-
-instance ImageArray RGB StorableArray (Int, Int, Int) Word8 IO where
-  {-# INLINE new #-}
-  new (w, h) = Image <$> newArray_ ((0,0,0), (h-1,w-1,2))
-
-  {-# INLINE write #-}
-  write (Image arr) n (r, g, b) = do
-    unsafeWrite arr n r
-    unsafeWrite arr (n+1) g
-    unsafeWrite arr (n+2) b
-
-  {-# INLINE create #-}
-  create !color !fractal !iter !maxabs !area = do
-    i <- new (areaScreen area)
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write i n $ color iter $ fractal (x:+y) maxabs iter)
-      3
     return i
 
 {-# INLINE fillArray #-}
