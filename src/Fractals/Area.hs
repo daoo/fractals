@@ -35,8 +35,7 @@ fromRectangle screen@(w, h) plane@(pw:+ph) topleft =
 aspectCentered :: (Int, Int) -> R -> Comp -> Area
 aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
   where
-    w'            = realToFrac w
-    h'            = realToFrac h
+    (w', h')      = (realToFrac w, realToFrac h)
     aspect        = w' / h'
     plane@(_:+ph) = pw :+ pw / aspect
     topleft       = x - pw / 2 :+ y + ph / 2
