@@ -89,11 +89,9 @@ fragmentShader =
   \out vec4 fragmentColor;\n\
 
   \uniform sampler2D framebuffer;\n\
-  \uniform int framebufferSamples;\n\
 
   \void main() {\n\
-  \  fragmentColor = (1.0 / float(framebufferSamples)) *\n\
-  \    texture2D(framebuffer, texCoord);\n\
+  \  fragmentColor = texture2D(framebuffer, texCoord);\n\
   \}"
 
 vertexShader :: String
