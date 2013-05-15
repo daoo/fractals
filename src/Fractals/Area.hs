@@ -20,7 +20,7 @@ data Area = Area
 
 {-# INLINE areaCenter #-}
 areaCenter :: Area -> Comp
-areaCenter area = pw / 2.0 + px :+ ph / 2.0 + py
+areaCenter area = px + pw / 2.0 :+ py - ph / 2.0
   where
     (pw:+ph) = areaPlane area
     (px:+py) = areaTopLeft area
