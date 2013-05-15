@@ -32,13 +32,7 @@ instance (Functor m, MArray a Word8 m) => ImageArray Greyscale Word8 (ArrayImage
   write = unsafeWrite . mkArray
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      1
+  fill = fill' 1
 
 instance (Functor m, MArray a Word8 m) => ImageArray RGB Word8 (ArrayImage a (Int, Int, Int)) m where
   {-# INLINE new #-}
@@ -51,13 +45,7 @@ instance (Functor m, MArray a Word8 m) => ImageArray RGB Word8 (ArrayImage a (In
     unsafeWrite arr (n+2) b
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      3
+  fill = fill' 3
 
 instance (Functor m, MArray a Word8 m) => ImageArray RGBA Word8 (ArrayImage a (Int, Int, Int)) m where
   {-# INLINE new #-}
@@ -71,13 +59,7 @@ instance (Functor m, MArray a Word8 m) => ImageArray RGBA Word8 (ArrayImage a (I
     unsafeWrite arr (n+3) a
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      4
+  fill = fill' 4
 
 instance ImageArray Greyscale Word8 PtrImage IO where
   {-# INLINE new #-}
@@ -87,13 +69,7 @@ instance ImageArray Greyscale Word8 PtrImage IO where
   write (PtrImage ptr) n = poke (plusPtr ptr n)
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      1
+  fill = fill' 1
 
 instance ImageArray RGB Word8 PtrImage IO where
   {-# INLINE new #-}
@@ -107,13 +83,7 @@ instance ImageArray RGB Word8 PtrImage IO where
     poke (plusPtr p 2) b
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      3
+  fill = fill' 3
 
 instance ImageArray RGBA Word8 PtrImage IO where
   {-# INLINE new #-}
@@ -128,23 +98,35 @@ instance ImageArray RGBA Word8 PtrImage IO where
     poke (plusPtr p 3) a
 
   {-# INLINE fill #-}
-  fill color fractal iter maxabs area img =
-    fillArray
-      (areaScreen area)
-      (areaTopLeft area)
-      (areaDelta area)
-      (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
-      4
+  fill = fill' 4
 
-{-# INLINE fillArray #-}
-fillArray :: Monad m
-  => (Int, Int)
+{-# INLINE fill' #-}
+fill' :: ImageArray c e i m =>
+  Int ->
+  (Int -> Int -> c)
+  -> Definition
+  -> Int
+  -> R
+  -> Area
+  -> i c e
+  -> m ()
+fill' steps color fractal iter maxabs area img =
+  filler
+    steps
+    (areaScreen area)
+    (areaTopLeft area)
+    (areaDelta area)
+    (\n x y -> write img n $ color iter $ fractal (x:+y) maxabs iter)
+
+{-# INLINE filler #-}
+filler :: Monad m
+  => Int
+  -> (Int, Int)
   -> Comp
   -> Comp
   -> (Int -> R -> R -> m ())
-  -> Int
   -> m ()
-fillArray (w, h) (x1:+y1) (dx:+dy) f d = go 0 0 x1 y1
+filler d (w, h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
     n = d * w * h
 
