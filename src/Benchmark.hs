@@ -1,6 +1,5 @@
 module Main where
 
-import Control.Monad
 import Criterion.Main
 import Data.Array.IO
 import Data.Word
@@ -13,26 +12,21 @@ import Fractals.Utility
 
 {-# INLINE area #-}
 area :: Area
-area = aspectCentered (1000, 1000) 4.3 (-2.0:+0)
+area = aspectCentered (800, 600) 4.3 (-2.0:+0)
 
-{-# INLINE test #-}
-test :: Definition -> IO ()
-test def = void (create (toRgba `xy` greyscale) def 100 4 area :: IO RgbaImage)
-
-{-# INLINE test2 #-}
-test2 :: Definition -> IO ()
-test2 def = void (create greyscale def 100 4 area :: IO (Image Greyscale IOUArray (Int, Int) Word8))
+{-# INLINE create' #-}
+create' :: ImageArray c a i e m => (Int -> Int -> c) -> Definition -> m (Image c a i e)
+create' color def = create color def 100 4 area
 
 main :: IO ()
 main = defaultMain
   [ bgroup "rgba"
-    [ bench "mandelbrot 2" $ test (mandelbrot 2)
-    , bench "mandelbrot2"  $ test mandelbrot2
-    , bench "mandelbrot 3" $ test (mandelbrot 3)
-    , bench "mandelbrot3"  $ test mandelbrot3
-    , bench "burningship"  $ test burningShip
-    ]
-  , bgroup "greyscale"
-    [ bench "mandelbrot2" $ test2 mandelbrot2
+    [ bgroup "IOUArray"
+      [ bench "mandelbrot 2" $ (create' (toRgba `xy` greyscale) (mandelbrot 2) :: IO (Image RGBA IOUArray (Int, Int, Int) Word8))
+      , bench "mandelbrot2"  $ (create' (toRgba `xy` greyscale) mandelbrot2    :: IO (Image RGBA IOUArray (Int, Int, Int) Word8))
+      , bench "mandelbrot 3" $ (create' (toRgba `xy` greyscale) (mandelbrot 3) :: IO (Image RGBA IOUArray (Int, Int, Int) Word8))
+      , bench "mandelbrot3"  $ (create' (toRgba `xy` greyscale) mandelbrot3    :: IO (Image RGBA IOUArray (Int, Int, Int) Word8))
+      , bench "burningship"  $ (create' (toRgba `xy` greyscale) burningShip    :: IO (Image RGBA IOUArray (Int, Int, Int) Word8))
+      ]
     ]
   ]
