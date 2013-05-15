@@ -3,6 +3,7 @@ module Main where
 import Codec.Image.DevIL
 import Data.Array.IO (IOUArray)
 import Data.Array.Unsafe
+import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
 import Fractals.Image
@@ -12,6 +13,7 @@ import System.Environment
 main :: IO ()
 main = do
   ilInit
-  (f, [img]) <- parseFractal `fmap` getArgs
-  Image arr <- call (create (toRgba `xy` greyscale)) f :: IO (Image RGBA IOUArray (Int, Int, Int) Word8)
-  unsafeFreeze arr >>= writeImage img
+  (Fractal def iter maxabs area, [path]) <- parseFractal `fmap` getArgs
+  img@(ArrayImage arr) <- new (areaScreen area) :: IO (ArrayImage IOUArray (Int, Int, Int) RGBA Word8)
+  fill (toRgba `xy` greyscale) def iter maxabs area img
+  unsafeFreeze arr >>= writeImage path

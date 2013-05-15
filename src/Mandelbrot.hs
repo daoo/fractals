@@ -10,10 +10,13 @@ import Fractals.Definitions
 import Fractals.Image
 import Fractals.Utility
 
+type RgbaArrayImage = ArrayImage IOUArray (Int, Int, Int) RGBA Word8
+
 main :: IO ()
 main = do
   ilInit
-  Image arr <- create (toRgba `xy` greyscale) mandelbrot2 200 4 area :: IO (Image RGBA IOUArray (Int, Int, Int) Word8)
+  img@(ArrayImage arr) <- new (areaScreen area):: IO RgbaArrayImage
+  fill (toRgba `xy` greyscale) mandelbrot2 200 4 area img
   unsafeFreeze arr >>= writeImage "dist/mandelbrot.png"
   where
     area = aspectCentered (1920, 1080) 4.3 (-2.0:+0)
