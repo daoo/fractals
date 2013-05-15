@@ -69,6 +69,29 @@ createProgram vs fs = do
   deleteObjectNames [fs]
   return prog
 
+bufferList :: Storable a => [a] -> IO BufferObject
+bufferList xs = do
+  let c = length xs
+      n = fromIntegral $ c * sizeOf (head xs)
+  [buffer] <- genObjectNames 1
+  bindBuffer ArrayBuffer $= Just buffer
+  newListArray (0, c-1) xs >>= (`withStorableArray` \ptr ->
+    bufferData ArrayBuffer $= (n, ptr, StaticDraw))
+  bindBuffer ArrayBuffer $= Nothing
+  return buffer
+
+createVAO :: BufferObject -> IO VertexArrayObject
+createVAO buffer = do
+  let attrib = AttribLocation 0
+  [vao] <- genObjectNames 1
+  bindVertexArrayObject      $= Just vao
+  bindBuffer ArrayBuffer     $= Just buffer
+  vertexAttribArray attrib   $= Enabled
+  vertexAttribPointer attrib $= (ToFloat, VertexArrayDescriptor 3 Float 0 nullPtr)
+  bindBuffer ArrayBuffer     $= Nothing
+  bindVertexArrayObject      $= Nothing
+  return vao
+
 checkedLinkProgram :: Program -> IO ()
 checkedLinkProgram prog = do
   linkProgram prog
@@ -139,17 +162,9 @@ initGL = do
         , -1.0,  1.0, 0.0
         ]
 
-  [positionBuffer] <- genObjectNames 1
-  bindBuffer ArrayBuffer $= Just positionBuffer
-  let n = fromIntegral $ (length quad) * sizeOf (undefined :: GLfloat)
-  arr <- newListArray (0, length quad - 1) quad
-  withStorableArray arr $ \ptr ->
-    bufferData ArrayBuffer $= (n, ptr, StaticDraw)
-
-  [vao] <- genObjectNames 1
-  bindVertexArrayObject                  $= Just vao
-  vertexAttribPointer (AttribLocation 0) $= (ToFloat, VertexArrayDescriptor 3 Float 0 nullPtr)
+  vao <- bufferList quad >>= createVAO
   reportErrors
+  bindVertexArrayObject $= Just vao
 
 input :: KeyboardMouseCallback
 input key state _ _ =
