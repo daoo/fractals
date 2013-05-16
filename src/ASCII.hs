@@ -5,4 +5,6 @@ import Fractals.Render
 import System.Environment
 
 main :: IO ()
-main = getArgs >>= (putStr . call string . fst . parseFractal)
+main = do
+  (Fractal def iter maxabs area, _) <- parseFractal `fmap` getArgs
+  putStr $ string def iter maxabs area
