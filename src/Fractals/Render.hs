@@ -2,6 +2,7 @@
 module Fractals.Render
   ( lists
   , string
+  , monadic
   ) where
 
 import Fractals.Area
@@ -43,3 +44,20 @@ buildString (!w, !h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
       | i == w    = '\n' : go 0 (j+1) x1 (y+dy)
       | j == h    = []
       | otherwise = f x y : go (i+1) j (x+dx) y
+
+{-# INLINE monadic #-}
+monadic :: Monad m
+  => Int
+  -> (Int, Int)
+  -> Comp
+  -> Comp
+  -> (Int -> R -> R -> m ())
+  -> m ()
+monadic d (w, h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
+  where
+    n = d * w * h
+
+    go !i !j !x !y
+      | i == w    = go 0 j x1 (y+dy)
+      | j == n    = return ()
+      | otherwise = f j x y >> go (i+1) (j+d) (x+dx) y

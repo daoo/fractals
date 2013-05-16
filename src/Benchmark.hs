@@ -3,32 +3,46 @@ module Main where
 import Criterion.Main
 import Data.Array.IO (IOUArray)
 import Data.Word
+import Foreign.Marshal.Alloc
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Image
 
-{-# INLINE area #-}
 area :: Area
 area = aspectCentered (800, 600) 4.3 (-2.0:+0)
 
-{-# INLINE create #-}
-create :: Color c => (Int -> Int -> c) -> Definition -> IO (IOUArray (Int, Int, Int) Word8)
-create color def = do
+iter :: Int
+iter = 100
+
+maxabs :: R
+maxabs = 4
+
+{-# INLINE array #-}
+array :: Color c => (Int -> Int -> c) -> Definition -> IO (IOUArray (Int, Int, Int) Word8)
+array color def = do
   arr <- newRgbaArray (areaScreen area)
-  fillRgbaArray color def 100 4 area arr
+  fillRgbaArray color def iter maxabs area arr
   return arr
+
+{-# INLINE ptr #-}
+ptr :: Color c => (Int -> Int -> c) -> Definition -> IO ()
+ptr color def = do
+  p <- newRgbaPtr (areaScreen area)
+  fillRgbaPtr color def iter maxabs area p
+  free p
 
 main :: IO ()
 main = defaultMain
-  [ bgroup "rgba"
-    [ bgroup "IOUArray"
-      [ bench "mandelbrot 2" $ create greyscale (mandelbrot 2)
-      , bench "mandelbrot2"  $ create greyscale mandelbrot2
-      , bench "mandelbrot 3" $ create greyscale (mandelbrot 3)
-      , bench "mandelbrot3"  $ create greyscale mandelbrot3
-      , bench "burningship"  $ create greyscale burningShip
-      ]
+  [ bgroup "IOUArray"
+    [ bench "mandelbrot 2" $ array greyscale (mandelbrot 2)
+    , bench "mandelbrot2"  $ array greyscale mandelbrot2
+    , bench "mandelbrot 3" $ array greyscale (mandelbrot 3)
+    , bench "mandelbrot3"  $ array greyscale mandelbrot3
+    , bench "burningship"  $ array greyscale burningShip
+    ]
+  , bgroup "Ptr"
+    [ bench "mandbrot2" $ ptr greyscale mandelbrot2
     ]
   ]
