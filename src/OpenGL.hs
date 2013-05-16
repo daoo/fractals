@@ -4,6 +4,7 @@ import Control.Monad
 import Data.Array.Storable
 import Data.IORef
 import Data.Word
+import Foreign.Marshal.Alloc
 import Foreign.Ptr
 import Foreign.Storable
 import Fractals.Area
@@ -15,37 +16,31 @@ import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 import System.Exit
 
-type ImgOpenGL = Image RGB StorableArray (Int, Int, Int) Word8
 data State = State
-  { stateImg :: ImgOpenGL
+  { stateImg :: Ptr Word8
   , stateIter :: !Int
   , stateArea :: Area
   }
 
 newStateRef :: IO (IORef State)
 newStateRef = do
-  img <- new (1920, 1080)
-  newIORef $ State img 100 (aspectCentered (1920, 1080) 4.3 (-2.0:+0))
+  ptr <- newRgbaPtr (1920, 1080)
+  newIORef $ State ptr 100 (aspectCentered (1920, 1080) 4.3 (-2.0:+0))
 
 maxabs :: R
 maxabs = 4
 
 resize :: IORef State -> (Int, Int) -> IO ()
 resize ref size = do
-  img <- new size
-  modifyIORef ref (\s -> s
-    { stateImg  = img
-    , stateArea = resizeScreen size (stateArea s)
-    })
+  State ptr iter area <- readIORef ref
+  free ptr
+  ptr' <- newRgbaPtr size
+  writeIORef ref $ State ptr' iter (resizeScreen size area)
   render ref
 
 render :: IORef State -> IO ()
-render ref = readIORef ref >>= \(State img iter area) -> fillArray
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\n x y -> write img n $ toRgb $ greyscale iter $ mandelbrot2 (x:+y) maxabs iter)
-  3
+render ref = readIORef ref >>= \(State ptr iter area) -> fillRgbaPtr
+  greyscale mandelbrot2 iter maxabs area ptr
 
 createShader :: Shader s => String -> IO s
 createShader src = do
@@ -194,13 +189,13 @@ reshape ref size@(Size w h) = do
 
 texturize :: IORef State -> IO ()
 texturize ref = do
-  State (Image arr) _ area <- readIORef ref
-  withStorableArray arr (tex (areaScreen area) . PixelData RGB UnsignedByte)
-  where
-    tex (w, h) = texImage2D
-      Nothing NoProxy 0 RGB8
-      (TextureSize2D (fromIntegral w) (fromIntegral h))
-      0
+  State ptr _ area <- readIORef ref
+  let (w, h) = areaScreen area
+  texImage2D
+    Nothing NoProxy 0 RGBA8
+    (TextureSize2D (fromIntegral w) (fromIntegral h))
+    0
+    (PixelData RGBA UnsignedByte ptr)
 
 display :: IORef State -> IO ()
 display ref = do
