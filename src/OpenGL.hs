@@ -144,7 +144,7 @@ initGL = do
   [tex] <- genObjectNames 1
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just tex
-  setUniform "frambuffer" (TextureUnit 0)
+  setUniform "framebuffer" (TextureUnit 0)
   reportErrors
 
   -- VAO
