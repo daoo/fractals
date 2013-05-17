@@ -26,7 +26,7 @@ data State = State
 newStateRef :: IO (IORef State)
 newStateRef = do
   ptr <- newRgbaPtr (1920, 1080)
-  newIORef $ State ptr 100 (aspectCentered (1920, 1080) 4.3 (-2.0:+0))
+  newIORef $ State ptr 100 (aspectCentered (1920, 1080) 4.3 (0:+0))
 
 maxabs :: R
 maxabs = 4
