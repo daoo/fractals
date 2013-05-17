@@ -12,20 +12,10 @@ import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Image
+import Fractals.Utility
 import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
-import System.CPUTime
 import System.Exit
-
-{-# INLINE measureTime #-}
-measureTime :: IO () -> IO ()
-measureTime f = do
-  start <- getCPUTime
-  f
-  end <- getCPUTime
-  let diff :: Double
-      diff = (fromIntegral (end - start)) / 1000000000
-  putStrLn $ "Rendered in " ++ show diff ++ " ms"
 
 data State = State
   { stateImg :: Ptr Word8

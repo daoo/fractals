@@ -2,6 +2,7 @@
 module Fractals.Utility where
 
 import GHC.Exts
+import System.CPUTime
 
 xy :: (a -> b) -> (t1 -> t2 -> a) -> t1 -> t2 -> b
 xy f g a b = f (g a b)
@@ -23,3 +24,12 @@ scale :: Int -- ^ End of the first range [0, a], must be greater than zero
 scale a b i = (i * b) `unsafeQuot` a
   where
     unsafeQuot (I# x) (I# y) = I# (quotInt# x y)
+
+{-# INLINE measureTime #-}
+measureTime :: IO () -> IO ()
+measureTime f = do
+  start <- getCPUTime
+  f
+  end <- getCPUTime
+  let diff = (end - start) `quot` 1000000000
+  putStrLn $ "Rendered in " ++ show diff ++ " ms"
