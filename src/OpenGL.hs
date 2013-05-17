@@ -144,7 +144,8 @@ initGL = do
   [tex] <- genObjectNames 1
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just tex
-  setUniform "framebuffer" (TextureUnit 0)
+  textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
+  setUniform "framebuffer" (Index1 (0 :: GLint))
   reportErrors
 
   -- VAO
