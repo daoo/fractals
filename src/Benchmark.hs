@@ -35,14 +35,24 @@ ptr color def = do
 
 main :: IO ()
 main = defaultMain
-  [ bgroup "IOUArray"
-    [ bench "mandelbrot 2" $ array greyscale (mandelbrot 2)
-    , bench "mandelbrot2"  $ array greyscale mandelbrot2
-    , bench "mandelbrot 3" $ array greyscale (mandelbrot 3)
-    , bench "mandelbrot3"  $ array greyscale mandelbrot3
-    , bench "burningship"  $ array greyscale burningShip
+  [ bgroup "burningship"
+    [ bench "IOUArray" $ array greyscale burningShip
+    , bench "Ptr"      $ ptr greyscale burningShip
     ]
-  , bgroup "Ptr"
-    [ bench "mandbrot2" $ ptr greyscale mandelbrot2
+  , bgroup "mandelbrot 3"
+    [ bench "IOUArray" $ array greyscale (mandelbrot 3)
+    , bench "Ptr"      $ ptr greyscale (mandelbrot 3)
+    ]
+  , bgroup "mandelbrot2"
+    [ bench "IOUArray" $ array greyscale mandelbrot2
+    , bench "Ptr"      $ ptr greyscale mandelbrot2
+    ]
+  , bgroup "mandelbrot3"
+    [ bench "IOUArray" $ array greyscale mandelbrot3
+    , bench "Ptr"      $ ptr greyscale mandelbrot3
+    ]
+  , bgroup "mandelbrot 2"
+    [ bench "IOUArray" $ array greyscale (mandelbrot 2)
+    , bench "Ptr"      $ ptr greyscale (mandelbrot 2)
     ]
   ]
