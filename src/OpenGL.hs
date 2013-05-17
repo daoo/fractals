@@ -47,7 +47,6 @@ resize ref size = do
   free ptr
   ptr' <- newRgbaPtr size
   writeIORef ref $ State ptr' iter (resizeScreen size area)
-  render ref
 
 render :: IORef State -> IO ()
 render ref = do
@@ -216,6 +215,7 @@ texturize ref = do
 display :: IORef State -> IO ()
 display ref = do
   clear [ ColorBuffer ]
+  render ref
   texturize ref
   drawArrays TriangleStrip 0 4
   flush
