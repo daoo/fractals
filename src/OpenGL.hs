@@ -14,7 +14,18 @@ import Fractals.Definitions
 import Fractals.Image
 import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
+import System.CPUTime
 import System.Exit
+
+{-# INLINE measureTime #-}
+measureTime :: IO () -> IO ()
+measureTime f = do
+  start <- getCPUTime
+  f
+  end <- getCPUTime
+  let diff :: Double
+      diff = (fromIntegral (end - start)) / 1000000000
+  putStrLn $ "Rendered in " ++ show diff ++ " ms"
 
 data State = State
   { stateImg :: Ptr Word8
@@ -39,8 +50,9 @@ resize ref size = do
   render ref
 
 render :: IORef State -> IO ()
-render ref = readIORef ref >>= \(State ptr iter area) -> fillRgbaPtr
-  greyscale mandelbrot2 iter maxabs area ptr
+render ref = do
+  State ptr iter area <- readIORef ref
+  measureTime $ fillRgbaPtr greyscale mandelbrot2 iter maxabs area ptr
 
 createShader :: Shader s => String -> IO s
 createShader src = do
