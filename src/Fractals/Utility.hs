@@ -4,6 +4,7 @@ module Fractals.Utility where
 import GHC.Exts
 import System.CPUTime
 
+{-# INLINE xy #-}
 xy :: (a -> b) -> (t1 -> t2 -> a) -> t1 -> t2 -> b
 xy f g a b = f (g a b)
 
