@@ -17,6 +17,7 @@ import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 import System.Exit
 
+-- {{{ State
 data State = State
   { stateImg :: Ptr Word8
   , stateIter :: !Int
@@ -42,7 +43,8 @@ render :: IORef State -> IO ()
 render ref = do
   State ptr iter area <- readIORef ref
   measureTime $ fillRgbaPtr greyscale mandelbrot2 iter maxabs area ptr
-
+-- }}}
+-- {{{ OpenGL helpers
 createShader :: Shader s => String -> IO s
 createShader src = do
   [shader] <- genObjectNames 1
@@ -97,7 +99,8 @@ checkedLinkProgram prog = do
     get (programInfoLog prog) >>= putStrLn
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
-
+-- }}}
+-- {{{ Shaders
 fragmentShader :: String
 fragmentShader =
   "#version 130\n\
@@ -124,6 +127,7 @@ vertexShader =
   \  texCoord    = (position.xy + vec2(1.0)) * 0.5;\n\
   \  gl_Position = vec4(position, 1);\n\
   \}"
+-- }}}
 
 initGL :: IO ()
 initGL = do
@@ -209,3 +213,5 @@ display ref = do
   texturize ref
   drawArrays TriangleStrip 0 4
   flush
+
+-- vim: set fdm=marker :
