@@ -195,6 +195,9 @@ main = do
 
   mainLoop
 
+  State ptr _ _ <- readIORef ref
+  free ptr
+
 reshape :: IORef State -> Size -> IO ()
 reshape ref size@(Size w h) = do
   viewport $= (Position 0 0, size)
