@@ -63,6 +63,10 @@ newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 newRgbaPtr :: (Int, Int) -> IO (Ptr Word8)
 newRgbaPtr (w, h) = mallocArray $ w * h * 4
 
+{-# INLINE newGreyscalePtr #-}
+newGreyscalePtr :: (Int, Int) -> IO (Ptr Word8)
+newGreyscalePtr (w, h) = mallocArray $ w * h
+
 {-# INLINE helper #-}
 helper :: (Monad m, Color c)
   => Int

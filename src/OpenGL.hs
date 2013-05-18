@@ -26,8 +26,8 @@ data State = State
 
 newStateRef :: IO (IORef State)
 newStateRef = do
-  ptr <- newRgbaPtr (1920, 1080)
-  newIORef $ State ptr 100 (aspectCentered (1920, 1080) 4.3 (0:+0))
+  ptr <- newGreyscalePtr (800, 600)
+  newIORef $ State ptr 100 (aspectCentered (800, 600) 4.3 (0:+0))
 
 maxabs :: R
 maxabs = 4
@@ -36,7 +36,7 @@ resize :: IORef State -> (Int, Int) -> IO ()
 resize ref size = do
   State ptr iter area <- readIORef ref
   free ptr
-  ptr' <- newRgbaPtr size
+  ptr' <- newGreyscalePtr size
   writeIORef ref $ State ptr' iter (resizeScreen size area)
 
 render :: IORef State -> IO ()
@@ -201,10 +201,10 @@ texturize ref = do
   State ptr _ area <- readIORef ref
   let (w, h) = areaScreen area
   texImage2D
-    Nothing NoProxy 0 RGBA8
+    Nothing NoProxy 0 Luminance8
     (TextureSize2D (fromIntegral w) (fromIntegral h))
     0
-    (PixelData RGBA UnsignedByte ptr)
+    (PixelData Luminance UnsignedByte ptr)
 
 display :: IORef State -> IO ()
 display ref = do
