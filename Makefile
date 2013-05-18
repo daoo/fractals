@@ -11,8 +11,6 @@ configure:
 	@cabal-dev install \
 		--reinstall \
 		--force-reinstalls \
-		--enable-library-profiling \
-		--enable-executable-profiling \
 		--enable-benchmarks \
 		--enable-tests
 	@cabal-dev configure \
