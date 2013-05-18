@@ -21,17 +21,24 @@ instance (MArray a e m, Ix i) => Writable (a i e) e m where
   {-# INLINE write #-}
   write = unsafeWrite
 
-instance Writable (Ptr Word8) Word8 IO where
+instance Storable e => Writable (Ptr e) e IO where
   {-# INLINE write #-}
   write ptr n = poke (plusPtr ptr n)
 
-{-# INLINE writeRgba #-}
-writeRgba :: Writable s Word8 m => s -> Int -> RGBA -> m ()
-writeRgba s n (r, g, b, a) = do
-  write s n r
-  write s (n+1) g
-  write s (n+2) b
-  write s (n+3) a
+instance (Writable s e m) => Writable s (e, e, e) m where
+  {-# INLINE write #-}
+  write s n (r, g, b) = do
+    write s n r
+    write s (n+1) g
+    write s (n+2) b
+
+instance (Writable s e m) => Writable s (e, e, e, e) m where
+  {-# INLINE write #-}
+  write s n (r, g, b, a) = do
+    write s n r
+    write s (n+1) g
+    write s (n+2) b
+    write s (n+2) a
 
 {-# INLINE newRgbaArray #-}
 newRgbaArray :: (MArray a e m) => (Int, Int) -> m (a (Int, Int, Int) e)
@@ -55,10 +62,10 @@ fillRgbaArray color fractal iter maxabs area s = monadic
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\n x y -> writeRgba s n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
+  (\n x y -> write s n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
 
 {-# INLINE fillRgbaPtr #-}
-fillRgbaPtr :: (Color c)
+fillRgbaPtr :: Color c
   => (Int -> Int -> c)
   -> Definition
   -> Int
@@ -71,4 +78,4 @@ fillRgbaPtr color fractal iter maxabs area ptr = monadic
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\n x y -> writeRgba ptr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
+  (\n x y -> write ptr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
