@@ -14,7 +14,7 @@ main :: IO ()
 main = do
   ilInit
   arr <- newRgbaArray (areaScreen area) :: IO (IOUArray (Int, Int, Int) Word8)
-  measureTime $ fill arr greyscale mandelbrot2 200 4 area
+  measureTime $ fill arr (toRgba `xy` greyscale) mandelbrot2 200 4 area
   unsafeFreeze arr >>= writeImage "dist/mandelbrot.png"
   where
     area = aspectCentered (1920, 1080) 4.3 (0:+0)

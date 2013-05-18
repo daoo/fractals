@@ -15,5 +15,5 @@ main = do
   ilInit
   (Fractal def iter maxabs area, [path]) <- parseFractal `fmap` getArgs
   arr <- newRgbaArray (areaScreen area) :: IO (IOUArray (Int, Int, Int) Word8)
-  measureTime $ fill arr greyscale def iter maxabs area
+  measureTime $ fill arr (toRgba `xy` greyscale) def iter maxabs area
   unsafeFreeze arr >>= writeImage path
