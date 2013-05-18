@@ -45,7 +45,7 @@ executable fractals-image-rational
 
 executable fractals-opengl
   main-is: src/OpenGL.hs
-  build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLUT
+  build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLFW
   ghc-options: -Wall
 
 benchmark bench

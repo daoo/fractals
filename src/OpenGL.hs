@@ -13,9 +13,8 @@ import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Image
 import Fractals.Utility
-import Graphics.Rendering.OpenGL
-import Graphics.UI.GLUT
-import System.Exit
+import Graphics.Rendering.OpenGL as GL
+import Graphics.UI.GLFW as GLFW
 
 -- {{{ State
 data State = State
@@ -24,10 +23,15 @@ data State = State
   , stateArea :: Area
   }
 
-newStateRef :: IO (IORef State)
-newStateRef = do
+withState :: (IORef State -> IO ()) -> IO ()
+withState f = do
   ptr <- newGreyscalePtr (800, 600)
-  newIORef $ State ptr 100 (aspectCentered (800, 600) 4.3 (0:+0))
+  let iter = 100
+      area = aspectCentered (800, 600) 4.3 (0:+0)
+  ref <- newIORef $ State ptr iter area
+  f ref
+  State ptr' _ _ <- readIORef ref
+  free ptr'
 
 maxabs :: R
 maxabs = 4
@@ -39,8 +43,8 @@ resize ref size = do
   ptr' <- newGreyscalePtr size
   writeIORef ref $ State ptr' iter (resizeScreen size area)
 
-render :: IORef State -> IO ()
-render ref = do
+update :: IORef State -> IO ()
+update ref = do
   State ptr iter area <- readIORef ref
   measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
 -- }}}
@@ -50,7 +54,6 @@ createShader src = do
   [shader] <- genObjectNames 1
   shaderSource shader $= [src]
   compileShader shader
-  reportErrors
   ok <- get (compileStatus shader)
   unless ok $ do
     infoLog <- get (shaderInfoLog shader)
@@ -93,7 +96,6 @@ createVAO buffer = do
 checkedLinkProgram :: Program -> IO ()
 checkedLinkProgram prog = do
   linkProgram prog
-  reportErrors
   ok <- get (linkStatus prog)
   unless ok $ do
     get (programInfoLog prog) >>= putStrLn
@@ -140,10 +142,8 @@ initGL = do
   checkedLinkProgram prog
   let setUniform var val = do
         location <- get (uniformLocation prog var)
-        reportErrors
         uniform location $= val
   currentProgram $= Just prog
-  reportErrors
 
   -- Framebuffer texture
   [tex] <- genObjectNames 1
@@ -151,7 +151,6 @@ initGL = do
   textureBinding Texture2D $= Just tex
   textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
   setUniform "framebuffer" (Index1 (0 :: GLint))
-  reportErrors
 
   -- VAO
   let quad :: [GLfloat]
@@ -163,33 +162,26 @@ initGL = do
         ]
 
   vao <- createBuffer quad >>= createVAO
-  reportErrors
   bindVertexArrayObject $= Just vao
-
-input :: KeyboardMouseCallback
-input key state _ _ =
-  case (key, state) of
-    (Char '\27', Down) -> exitSuccess
-    (Char 'q', Down)   -> exitSuccess
-    _                  -> return ()
 
 main :: IO ()
 main = do
-  (progname, _) <- getArgsAndInitialize
-  initialDisplayMode $= [ SingleBuffered, RGBMode ]
-  _ <- createWindow progname
+  GLFW.initialize >>= (`unless` error "Failed to initialize GLFW")
+  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayRGBBits 8 8 8] GLFW.Window >>=
+    (`unless` (GLFW.terminate >> error "Failed to open GLFW window"))
+  GLFW.windowTitle $= "Fractlas"
+
+  GL.clearColor $= Color4 0 0 0 0
+
+  GLFW.windowSizeCallback $= \size ->
+    GL.viewport $= (GL.Position 0 0, size)
 
   initGL
-  ref <- newStateRef
 
-  reshapeCallback       $= Just (reshape ref)
-  keyboardMouseCallback $= Just input
-  displayCallback       $= display ref
+  withState run
 
-  mainLoop
-
-  State ptr _ _ <- readIORef ref
-  free ptr
+  GLFW.closeWindow
+  GLFW.terminate
 
 reshape :: IORef State -> Size -> IO ()
 reshape ref size@(Size w h) = do
@@ -206,12 +198,43 @@ texturize ref = do
     0
     (PixelData Luminance UnsignedByte ptr)
 
-display :: IORef State -> IO ()
-display ref = do
+render :: IORef State -> IO ()
+render ref = do
   clear [ ColorBuffer ]
   render ref
   texturize ref
   drawArrays TriangleStrip 0 4
-  flush
+
+run :: IORef State -> IO ()
+run state = do
+  GLFW.disableSpecial GLFW.AutoPollEvent
+
+  quit  <- newIORef False
+  dirty <- newIORef True
+
+  GLFW.windowRefreshCallback $= writeIORef dirty True
+
+  GLFW.keyCallback $= \k s ->
+    when (s == GLFW.Press) $ case k of
+      GLFW.SpecialKey GLFW.ESC -> writeIORef quit True
+      GLFW.CharKey 'q'         -> writeIORef quit True
+      _                        -> return ()
+
+  GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
+
+  loop dirty quit
+  where
+    loop dirty quit = do
+      GLFW.sleep 0.01
+      GLFW.waitEvents
+      d <- readIORef dirty
+
+      when d $ do
+        --render state
+        GLFW.swapBuffers
+        writeIORef dirty False
+
+      q <- readIORef quit
+      unless q $ loop dirty quit
 
 -- vim: set fdm=marker :
