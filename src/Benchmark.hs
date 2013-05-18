@@ -20,17 +20,17 @@ maxabs :: R
 maxabs = 4
 
 {-# INLINE array #-}
-array :: Color c => (Int -> Int -> c) -> Definition -> IO (IOUArray (Int, Int, Int) Word8)
+array :: (Int -> Int -> Greyscale) -> Definition -> IO (IOUArray (Int, Int, Int) Word8)
 array color def = do
   arr <- newRgbaArray (areaScreen area)
-  fillRgbaArray color def iter maxabs area arr
+  fill arr color def iter maxabs area
   return arr
 
 {-# INLINE ptr #-}
-ptr :: Color c => (Int -> Int -> c) -> Definition -> IO ()
+ptr :: (Int -> Int -> Greyscale) -> Definition -> IO ()
 ptr color def = do
   p <- newRgbaPtr (areaScreen area)
-  fillRgbaPtr color def iter maxabs area p
+  fill p color def iter maxabs area
   free p
 
 main :: IO ()

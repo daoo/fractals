@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, MultiParamTypeClasses, TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
 module Fractals.Image where
 
 import Data.Array.Base (unsafeWrite)
@@ -40,6 +40,21 @@ instance (Writable s e m) => Writable s (e, e, e, e) m where
     write s (n+2) b
     write s (n+2) a
 
+class Storage s c m where
+  fill :: s -> (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
+
+instance (Writable a Word8 m) => Storage a Word8 m where
+  {-# INLINE fill #-}
+  fill s = helper 1 (write s)
+
+instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8) m where
+  {-# INLINE fill #-}
+  fill s = helper 3 (write s)
+
+instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
+  {-# INLINE fill #-}
+  fill s = helper 4 (write s)
+
 {-# INLINE newRgbaArray #-}
 newRgbaArray :: (MArray a e m) => (Int, Int) -> m (a (Int, Int, Int) e)
 newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1, 3))
@@ -48,34 +63,19 @@ newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 newRgbaPtr :: (Int, Int) -> IO (Ptr Word8)
 newRgbaPtr (w, h) = mallocArray $ w * h * 4
 
-{-# INLINE fillRgbaArray #-}
-fillRgbaArray :: (MArray a Word8 m, Color c)
-  => (Int -> Int -> c)
+{-# INLINE helper #-}
+helper :: (Monad m, Color c)
+  => Int
+  -> (Int -> c -> m ())
+  -> (Int -> Int -> c)
   -> Definition
   -> Int
   -> R
   -> Area
-  -> a (Int, Int, Int) Word8
   -> m ()
-fillRgbaArray color fractal iter maxabs area s = monadic
-  4
+helper n f color fractal iter maxabs area = monadic
+  n
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\n x y -> write s n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
-
-{-# INLINE fillRgbaPtr #-}
-fillRgbaPtr :: Color c
-  => (Int -> Int -> c)
-  -> Definition
-  -> Int
-  -> R
-  -> Area
-  -> Ptr Word8
-  -> IO ()
-fillRgbaPtr color fractal iter maxabs area ptr = monadic
-  4
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\n x y -> write ptr n $ toRgba $ color iter $ fractal (x:+y) maxabs iter)
+  (\i x y -> f i $ color iter $ fractal (x:+y) maxabs iter)

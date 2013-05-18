@@ -42,7 +42,7 @@ resize ref size = do
 render :: IORef State -> IO ()
 render ref = do
   State ptr iter area <- readIORef ref
-  measureTime $ fillRgbaPtr greyscale mandelbrot2 iter maxabs area ptr
+  measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
 -- }}}
 -- {{{ OpenGL helpers
 createShader :: Shader s => String -> IO s
