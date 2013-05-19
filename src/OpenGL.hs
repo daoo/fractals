@@ -217,24 +217,40 @@ run state = do
   GLFW.keyCallback $= \k s ->
     when (s == GLFW.Press) $ case k of
       GLFW.SpecialKey GLFW.ESC -> writeIORef quit True
-      GLFW.CharKey 'q'         -> writeIORef quit True
-      _                        -> return ()
+      GLFW.CharKey 'Q'         -> writeIORef quit True
+      _                        -> print k
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
 
-  loop dirty quit
+  let loop = do
+        GLFW.waitEvents
+
+        whenRef dirty $ do
+          putStrLn "Dirty, redrawing..."
+          --render state
+          GLFW.swapBuffers
+          writeIORef dirty False
+
+        unlessRef quit loop
+
+      waitForPress = do
+        GLFW.mousePosCallback    $= \_ -> return ()
+        GLFW.mouseButtonCallback $= \b s -> do
+          print "press"
+          waitForRelease
+
+      waitForRelease = do
+        GLFW.mousePosCallback $= \(Position x y) -> do
+          print $ Position x y
+
+        GLFW.mouseButtonCallback $= \b s -> do
+          print b
+          print s
+
+  waitForPress
+  loop
   where
-    loop dirty quit = do
-      GLFW.sleep 0.01
-      GLFW.waitEvents
-      d <- readIORef dirty
-
-      when d $ do
-        --render state
-        GLFW.swapBuffers
-        writeIORef dirty False
-
-      q <- readIORef quit
-      unless q $ loop dirty quit
+    whenRef ref io   = readIORef ref >>= (`when` io)
+    unlessRef ref io = readIORef ref >>= (`unless` io)
 
 -- vim: set fdm=marker :
