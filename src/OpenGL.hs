@@ -198,13 +198,6 @@ texturize ref = do
     0
     (PixelData Luminance UnsignedByte ptr)
 
-render :: IORef State -> IO ()
-render ref = do
-  clear [ ColorBuffer ]
-  render ref
-  texturize ref
-  drawArrays TriangleStrip 0 4
-
 run :: IORef State -> IO ()
 run state = do
   GLFW.disableSpecial GLFW.AutoPollEvent
@@ -227,7 +220,9 @@ run state = do
 
         whenRef dirty $ do
           putStrLn "Dirty, redrawing..."
-          --render state
+          clear [ ColorBuffer ]
+          texturize state
+          drawArrays TriangleStrip 0 4
           GLFW.swapBuffers
           writeIORef dirty False
 
@@ -240,12 +235,11 @@ run state = do
           waitForRelease
 
       waitForRelease = do
-        GLFW.mousePosCallback $= \(Position x y) -> do
-          print $ Position x y
+        GLFW.mousePosCallback $= \_ -> print "bepa"
 
         GLFW.mouseButtonCallback $= \b s -> do
-          print b
-          print s
+          print "release"
+          waitForPress
 
   waitForPress
   loop
