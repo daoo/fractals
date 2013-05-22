@@ -23,6 +23,8 @@ data State = State
   , stateArea :: Area
   }
 
+-- |Run an IO action with a State
+-- Handels allocation and freeing.
 withState :: (IORef State -> IO ()) -> IO ()
 withState f = do
   ptr <- newGreyscalePtr (800, 600)
@@ -33,9 +35,9 @@ withState f = do
   State ptr' _ _ <- readIORef ref
   free ptr'
 
-maxabs :: R
-maxabs = 4
-
+-- |Resize the State
+-- Reallocate the storage to accustom the new size, does not render the
+-- frectal.
 resize :: IORef State -> (Int, Int) -> IO ()
 resize ref size = do
   State ptr iter area <- readIORef ref
@@ -43,10 +45,13 @@ resize ref size = do
   ptr' <- newGreyscalePtr size
   writeIORef ref $ State ptr' iter (resizeScreen size area)
 
+-- |Render the fractal and print the time it took
 update :: IORef State -> IO ()
 update ref = do
   State ptr iter area <- readIORef ref
   measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
+
+  where maxabs = 4
 -- }}}
 -- {{{ OpenGL helpers
 createShader :: Shader s => String -> IO s
@@ -130,7 +135,7 @@ vertexShader =
   \  gl_Position = vec4(position, 1);\n\
   \}"
 -- }}}
-
+-- {{{ Init GL
 initGL :: IO ()
 initGL = do
   -- Shaders
@@ -163,30 +168,12 @@ initGL = do
 
   vao <- createBuffer quad >>= createVAO
   bindVertexArrayObject $= Just vao
-
-main :: IO ()
-main = do
-  GLFW.initialize >>= (`unless` error "Failed to initialize GLFW")
-  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayRGBBits 8 8 8] GLFW.Window >>=
-    (`unless` (GLFW.terminate >> error "Failed to open GLFW window"))
-  GLFW.windowTitle $= "Fractlas"
-
-  GL.clearColor $= Color4 0 0 0 0
-
-  GLFW.windowSizeCallback $= \size ->
-    GL.viewport $= (GL.Position 0 0, size)
-
-  initGL
-
-  withState run
-
-  GLFW.closeWindow
-  GLFW.terminate
-
+-- }}}
+-- {{{ Run
 reshape :: IORef State -> Size -> IO ()
 reshape ref size@(Size w h) = do
-  viewport $= (Position 0 0, size)
   resize ref (fromIntegral w, fromIntegral h)
+  viewport $= (Position 0 0, size)
 
 texturize :: IORef State -> IO ()
 texturize ref = do
@@ -200,6 +187,11 @@ texturize ref = do
 
 run :: IORef State -> IO ()
 run state = do
+  GL.clearColor $= Color4 0 0 0 0
+
+  initGL
+
+  GLFW.windowSizeCallback $= reshape state
   GLFW.disableSpecial GLFW.AutoPollEvent
 
   quit  <- newIORef False
@@ -230,15 +222,14 @@ run state = do
 
       waitForPress = do
         GLFW.mousePosCallback    $= \_ -> return ()
-        GLFW.mouseButtonCallback $= \b s -> do
-          print "press"
+
+        GLFW.mouseButtonCallback $= \_ _ -> do
           waitForRelease
 
       waitForRelease = do
-        GLFW.mousePosCallback $= \_ -> print "bepa"
+        GLFW.mousePosCallback $= \_ -> return ()
 
-        GLFW.mouseButtonCallback $= \b s -> do
-          print "release"
+        GLFW.mouseButtonCallback $= \_ _ -> do
           waitForPress
 
   waitForPress
@@ -246,5 +237,19 @@ run state = do
   where
     whenRef ref io   = readIORef ref >>= (`when` io)
     unlessRef ref io = readIORef ref >>= (`unless` io)
+-- }}}
+
+main :: IO ()
+main = do
+  GLFW.initialize >>= (`unless` error "Failed to initialize GLFW")
+  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayRGBBits 8 8 8] GLFW.Window >>=
+    (`unless` (GLFW.terminate >> error "Failed to open GLFW window"))
+  GLFW.windowTitle $= "Fractlas"
+
+  withState $ \ref -> do
+    run ref
+
+  GLFW.closeWindow
+  GLFW.terminate
 
 -- vim: set fdm=marker :
