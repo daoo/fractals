@@ -155,6 +155,7 @@ initGL = do
   activeTexture            $= TextureUnit 0
   textureBinding Texture2D $= Just tex
   textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
+  rowAlignment Unpack      $= 1
   setUniform "framebuffer" (Index1 (0 :: GLint))
 
   -- VAO
