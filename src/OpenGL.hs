@@ -106,6 +106,19 @@ checkedLinkProgram prog = do
     get (programInfoLog prog) >>= putStrLn
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
+
+strokeRectangle :: (Float, Float) -> (Float, Float) -> IO ()
+strokeRectangle (x1, y1) (x2, y2) = do
+  let x1' = realToFrac x1 :: GLfloat
+      y1' = realToFrac y1 :: GLfloat
+      x2' = realToFrac x2 :: GLfloat
+      y2' = realToFrac y2 :: GLfloat
+  renderPrimitive LineLoop $ do
+    color $ (Color3 (1.0::GLfloat) 0 0)
+    vertex $ (Vertex2 x1' y1')
+    vertex $ (Vertex2 x2' y1')
+    vertex $ (Vertex2 x2' y2')
+    vertex $ (Vertex2 x1' y2')
 -- }}}
 -- {{{ Shaders
 fragmentShader :: String
@@ -136,7 +149,7 @@ vertexShader =
   \}"
 -- }}}
 -- {{{ Init GL
-initGL :: IO ()
+initGL :: IO Program
 initGL = do
   -- Shaders
   vs <- createShader vertexShader
@@ -169,6 +182,8 @@ initGL = do
 
   vao <- createBuffer quad >>= createVAO
   bindVertexArrayObject $= Just vao
+
+  return prog
 -- }}}
 -- {{{ Run
 reshape :: IORef State -> IORef Bool -> Size -> IO ()
@@ -191,7 +206,7 @@ run :: IORef State -> IO ()
 run state = do
   GL.clearColor $= Color4 0 0 0 0
 
-  initGL
+  prog <- initGL
 
   quit   <- newIORef False
   dirty  <- newIORef True
@@ -211,7 +226,7 @@ run state = do
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
 
-  let loop = do
+  let idle = do
         GLFW.waitEvents
 
         whenRef redraw $ do
@@ -222,11 +237,14 @@ run state = do
 
         whenRef dirty $ do
           clear [ ColorBuffer ]
+          currentProgram $= Just prog
           drawArrays TriangleStrip 0 4
+          currentProgram $= Nothing
+          strokeRectangle (0.5, 0.5) (0.9, 0.9)
           GLFW.swapBuffers
           writeIORef dirty False
 
-        unlessRef quit loop
+        unlessRef quit idle
 
       waitForPress = do
         GLFW.mousePosCallback    $= \_ -> return ()
@@ -241,7 +259,7 @@ run state = do
           waitForPress
 
   waitForPress
-  loop
+  idle
   where
     whenRef ref io   = readIORef ref >>= (`when` io)
     unlessRef ref io = readIORef ref >>= (`unless` io)
