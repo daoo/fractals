@@ -38,7 +38,7 @@ instance (Writable s e m) => Writable s (e, e, e, e) m where
     write s n r
     write s (n+1) g
     write s (n+2) b
-    write s (n+2) a
+    write s (n+3) a
 
 class Storage s c m where
   fill :: s -> (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
