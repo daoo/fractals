@@ -17,6 +17,9 @@ configure:
 		--enable-benchmarks \
 		--enable-tests
 
+test:
+	@cabal-dev test
+
 ghci:
 	@cabal-dev ghci
 
