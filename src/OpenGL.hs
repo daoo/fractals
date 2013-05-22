@@ -215,11 +215,12 @@ run state = do
 
         whenRef redraw $ do
           update state
+          texturize state
           writeIORef redraw False
+          writeIORef dirty True
 
         whenRef dirty $ do
           clear [ ColorBuffer ]
-          texturize state
           drawArrays TriangleStrip 0 4
           GLFW.swapBuffers
           writeIORef dirty False
