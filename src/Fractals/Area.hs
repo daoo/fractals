@@ -43,5 +43,5 @@ aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
 
 {-# INLINE resizeScreen #-}
 resizeScreen :: (Int, Int) -> Area -> Area
-resizeScreen (nw, nh) area =
-  aspectCentered (nw, nh) (realPart $ areaPlane area) (areaCenter area)
+resizeScreen ns@(nw, nh) area =
+  aspectCentered ns (realPart $ areaPlane area) (areaCenter area)
