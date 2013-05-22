@@ -59,6 +59,10 @@ instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
 newRgbaArray :: (MArray a e m) => (Int, Int) -> m (a (Int, Int, Int) e)
 newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 
+{-# INLINE newRgbPtr #-}
+newRgbPtr :: (Int, Int) -> IO (Ptr Word8)
+newRgbPtr (w, h) = mallocArray $ w * h * 3
+
 {-# INLINE newRgbaPtr #-}
 newRgbaPtr :: (Int, Int) -> IO (Ptr Word8)
 newRgbaPtr (w, h) = mallocArray $ w * h * 4

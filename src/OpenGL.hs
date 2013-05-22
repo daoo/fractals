@@ -27,13 +27,13 @@ data State = State
 -- Handles the memory, does not render the fractal.
 withState :: (IORef State -> IO ()) -> IO ()
 withState f = do
-  ptr <- newGreyscalePtr (800, 600)
-  let iter = 100
-      area = aspectCentered (800, 600) 4.3 (0:+0)
+  let defsize = (800, 600)
+      iter = 100
+      area = aspectCentered defsize 4.3 (0:+0)
+  ptr <- newGreyscalePtr defsize
   state <- newIORef $ State ptr iter area
   f state
-  State ptr' _ _ <- readIORef state
-  free ptr'
+  readIORef state >>= (free . stateImg)
 
 -- |Resize the storage
 -- Reallocate the storage to accustom the new size, does not render the
