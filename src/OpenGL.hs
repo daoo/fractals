@@ -21,7 +21,7 @@ data State = State
   { stateImg :: Ptr Word8
   , stateIter :: !Int
   , stateArea :: Area
-  }
+  } deriving Show
 
 -- |Run an IO action with a State
 -- Handles the memory, does not render the fractal.
@@ -205,6 +205,7 @@ run state = do
     when (s == GLFW.Press) $ case k of
       GLFW.SpecialKey GLFW.ESC -> writeIORef quit True
       GLFW.CharKey 'Q'         -> writeIORef quit True
+      GLFW.CharKey 'D'         -> readIORef state >>= print
       _                        -> print k
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
