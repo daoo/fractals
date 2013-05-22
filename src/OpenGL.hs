@@ -24,31 +24,31 @@ data State = State
   }
 
 -- |Run an IO action with a State
--- Handels allocation and freeing.
+-- Handles the memory, does not render the fractal.
 withState :: (IORef State -> IO ()) -> IO ()
 withState f = do
   ptr <- newGreyscalePtr (800, 600)
   let iter = 100
       area = aspectCentered (800, 600) 4.3 (0:+0)
-  ref <- newIORef $ State ptr iter area
-  f ref
-  State ptr' _ _ <- readIORef ref
+  state <- newIORef $ State ptr iter area
+  f state
+  State ptr' _ _ <- readIORef state
   free ptr'
 
--- |Resize the State
+-- |Resize the storage
 -- Reallocate the storage to accustom the new size, does not render the
 -- frectal.
-resize :: IORef State -> (Int, Int) -> IO ()
-resize ref size = do
-  State ptr iter area <- readIORef ref
+reallocSize :: IORef State -> (Int, Int) -> IO ()
+reallocSize state size = do
+  State ptr iter area <- readIORef state
   free ptr
   ptr' <- newGreyscalePtr size
-  writeIORef ref $ State ptr' iter (resizeScreen size area)
+  writeIORef state $ State ptr' iter (resizeScreen size area)
 
 -- |Render the fractal and print the time it took
 update :: IORef State -> IO ()
-update ref = do
-  State ptr iter area <- readIORef ref
+update state = do
+  State ptr iter area <- readIORef state
   measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
 
   where maxabs = 4
@@ -170,14 +170,15 @@ initGL = do
   bindVertexArrayObject $= Just vao
 -- }}}
 -- {{{ Run
-reshape :: IORef State -> Size -> IO ()
-reshape ref size@(Size w h) = do
-  resize ref (fromIntegral w, fromIntegral h)
+reshape :: IORef State -> IORef Bool -> Size -> IO ()
+reshape state redraw size@(Size w h) = do
   viewport $= (Position 0 0, size)
+  reallocSize state (fromIntegral w, fromIntegral h)
+  writeIORef redraw True
 
 texturize :: IORef State -> IO ()
-texturize ref = do
-  State ptr _ area <- readIORef ref
+texturize state = do
+  State ptr _ area <- readIORef state
   let (w, h) = areaScreen area
   texImage2D
     Nothing NoProxy 0 Luminance8
@@ -191,11 +192,12 @@ run state = do
 
   initGL
 
-  GLFW.windowSizeCallback $= reshape state
-  GLFW.disableSpecial GLFW.AutoPollEvent
+  quit   <- newIORef False
+  dirty  <- newIORef True
+  redraw <- newIORef True
 
-  quit  <- newIORef False
-  dirty <- newIORef True
+  GLFW.windowSizeCallback $= reshape state redraw
+  GLFW.disableSpecial GLFW.AutoPollEvent
 
   GLFW.windowRefreshCallback $= writeIORef dirty True
 
@@ -210,8 +212,11 @@ run state = do
   let loop = do
         GLFW.waitEvents
 
+        whenRef redraw $ do
+          update state
+          writeIORef redraw False
+
         whenRef dirty $ do
-          putStrLn "Dirty, redrawing..."
           clear [ ColorBuffer ]
           texturize state
           drawArrays TriangleStrip 0 4
@@ -246,8 +251,7 @@ main = do
     (`unless` (GLFW.terminate >> error "Failed to open GLFW window"))
   GLFW.windowTitle $= "Fractlas"
 
-  withState $ \ref -> do
-    run ref
+  withState run
 
   GLFW.closeWindow
   GLFW.terminate
