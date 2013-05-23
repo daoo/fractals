@@ -107,18 +107,14 @@ checkedLinkProgram prog = do
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
 
-strokeRectangle :: (Float, Float) -> (Float, Float) -> IO ()
+strokeRectangle :: VertexComponent a => (a, a) -> (a, a) -> IO ()
 strokeRectangle (x1, y1) (x2, y2) = do
-  let x1' = realToFrac x1 :: GLfloat
-      y1' = realToFrac y1 :: GLfloat
-      x2' = realToFrac x2 :: GLfloat
-      y2' = realToFrac y2 :: GLfloat
   renderPrimitive LineLoop $ do
     color $ (Color3 (1.0::GLfloat) 0 0)
-    vertex $ (Vertex2 x1' y1')
-    vertex $ (Vertex2 x2' y1')
-    vertex $ (Vertex2 x2' y2')
-    vertex $ (Vertex2 x1' y2')
+    vertex $ (Vertex2 x1 y1)
+    vertex $ (Vertex2 x2 y1)
+    vertex $ (Vertex2 x2 y2)
+    vertex $ (Vertex2 x1 y2)
 -- }}}
 -- {{{ Shaders
 fragmentShader :: String
@@ -202,6 +198,16 @@ texturize state = do
     0
     (PixelData Luminance UnsignedByte ptr)
 
+data Mode = Idle | Drag (GLfloat, GLfloat) | Zoom (GLfloat, GLfloat)
+
+mouse :: IO (GLfloat, GLfloat)
+mouse = get mousePos >>= screenToGL
+
+screenToGL :: Position -> IO (GLfloat, GLfloat)
+screenToGL (Position x y) = do
+  Size w h <- get windowSize
+  return (fromIntegral x / fromIntegral w, fromIntegral y / fromIntegral h)
+
 run :: IORef State -> IO ()
 run state = do
   GL.clearColor $= Color4 0 0 0 0
@@ -211,6 +217,8 @@ run state = do
   quit   <- newIORef False
   dirty  <- newIORef True
   redraw <- newIORef True
+  mode   <- newIORef Idle
+  pos    <- newIORef (0.0, 0.0)
 
   GLFW.windowSizeCallback $= reshape state redraw
   GLFW.disableSpecial GLFW.AutoPollEvent
@@ -226,7 +234,7 @@ run state = do
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
 
-  let idle = do
+  let loop = do
         GLFW.waitEvents
 
         whenRef redraw $ do
@@ -237,29 +245,59 @@ run state = do
 
         whenRef dirty $ do
           clear [ ColorBuffer ]
+
           currentProgram $= Just prog
           drawArrays TriangleStrip 0 4
           currentProgram $= Nothing
-          strokeRectangle (0.5, 0.5) (0.9, 0.9)
+
+          readIORef mode >>= \m -> case m of
+            Idle       -> return ()
+            Drag _     -> return ()
+            Zoom start -> readIORef pos >>= strokeRectangle start
+
           GLFW.swapBuffers
           writeIORef dirty False
 
-        unlessRef quit idle
+        unlessRef quit loop
 
-      waitForPress = do
-        GLFW.mousePosCallback    $= \_ -> return ()
+      idleMode = do
+        writeIORef mode Idle
+        writeIORef dirty True
 
-        GLFW.mouseButtonCallback $= \_ _ -> do
-          waitForRelease
-
-      waitForRelease = do
         GLFW.mousePosCallback $= \_ -> return ()
+        GLFW.mouseButtonCallback $= \b _ -> case b of
+          ButtonLeft   -> dragMode
+          ButtonRight  -> zoomMode
+          ButtonMiddle -> mouse >>= print
+          _            -> return ()
 
-        GLFW.mouseButtonCallback $= \_ _ -> do
-          waitForPress
+      dragMode = do
+        mouse >>= writeIORef mode . Drag
+        writeIORef dirty True
 
-  waitForPress
-  idle
+        GLFW.mousePosCallback $= \_ -> do
+          writeIORef dirty True
+
+        GLFW.mouseButtonCallback $= \b _ -> case b of
+          ButtonLeft -> idleMode
+          _          -> return ()
+
+      zoomMode = do
+        mouse >>= \p -> do
+          writeIORef mode $ Zoom p
+          writeIORef pos  $ p
+        writeIORef dirty True
+
+        GLFW.mousePosCallback $= \p -> do
+          screenToGL p >>= writeIORef pos
+          writeIORef dirty True
+
+        GLFW.mouseButtonCallback $= \b _ -> case b of
+          ButtonRight -> idleMode
+          _           -> return ()
+
+  idleMode
+  loop
   where
     whenRef ref io   = readIORef ref >>= (`when` io)
     unlessRef ref io = readIORef ref >>= (`unless` io)
