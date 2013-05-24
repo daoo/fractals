@@ -117,8 +117,8 @@ strokeRectangle (x1, y1) (x2, y2) = do
     vertex $ (Vertex2 x1 y2)
 -- }}}
 -- {{{ Shaders
-fragmentShader :: String
-fragmentShader =
+texFragShader :: String
+texFragShader =
   "#version 130\n\
 
   \precision highp float;\n\
@@ -132,24 +132,44 @@ fragmentShader =
   \  fragmentColor = texture2D(framebuffer, texCoord);\n\
   \}"
 
-vertexShader :: String
-vertexShader =
+texVertShader :: String
+texVertShader =
   "#version 130\n\
 
   \in  vec3 position;\n\
   \out vec2 texCoord;\n\
 
   \void main() {\n\
-  \  texCoord    = (position.xy + vec2(1.0)) * 0.5;\n\
+  \  texCoord    = (position.xy + vec2(1.0)) * vec2(0.5, -0.5);\n\
   \  gl_Position = vec4(position, 1);\n\
+  \}"
+
+redFragShader :: String
+redFragShader =
+  "#version 130\n\
+  \precision highp float;\n\
+  \out vec4 fragmentColor;\n\
+  \void main() {\n\
+  \  fragmentColor = vec4(1, 0, 0, 1);\n\
+  \}"
+
+screenVertShader :: String
+screenVertShader =
+  "#version 130\n\
+
+  \in vec3 position;\n\
+  \uniform vec2 size;\n\
+
+  \void main() {\n\
+  \  gl_Position = vec2(2.0) * position.xy / size - vec2(1.0);\n\
   \}"
 -- }}}
 -- {{{ Init GL
 initGL :: IO Program
 initGL = do
   -- Shaders
-  vs <- createShader vertexShader
-  fs <- createShader fragmentShader
+  vs <- createShader texVertShader
+  fs <- createShader texFragShader
   prog <- createProgram vs fs
   bindFragDataLocation prog "position" $= 0
   attribLocation prog "fragmentColor"  $= AttribLocation 0
@@ -249,6 +269,8 @@ run state = do
           currentProgram $= Just prog
           drawArrays TriangleStrip 0 4
           currentProgram $= Nothing
+
+          strokeRectangle (0::GLfloat, 0) (0.9, 0.9)
 
           readIORef mode >>= \m -> case m of
             Idle       -> return ()
