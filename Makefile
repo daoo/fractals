@@ -7,12 +7,16 @@ prof:
 release:
 	@cabal-dev build --ghc-options="-fllvm -H64m -O2"
 
-configure:
+install:
 	@cabal-dev install \
 		--reinstall \
-		--force-reinstalls \
-		--enable-benchmarks \
-		--enable-tests
+		--force-reinstalls
+
+conf:
+	@cabal-dev configure
+
+
+conf-tests:
 	@cabal-dev configure \
 		--enable-benchmarks \
 		--enable-tests
