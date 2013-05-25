@@ -239,6 +239,7 @@ data Mode = Idle | Drag (GLfloat, GLfloat) | Zoom (GLfloat, GLfloat)
 mouse :: IO (GLfloat, GLfloat)
 mouse = get mousePos >>= screenToGL
 
+-- TODO: Do scaling in shader instead
 screenToGL :: Position -> IO (GLfloat, GLfloat)
 screenToGL (Position x y) = do
   Size w h <- get windowSize
