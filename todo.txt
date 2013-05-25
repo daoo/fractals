@@ -1,0 +1,5 @@
+Antialiasing
+Nifty color palettes
+Logarithmic color scaling
+Multithreaded rendered
+Zoom movies

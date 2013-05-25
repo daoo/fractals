@@ -1,5 +1,9 @@
 module Main where
 
+-- TODO: Implement zooming in and out
+-- TODO: Implement draging
+-- TODO: Render with threads and different resolution
+
 import Control.Monad
 import Data.Array.Storable
 import Data.IORef
