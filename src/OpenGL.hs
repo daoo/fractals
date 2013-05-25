@@ -16,7 +16,7 @@ import Fractals.Utility
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 
--- {{{ State
+-- {{{ Fractal state
 data State = State
   { stateImg :: Ptr Word8
   , stateIter :: !Int
@@ -75,6 +75,21 @@ createProgram vs fs = do
   deleteObjectNames [fs]
   return prog
 
+compileAndLink :: String -> String -> IO Program
+compileAndLink vert frag = do
+  vs <- createShader vert
+  fs <- createShader frag
+  prog <- createProgram vs fs
+  bindFragDataLocation prog "position" $= 0
+  attribLocation prog "fragmentColor"  $= AttribLocation 0
+  checkedLinkProgram prog
+  return prog
+
+setUniform :: Uniform a => Program -> String -> a -> IO ()
+setUniform prog var val = do
+  location <- get (uniformLocation prog var)
+  uniform location $= val
+
 createBuffer :: Storable a => [a] -> IO BufferObject
 createBuffer xs = do
   let c = length xs
@@ -116,7 +131,7 @@ strokeRectangle (x1, y1) (x2, y2) = do
     vertex $ (Vertex2 x2 y2)
     vertex $ (Vertex2 x1 y2)
 -- }}}
--- {{{ Shaders
+-- {{{ GL State
 texFragShader :: String
 texFragShader =
   "#version 130\n\
@@ -161,23 +176,20 @@ screenVertShader =
   \uniform vec2 size;\n\
 
   \void main() {\n\
-  \  gl_Position = vec2(2.0) * position.xy / size - vec2(1.0);\n\
+  \  vec2 p = vec2(position) * vec2(2, -2) + vec2(-1, 1);\n\
+  \  gl_Position = vec4(p, 0, 1);\n\
   \}"
--- }}}
--- {{{ Init GL
-initGL :: IO Program
+
+data GL = GL
+  { glFractalProg :: Program
+  , glScreenProg :: Program
+  }
+
+initGL :: IO GL
 initGL = do
   -- Shaders
-  vs <- createShader texVertShader
-  fs <- createShader texFragShader
-  prog <- createProgram vs fs
-  bindFragDataLocation prog "position" $= 0
-  attribLocation prog "fragmentColor"  $= AttribLocation 0
-  checkedLinkProgram prog
-  let setUniform var val = do
-        location <- get (uniformLocation prog var)
-        uniform location $= val
-  currentProgram $= Just prog
+  fractal <- compileAndLink texVertShader texFragShader
+  screen  <- compileAndLink screenVertShader redFragShader
 
   -- Framebuffer texture
   [tex] <- genObjectNames 1
@@ -185,7 +197,7 @@ initGL = do
   textureBinding Texture2D $= Just tex
   textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
   rowAlignment Unpack      $= 1
-  setUniform "framebuffer" (Index1 (0 :: GLint))
+  setUniform fractal "framebuffer" (Index1 (0 :: GLint))
 
   -- VAO
   let quad :: [GLfloat]
@@ -199,7 +211,7 @@ initGL = do
   vao <- createBuffer quad >>= createVAO
   bindVertexArrayObject $= Just vao
 
-  return prog
+  return $ GL fractal screen
 -- }}}
 -- {{{ Run
 reshape :: IORef State -> IORef Bool -> Size -> IO ()
@@ -232,7 +244,7 @@ run :: IORef State -> IO ()
 run state = do
   GL.clearColor $= Color4 0 0 0 0
 
-  prog <- initGL
+  GL pfractal pscreen <- initGL
 
   quit   <- newIORef False
   dirty  <- newIORef True
@@ -266,11 +278,11 @@ run state = do
         whenRef dirty $ do
           clear [ ColorBuffer ]
 
-          currentProgram $= Just prog
+          currentProgram $= Just pfractal
           drawArrays TriangleStrip 0 4
-          currentProgram $= Nothing
 
-          strokeRectangle (0::GLfloat, 0) (0.9, 0.9)
+          currentProgram $= Just pscreen
+          strokeRectangle (0.1::GLfloat, 0.1) (0.9, 0.9)
 
           readIORef mode >>= \m -> case m of
             Idle       -> return ()
