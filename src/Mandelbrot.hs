@@ -17,4 +17,4 @@ main = do
   measureTime $ fill arr (toRgba `xy` greyscale) mandelbrot2 200 4 area
   unsafeFreeze arr >>= writeImage "dist/mandelbrot.png"
   where
-    area = aspectCentered (1920, 1080) 4.3 (0:+0)
+    area = fromAspectCentered (1920, 1080) 4.3 (0:+0)

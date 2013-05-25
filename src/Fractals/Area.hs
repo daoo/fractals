@@ -1,8 +1,8 @@
 module Fractals.Area
   ( Area(..)
-  , areaCenter
+  , getAreaCenter
   , fromRectangle
-  , aspectCentered
+  , fromAspectCentered
   , resizeScreen
   ) where
 
@@ -18,9 +18,9 @@ data Area = Area
   , areaDelta   :: Comp
   } deriving Show
 
-{-# INLINE areaCenter #-}
-areaCenter :: Area -> Comp
-areaCenter area = px + pw / 2.0 :+ py - ph / 2.0
+{-# INLINE getAreaCenter #-}
+getAreaCenter :: Area -> Comp
+getAreaCenter area = px + pw / 2.0 :+ py - ph / 2.0
   where
     (pw:+ph) = areaPlane area
     (px:+py) = areaTopLeft area
@@ -31,9 +31,9 @@ fromRectangle :: (Int, Int) -> Comp -> Comp -> Area
 fromRectangle screen@(w, h) plane@(pw:+ph) topleft =
   Area screen plane topleft (pw / realToFrac w :+ - ph / realToFrac h)
 
-{-# INLINE aspectCentered #-}
-aspectCentered :: (Int, Int) -> R -> Comp -> Area
-aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
+{-# INLINE fromAspectCentered #-}
+fromAspectCentered :: (Int, Int) -> R -> Comp -> Area
+fromAspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
   where
     (w', h')      = (realToFrac w, realToFrac h)
     aspect        = w' / h'
@@ -43,5 +43,5 @@ aspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
 
 {-# INLINE resizeScreen #-}
 resizeScreen :: (Int, Int) -> Area -> Area
-resizeScreen ns@(nw, nh) area =
-  aspectCentered ns (realPart $ areaPlane area) (areaCenter area)
+resizeScreen ns area =
+  fromAspectCentered ns (realPart $ areaPlane area) (getAreaCenter area)

@@ -33,7 +33,7 @@ withState :: (IORef State -> IO ()) -> IO ()
 withState f = do
   let defsize = (800, 600)
       iter = 100
-      area = aspectCentered defsize 4.3 (0:+0)
+      area = fromAspectCentered defsize 4.3 (0:+0)
   ptr <- newGreyscalePtr defsize
   state <- newIORef $ State ptr iter area
   f state
