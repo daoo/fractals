@@ -91,6 +91,7 @@ compileAndLink vert frag = do
 
 setUniform :: Uniform a => Program -> String -> a -> IO ()
 setUniform prog var val = do
+  currentProgram $= Just prog
   location <- get (uniformLocation prog var)
   uniform location $= val
 
@@ -126,8 +127,8 @@ checkedLinkProgram prog = do
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
 
-strokeRectangle :: VertexComponent a => (a, a) -> (a, a) -> IO ()
-strokeRectangle (x1, y1) (x2, y2) = do
+strokeRectangle :: Position -> Position -> IO ()
+strokeRectangle (Position x1 y1) (Position x2 y2) = do
   renderPrimitive LineLoop $ do
     color $ (Color3 (1.0::GLfloat) 0 0)
     vertex $ (Vertex2 x1 y1)
@@ -177,11 +178,10 @@ screenVertShader =
   "#version 130\n\
 
   \in vec3 position;\n\
-  \uniform vec2 size;\n\
+  \uniform ivec2 size;\n\
 
   \void main() {\n\
-  \  vec2 p = vec2(position) * vec2(2, -2) + vec2(-1, 1);\n\
-  \  gl_Position = vec4(p, 0, 1);\n\
+  \  gl_Position = vec4((vec2(position) / size) * vec2(2, -2) + vec2(-1, 1), 0, 1);\n\
   \}"
 
 data GL = GL
@@ -218,8 +218,9 @@ initGL = do
   return $ GL fractal screen
 -- }}}
 -- {{{ Run
-reshape :: IORef State -> IORef Bool -> Size -> IO ()
-reshape state redraw size@(Size w h) = do
+reshape :: Program -> IORef State -> IORef Bool -> Size -> IO ()
+reshape prog state redraw size@(Size w h) = do
+  setUniform prog "size" $ Vertex2 w h
   viewport $= (Position 0 0, size)
   reallocSize state (fromIntegral w, fromIntegral h)
   writeIORef redraw True
@@ -234,16 +235,7 @@ texturize state = do
     0
     (PixelData Luminance UnsignedByte ptr)
 
-data Mode = Idle | Drag (GLfloat, GLfloat) | Zoom (GLfloat, GLfloat)
-
-mouse :: IO (GLfloat, GLfloat)
-mouse = get mousePos >>= screenToGL
-
--- TODO: Do scaling in shader instead
-screenToGL :: Position -> IO (GLfloat, GLfloat)
-screenToGL (Position x y) = do
-  Size w h <- get windowSize
-  return (fromIntegral x / fromIntegral w, fromIntegral y / fromIntegral h)
+data Mode = Idle | Drag Position | Zoom Position
 
 run :: IORef State -> IO ()
 run state = do
@@ -255,9 +247,9 @@ run state = do
   dirty  <- newIORef True
   redraw <- newIORef True
   mode   <- newIORef Idle
-  pos    <- newIORef (0.0, 0.0)
+  pos    <- newIORef $ Position 0 0
 
-  GLFW.windowSizeCallback $= reshape state redraw
+  GLFW.windowSizeCallback $= reshape pscreen state redraw
   GLFW.disableSpecial GLFW.AutoPollEvent
 
   GLFW.windowRefreshCallback $= writeIORef dirty True
@@ -287,7 +279,7 @@ run state = do
           drawArrays TriangleStrip 0 4
 
           currentProgram $= Just pscreen
-          strokeRectangle (0.1::GLfloat, 0.1) (0.9, 0.9)
+          strokeRectangle (Position 0 0) (Position 100 100)
 
           readIORef mode >>= \m -> case m of
             Idle       -> return ()
@@ -303,18 +295,20 @@ run state = do
         writeIORef mode Idle
         writeIORef dirty True
 
-        GLFW.mousePosCallback $= \_ -> return ()
+        GLFW.mousePosCallback $= \p -> writeIORef pos p
+
         GLFW.mouseButtonCallback $= \b _ -> case b of
           ButtonLeft   -> dragMode
           ButtonRight  -> zoomMode
-          ButtonMiddle -> mouse >>= print
+          ButtonMiddle -> readIORef pos  >>= print
           _            -> return ()
 
       dragMode = do
-        mouse >>= writeIORef mode . Drag
+        readIORef pos >>= writeIORef mode . Drag
         writeIORef dirty True
 
-        GLFW.mousePosCallback $= \_ -> do
+        GLFW.mousePosCallback $= \p -> do
+          writeIORef pos p
           writeIORef dirty True
 
         GLFW.mouseButtonCallback $= \b _ -> case b of
@@ -322,13 +316,12 @@ run state = do
           _          -> return ()
 
       zoomMode = do
-        mouse >>= \p -> do
-          writeIORef mode $ Zoom p
-          writeIORef pos  $ p
+        readIORef pos >>= (writeIORef mode . Zoom)
+
         writeIORef dirty True
 
         GLFW.mousePosCallback $= \p -> do
-          screenToGL p >>= writeIORef pos
+          writeIORef pos p
           writeIORef dirty True
 
         GLFW.mouseButtonCallback $= \b _ -> case b of
