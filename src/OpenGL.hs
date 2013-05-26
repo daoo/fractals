@@ -42,16 +42,16 @@ withState f = do
 -- |Resize the storage
 -- Reallocate the storage to accustom the new size, does not render the
 -- frectal.
-reallocSize :: IORef State -> (Int, Int) -> IO ()
-reallocSize state size = do
+resizeState :: IORef State -> (Int, Int) -> IO ()
+resizeState state size = do
   State ptr iter area <- readIORef state
   free ptr
   ptr' <- newGreyscalePtr size
   writeIORef state $ State ptr' iter (resizeScreen size area)
 
 -- |Render the fractal and print the time it took
-update :: IORef State -> IO ()
-update state = do
+updateState :: IORef State -> IO ()
+updateState state = do
   State ptr iter area <- readIORef state
   measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
 
@@ -222,7 +222,7 @@ reshape :: Program -> IORef State -> IORef Bool -> Size -> IO ()
 reshape prog state redraw size@(Size w h) = do
   setUniform prog "size" $ Vertex2 w h
   viewport $= (Position 0 0, size)
-  reallocSize state (fromIntegral w, fromIntegral h)
+  resizeState state (fromIntegral w, fromIntegral h)
   writeIORef redraw True
 
 texturize :: IORef State -> IO ()
@@ -267,7 +267,7 @@ run state = do
         GLFW.waitEvents
 
         whenRef redraw $ do
-          update state
+          updateState state
           texturize state
           writeIORef redraw False
           writeIORef dirty True
