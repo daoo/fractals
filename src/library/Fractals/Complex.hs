@@ -42,7 +42,8 @@ instance Num Comp where
   (a:+b) - (c:+d) = (a - c) :+ (b - d)
   (a:+b) * (c:+d) = (a*c - b*d) :+ (b*c + a*d)
 
+  abs (a:+b) = abs a :+ abs b
+
   negate      = undefined
-  abs         = undefined
   signum      = undefined
   fromInteger = undefined

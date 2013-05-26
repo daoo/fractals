@@ -7,10 +7,14 @@ module Main where
 import Control.Monad
 import Data.IORef
 import Fractals.Area
+import Fractals.Complex
 import GL.Fractal
 import GL.Util
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
+
+posToTuple :: Position -> (Int, Int)
+posToTuple (Position x y) = (fromIntegral x, fromIntegral y)
 
 texFragShader :: String
 texFragShader =
@@ -175,10 +179,10 @@ run state = do
           ButtonLeft   -> dragMode
           ButtonRight  -> zoomMode
           ButtonMiddle -> do
-            p@(Position x y) <- readIORef pos
-            State _ _ area   <- readIORef state
+            p              <- readIORef pos
+            State _ _ area <- readIORef state
             print p
-            print $ screenToPlane area (fromIntegral x, fromIntegral y)
+            print $ screenToPlane area $ posToTuple p
 
           _ -> return ()
 
@@ -195,7 +199,7 @@ run state = do
           _          -> return ()
 
       zoomMode = do
-        start@(Position sx sy) <- readIORef pos
+        start <- readIORef pos
         writeIORef mode $ Zoom start
 
         writeIORef dirty True
@@ -206,12 +210,12 @@ run state = do
 
         GLFW.mouseButtonCallback $= \b _ -> case b of
           ButtonRight -> do
-            Position ex ey <- readIORef pos
+            end <- readIORef pos
             modAreaState state $ \area ->
-              let conv        = (\(x, y) -> screenToPlane area (fromIntegral x, fromIntegral y))
-                  topleft     = conv (sx, sy)
-                  bottomright = conv (ex, ey)
-                  size        = bottomright - topleft
+              let conv             = screenToPlane area . posToTuple
+                  topleft@(sr:+si) = conv start
+                  (er:+ei)         = conv end
+                  size             = (er - sr) :+ (si - ei)
                in resizePlane topleft size area
             writeIORef redraw True
             idleMode
