@@ -13,6 +13,10 @@ import GL.Util
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 
+whenRef, unlessRef :: IORef Bool -> IO () -> IO ()
+whenRef ref io   = readIORef ref >>= (`when` io)
+unlessRef ref io = readIORef ref >>= (`unless` io)
+
 posToTuple :: Position -> (Int, Int)
 posToTuple (Position x y) = (fromIntegral x, fromIntegral y)
 
@@ -248,9 +252,6 @@ run state = do
 
   idleMode
   loop
-  where
-    whenRef ref io   = readIORef ref >>= (`when` io)
-    unlessRef ref io = readIORef ref >>= (`unless` io)
 
 main :: IO ()
 main = do
