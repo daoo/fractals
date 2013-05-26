@@ -19,32 +19,33 @@ library
     Fractals.Render,
     Fractals.Utility
   build-depends: base, mtl, array, ghc-prim
-  hs-source-dirs: src
+  hs-source-dirs: src/library
   ghc-options: -Wall
 
 executable fractals-ascii
-  main-is: src/ASCII.hs
+  main-is: src/frontends/ASCII.hs
   build-depends: fractals, base, mtl
   ghc-options: -Wall
 
 executable fractals-image
-  main-is: src/Image.hs
+  main-is: src/frontends/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
 executable mandelbrot
-  main-is: src/Mandelbrot.hs
+  main-is: src/frontends/Mandelbrot.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
 executable fractals-image-rational
-  main-is: src/Image.hs
+  main-is: src/frontends/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
   cpp-options: -DRATIONAL
 
 executable fractals-opengl
-  main-is: src/OpenGL.hs
+  hs-source-dirs: src/frontends
+  main-is: OpenGL.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLFW
   ghc-options: -Wall
 

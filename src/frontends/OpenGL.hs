@@ -5,141 +5,13 @@ module Main where
 -- TODO: Render with threads and different resolution
 
 import Control.Monad
-import Data.Array.Storable
 import Data.IORef
-import Data.Word
-import Foreign.Marshal.Alloc
-import Foreign.Ptr
-import Foreign.Storable
 import Fractals.Area
-import Fractals.Coloring
-import Fractals.Complex
-import Fractals.Definitions
-import Fractals.Image
-import Fractals.Utility
+import GL.Fractal
+import GL.Util
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 
--- {{{ Fractal state
-data State = State
-  { stateImg :: Ptr Word8
-  , stateIter :: !Int
-  , stateArea :: Area
-  } deriving Show
-
--- |Run an IO action with a State
--- Handles the memory, does not render the fractal.
-withState :: (IORef State -> IO ()) -> IO ()
-withState f = do
-  let defsize = (800, 600)
-      iter = 100
-      area = fromAspectCentered defsize 4.3 (0:+0)
-  ptr <- newGreyscalePtr defsize
-  state <- newIORef $ State ptr iter area
-  f state
-  readIORef state >>= (free . stateImg)
-
--- |Resize the storage
--- Reallocate the storage to accustom the new size, does not render the
--- frectal.
-resizeState :: IORef State -> (Int, Int) -> IO ()
-resizeState state size = do
-  State ptr iter area <- readIORef state
-  free ptr
-  ptr' <- newGreyscalePtr size
-  writeIORef state $ State ptr' iter (resizeScreen size area)
-
-modAreaState :: IORef State -> (Area -> Area) -> IO ()
-modAreaState state f = modifyIORef state (\s ->
-  s { stateArea = f (stateArea s) })
-
--- |Render the fractal and print the time it took
-updateState :: IORef State -> IO ()
-updateState state = do
-  State ptr iter area <- readIORef state
-  measureTime $ fill ptr greyscale mandelbrot2 iter maxabs area
-
-  where maxabs = 4
--- }}}
--- {{{ OpenGL helpers
-createShader :: Shader s => String -> IO s
-createShader src = do
-  [shader] <- genObjectNames 1
-  shaderSource shader $= [src]
-  compileShader shader
-  ok <- get (compileStatus shader)
-  unless ok $ do
-    infoLog <- get (shaderInfoLog shader)
-    putStrLn $ unlines ["Shader error:", infoLog, ""]
-    deleteObjectNames [shader]
-    ioError (userError "shader compilation failed")
-  return shader
-
-createProgram :: VertexShader -> FragmentShader -> IO Program
-createProgram vs fs = do
-  [prog] <- genObjectNames 1
-  attachedShaders prog $= ([vs], [fs])
-  deleteObjectNames [vs]
-  deleteObjectNames [fs]
-  return prog
-
-compileAndLink :: String -> String -> IO Program
-compileAndLink vert frag = do
-  vs <- createShader vert
-  fs <- createShader frag
-  prog <- createProgram vs fs
-  bindFragDataLocation prog "position" $= 0
-  attribLocation prog "fragmentColor"  $= AttribLocation 0
-  checkedLinkProgram prog
-  return prog
-
-setUniform :: Uniform a => Program -> String -> a -> IO ()
-setUniform prog var val = do
-  currentProgram $= Just prog
-  location <- get (uniformLocation prog var)
-  uniform location $= val
-
-createBuffer :: Storable a => [a] -> IO BufferObject
-createBuffer xs = do
-  let c = length xs
-      n = fromIntegral $ c * sizeOf (head xs)
-  [buffer] <- genObjectNames 1
-  bindBuffer ArrayBuffer $= Just buffer
-  newListArray (0, c-1) xs >>= (`withStorableArray` \ptr ->
-    bufferData ArrayBuffer $= (n, ptr, StaticDraw))
-  bindBuffer ArrayBuffer $= Nothing
-  return buffer
-
-createVAO :: BufferObject -> IO VertexArrayObject
-createVAO buffer = do
-  let attrib = AttribLocation 0
-  [vao] <- genObjectNames 1
-  bindVertexArrayObject      $= Just vao
-  bindBuffer ArrayBuffer     $= Just buffer
-  vertexAttribArray attrib   $= Enabled
-  vertexAttribPointer attrib $= (ToFloat, VertexArrayDescriptor 3 Float 0 nullPtr)
-  bindBuffer ArrayBuffer     $= Nothing
-  bindVertexArrayObject      $= Nothing
-  return vao
-
-checkedLinkProgram :: Program -> IO ()
-checkedLinkProgram prog = do
-  linkProgram prog
-  ok <- get (linkStatus prog)
-  unless ok $ do
-    get (programInfoLog prog) >>= putStrLn
-    deleteObjectNames [prog]
-    ioError (userError "program linking failed")
-
-strokeRectangle :: Position -> Position -> IO ()
-strokeRectangle (Position x1 y1) (Position x2 y2) = do
-  renderPrimitive LineLoop $ do
-    color $ (Color3 (1.0::GLfloat) 0 0)
-    vertex $ (Vertex2 x1 y1)
-    vertex $ (Vertex2 x2 y1)
-    vertex $ (Vertex2 x2 y2)
-    vertex $ (Vertex2 x1 y2)
--- }}}
 -- {{{ GL State
 texFragShader :: String
 texFragShader =
@@ -304,8 +176,13 @@ run state = do
         GLFW.mouseButtonCallback $= \b _ -> case b of
           ButtonLeft   -> dragMode
           ButtonRight  -> zoomMode
-          ButtonMiddle -> readIORef pos  >>= print
-          _            -> return ()
+          ButtonMiddle -> do
+            p@(Position x y) <- readIORef pos
+            State _ _ area   <- readIORef state
+            print p
+            print $ screenToPlane area (fromIntegral x, fromIntegral y)
+
+          _ -> return ()
 
       dragMode = do
         readIORef pos >>= writeIORef mode . Drag
