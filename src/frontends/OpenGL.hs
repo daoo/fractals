@@ -1,6 +1,7 @@
 module Main where
 
--- TODO: Implement zooming in and out
+-- TODO: Implement zooming out
+-- TODO: Preserve aspect ratio when zooming in
 -- TODO: Implement draging
 -- TODO: Render with threads and different resolution
 
