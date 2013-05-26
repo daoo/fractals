@@ -1,7 +1,6 @@
 module Main where
 
 -- TODO: Implement zooming out
--- TODO: Preserve aspect ratio when zooming in
 -- TODO: Implement draging
 -- TODO: Render with threads and different resolution
 
@@ -16,6 +15,24 @@ import Graphics.UI.GLFW as GLFW
 
 posToTuple :: Position -> (Int, Int)
 posToTuple (Position x y) = (fromIntegral x, fromIntegral y)
+
+sizeToTuple :: Size -> (Int, Int)
+sizeToTuple (Size w h) = (fromIntegral w, fromIntegral h)
+
+tupleToPos :: Integral a => (a, a) -> Position
+tupleToPos (x, y) = Position (fromIntegral x) (fromIntegral y)
+
+add :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+add (a, b) (c, d) = (a + c, b + d)
+
+maxRect :: (Int, Int) -> (Int, Int) -> (Int, Int) -> (Int, Int)
+maxRect (w, h) (sx, sy) (ex, ey) = max s1 s2
+  where
+    w' = ex - sx
+    h' = ey - sy
+
+    s1 = (w', w'*h `quot` w)
+    s2 = (w*h' `quot` h, h')
 
 texFragShader :: String
 texFragShader =
@@ -157,18 +174,24 @@ run state = do
           currentProgram $= Just pfractal
           drawArrays TriangleStrip 0 4
 
-          currentProgram $= Just pscreen
-          strokeRectangle (Position 0 0) (Position 100 100)
-
           readIORef mode >>= \m -> case m of
             Idle       -> return ()
             Drag _     -> return ()
-            Zoom start -> readIORef pos >>= strokeRectangle start
+            Zoom start -> do
+              currentProgram $= Just pscreen
+              calcZoomRectEnd start >>= strokeRectangle start
 
           GLFW.swapBuffers
           writeIORef dirty False
 
         unlessRef quit loop
+
+      calcZoomRectEnd start = do
+        end <- readIORef pos
+        size <- get windowSize
+        let s = posToTuple start
+            a = maxRect (sizeToTuple size) s (posToTuple end)
+        return $ tupleToPos (s `add` a)
 
       idleMode = do
         writeIORef mode Idle
@@ -211,7 +234,7 @@ run state = do
 
         GLFW.mouseButtonCallback $= \b _ -> case b of
           ButtonRight -> do
-            end <- readIORef pos
+            end <- calcZoomRectEnd start
             modAreaState state $ \area ->
               let conv             = screenToPlane area . posToTuple
                   topleft@(sr:+si) = conv start
