@@ -49,6 +49,10 @@ resizeState state size = do
   ptr' <- newGreyscalePtr size
   writeIORef state $ State ptr' iter (resizeScreen size area)
 
+modAreaState :: IORef State -> (Area -> Area) -> IO ()
+modAreaState state f = modifyIORef state (\s ->
+  s { stateArea = f (stateArea s) })
+
 -- |Render the fractal and print the time it took
 updateState :: IORef State -> IO ()
 updateState state = do
@@ -316,7 +320,8 @@ run state = do
           _          -> return ()
 
       zoomMode = do
-        readIORef pos >>= (writeIORef mode . Zoom)
+        start@(Position sx sy) <- readIORef pos
+        writeIORef mode $ Zoom start
 
         writeIORef dirty True
 
@@ -325,8 +330,18 @@ run state = do
           writeIORef dirty True
 
         GLFW.mouseButtonCallback $= \b _ -> case b of
-          ButtonRight -> idleMode
-          _           -> return ()
+          ButtonRight -> do
+            Position ex ey <- readIORef pos
+            modAreaState state $ \area ->
+              let conv        = (\(x, y) -> screenToPlane area (fromIntegral x, fromIntegral y))
+                  topleft     = conv (sx, sy)
+                  bottomright = conv (ex, ey)
+                  size        = bottomright - topleft
+               in resizePlane topleft size area
+            writeIORef redraw True
+            idleMode
+
+          _ -> return ()
 
   idleMode
   loop

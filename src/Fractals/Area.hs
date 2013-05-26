@@ -4,6 +4,7 @@ module Fractals.Area
   , fromRectangle
   , fromAspectCentered
   , resizeScreen
+  , resizePlane
   , screenToPlane
   ) where
 
@@ -46,6 +47,13 @@ fromAspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
 resizeScreen :: (Int, Int) -> Area -> Area
 resizeScreen ns area =
   fromAspectCentered ns (realPart $ areaPlane area) (getAreaCenter area)
+
+{-# INLINE resizePlane #-}
+resizePlane :: Comp -> Comp -> Area -> Area
+resizePlane topleft plane@(pw:+ph) area = Area screen plane topleft delta
+  where
+    screen@(w, h) = areaScreen area
+    delta         = (pw / realToFrac w) :+ (- ph / realToFrac h)
 
 {-# INLINE screenToPlane #-}
 screenToPlane :: Area -> (Int, Int) -> Comp
