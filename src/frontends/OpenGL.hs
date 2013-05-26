@@ -12,7 +12,6 @@ import GL.Util
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 
--- {{{ GL State
 texFragShader :: String
 texFragShader =
   "#version 130\n\
@@ -92,8 +91,7 @@ initGL = do
   bindVertexArrayObject $= Just vao
 
   return $ GL fractal screen
--- }}}
--- {{{ Run
+
 reshape :: Program -> IORef State -> IORef Bool -> Size -> IO ()
 reshape prog state redraw size@(Size w h) = do
   setUniform prog "size" $ Vertex2 w h
@@ -225,7 +223,6 @@ run state = do
   where
     whenRef ref io   = readIORef ref >>= (`when` io)
     unlessRef ref io = readIORef ref >>= (`unless` io)
--- }}}
 
 main :: IO ()
 main = do
@@ -238,5 +235,3 @@ main = do
 
   GLFW.closeWindow
   GLFW.terminate
-
--- vim: set fdm=marker :
