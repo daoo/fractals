@@ -11,7 +11,7 @@ import Fractals.Definitions
 import Fractals.Image
 
 area :: Area
-area = aspectCentered (800, 600) 4.3 (-2.0:+0)
+area = fromAspectCentered (800, 600) 4.3 (-2.0:+0)
 
 iter :: Int
 iter = 100
