@@ -5,13 +5,14 @@ module Fractals.Args
 
 import Control.Applicative
 import Control.Monad.State
+import Data.Word
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
 
 data Fractal = Fractal
   { fractalDefinition :: Definition
-  , fractalIter :: Int
+  , fractalIter :: Word
   , fractalMaxAbs :: R
   , fractalArea :: Area
   }

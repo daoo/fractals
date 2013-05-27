@@ -41,7 +41,7 @@ instance (Writable s e m) => Writable s (e, e, e, e) m where
     write s (n+3) a
 
 class Storage s c m where
-  fill :: s -> (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
+  fill :: s -> (Word -> Word -> c) -> Definition -> Word -> R -> Area -> m ()
 
 instance (Writable a Word8 m) => Storage a Word8 m where
   {-# INLINE fill #-}
@@ -75,9 +75,9 @@ newGreyscalePtr (w, h) = mallocArray $ w * h
 helper :: (Monad m, Color c)
   => Int
   -> (Int -> c -> m ())
-  -> (Int -> Int -> c)
+  -> (Word -> Word -> c)
   -> Definition
-  -> Int
+  -> Word
   -> R
   -> Area
   -> m ()

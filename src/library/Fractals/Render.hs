@@ -5,13 +5,14 @@ module Fractals.Render
   , monadic
   ) where
 
+import Data.Word
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 
 {-# INLINE lists #-}
-lists :: Definition -> Int -> R -> Area -> [[Int]]
+lists :: Definition -> Word -> R -> Area -> [[Word]]
 lists fractal iter maxabs area = buildLists
   (areaScreen area)
   (areaTopLeft area)
@@ -19,7 +20,7 @@ lists fractal iter maxabs area = buildLists
   (\x y -> fractal (x:+y) maxabs iter)
 
 {-# INLINE buildLists #-}
-buildLists :: (Int, Int) -> Comp -> Comp -> (R -> R -> Int) -> [[Int]]
+buildLists :: (Int, Int) -> Comp -> Comp -> (R -> R -> Word) -> [[Word]]
 buildLists (!w, !h) (x1:+y1) (dx:+dy) f = goy 0 y1
   where
     goy !i !y | i < h     = gox 0 x1 : goy (i+1) (y+dy)
@@ -29,7 +30,7 @@ buildLists (!w, !h) (x1:+y1) (dx:+dy) f = goy 0 y1
                   | otherwise = []
 
 {-# INLINE string #-}
-string :: Definition -> Int -> R -> Area -> String
+string :: Definition -> Word -> R -> Area -> String
 string fractal iter maxabs area = buildString
   (areaScreen area)
   (areaTopLeft area)
