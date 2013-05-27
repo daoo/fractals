@@ -85,10 +85,7 @@ screenVertShader =
   \  gl_Position = vec4((vec2(position) / size) * vec2(2, -2) + vec2(-1, 1), 0, 1);\n\
   \}"
 
-data GL = GL
-  { glFractalProg :: Program
-  , glScreenProg :: Program
-  }
+data GL = GL Program Program
 
 initGL :: IO GL
 initGL = do
