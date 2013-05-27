@@ -4,6 +4,15 @@ module Fractals.Utility where
 import GHC.Exts
 import System.CPUTime
 
+clampLow :: Ord a => a -> a -> a
+clampLow a x | x < a     = a
+             | otherwise = x
+
+clamp :: Ord a => (a, a) -> a -> a
+clamp (a, b) x | x < a     = a
+               | x > b     = b
+               | otherwise = x
+
 {-# INLINE xy #-}
 xy :: (a -> b) -> (t1 -> t2 -> a) -> t1 -> t2 -> b
 xy f g a b = f (g a b)

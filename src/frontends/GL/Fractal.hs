@@ -50,7 +50,7 @@ modArea :: (Area -> Area) -> State -> State
 modArea f state = state { stateArea = f (stateArea state) }
 
 modIter :: (Int -> Int) -> State -> State
-modIter f state = state { stateIter = f (stateIter state) }
+modIter f state = state { stateIter = clampLow 1 $ f (stateIter state) }
 
 -- |Render the fractal and print the time it took
 update :: IORef State -> IO ()
