@@ -3,6 +3,8 @@ module Fractals.Args
   , parseFractal
   ) where
 
+-- TODO: More graceful handling of incorrect arguments
+
 import Control.Applicative
 import Control.Monad.State
 import Data.Word
