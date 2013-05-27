@@ -122,7 +122,7 @@ reshape :: Program -> IORef State -> IORef Bool -> Size -> IO ()
 reshape prog state redraw size@(Size w h) = do
   setUniform prog "size" $ Vertex2 w h
   viewport $= (Position 0 0, size)
-  resizeState state (fromIntegral w, fromIntegral h)
+  resize state (fromIntegral w, fromIntegral h)
   writeIORef redraw True
 
 texturize :: IORef State -> IO ()
@@ -156,9 +156,14 @@ run state = do
 
   GLFW.keyCallback $= \k s ->
     when (s == GLFW.Press) $ case k of
+      GLFW.SpecialKey GLFW.F1  -> readIORef state >>= print
+
       GLFW.SpecialKey GLFW.ESC -> writeIORef quit True
       GLFW.CharKey 'Q'         -> writeIORef quit True
-      GLFW.CharKey 'D'         -> readIORef state >>= print
+
+      GLFW.CharKey 'I' -> modifyIORef state (modIter (+10)) >> writeIORef redraw True
+      GLFW.CharKey 'D' -> modifyIORef state (modIter (subtract 10)) >> writeIORef redraw True
+
       _                        -> print k
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
@@ -167,7 +172,7 @@ run state = do
         GLFW.waitEvents
 
         whenRef redraw $ do
-          updateState state
+          update state
           texturize state
           writeIORef redraw False
           writeIORef dirty True
@@ -239,7 +244,7 @@ run state = do
         GLFW.mouseButtonCallback $= \b _ -> case b of
           ButtonRight -> do
             end <- calcZoomRectEnd start
-            modAreaState state $ \area ->
+            modifyIORef state $ modArea $ \area ->
               let conv             = screenToPlane area . posToTuple
                   topleft@(sr:+si) = conv start
                   (er:+ei)         = conv end
