@@ -161,7 +161,7 @@ run state = do
       GLFW.CharKey 'I' -> modifyIORef state (modIter (+10)) >> writeIORef redraw True
       GLFW.CharKey 'D' -> modifyIORef state (modIter (subtract 10)) >> writeIORef redraw True
 
-      _                        -> print k
+      _ -> print k
 
   GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
 

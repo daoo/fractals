@@ -82,10 +82,10 @@ checkedLinkProgram prog = do
     ioError (userError "program linking failed")
 
 strokeRectangle :: Position -> Position -> IO ()
-strokeRectangle (Position x1 y1) (Position x2 y2) = do
+strokeRectangle (Position x1 y1) (Position x2 y2) =
   renderPrimitive LineLoop $ do
-    color $ (Color3 (1.0::GLfloat) 0 0)
-    vertex $ (Vertex2 x1 y1)
-    vertex $ (Vertex2 x2 y1)
-    vertex $ (Vertex2 x2 y2)
-    vertex $ (Vertex2 x1 y2)
+    color $ Color3 (1.0::GLfloat) 0 0
+    vertex $ Vertex2 x1 y1
+    vertex $ Vertex2 x2 y1
+    vertex $ Vertex2 x2 y2
+    vertex $ Vertex2 x1 y2
