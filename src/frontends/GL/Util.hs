@@ -1,4 +1,10 @@
-module GL.Util where
+module GL.Util
+  ( compileAndLink
+  , setUniform
+  , createBuffer
+  , createVAO
+  , strokeRectangle
+  ) where
 
 import Control.Monad
 import Data.Array.Storable

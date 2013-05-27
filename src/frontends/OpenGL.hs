@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 -- TODO: Implement zooming out
 -- TODO: Implement draging

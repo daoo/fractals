@@ -1,4 +1,11 @@
-module GL.Fractal where
+module GL.Fractal
+  ( State(..)
+  , withState
+  , resize
+  , modArea
+  , modIter
+  , update
+  ) where
 
 import Data.IORef
 import Data.Word
