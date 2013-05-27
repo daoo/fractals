@@ -38,7 +38,7 @@ instance Color RGBA where
   toRgba             = id
 
 {-# INLINE ascii #-}
-ascii :: Word -> Word -> Char
+ascii :: Int -> Int -> Char
 ascii m i = case scale m 10 i of
   0  -> ' '
   1  -> '-'
@@ -54,5 +54,5 @@ ascii m i = case scale m 10 i of
   _  -> undefined
 
 {-# INLINE greyscale #-}
-greyscale :: Word -> Word -> Greyscale
+greyscale :: Int -> Int -> Greyscale
 greyscale m i = fromIntegral $ scale m 255 i

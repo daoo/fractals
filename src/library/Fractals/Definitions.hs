@@ -8,14 +8,13 @@ module Fractals.Definitions
   , julia
   ) where
 
-import Data.Word
 import Fractals.Complex
 import Fractals.Utility
 
-type Definition = Comp -> R -> Word -> Word
+type Definition = Comp -> R -> Int -> Int
 
 {-# INLINE mandelbrot #-}
-mandelbrot :: Word -> Definition
+mandelbrot :: Int -> Definition
 mandelbrot !a !p = countIterations (0:+0) (\z -> z ^ a + p)
 
 {-# INLINE mandelbrot2 #-}
@@ -36,7 +35,7 @@ julia !c !p = countIterations p (\z -> z * z + c)
 
 {-# INLINE countIterations #-}
 -- |Count the number of iterations in a point
-countIterations :: Comp -> (Comp -> Comp) -> R -> Word -> Word
+countIterations :: Comp -> (Comp -> Comp) -> R -> Int -> Int
 countIterations !z0 znext !maxAbs !maxIter = go 0 z0
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs

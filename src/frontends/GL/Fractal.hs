@@ -20,7 +20,7 @@ import Fractals.Utility
 
 data State = State
   { stateImg :: Ptr Word8
-  , stateIter :: !Word
+  , stateIter :: !Int
   , stateArea :: Area
   } deriving Show
 
@@ -49,7 +49,7 @@ resize state size = do
 modArea :: (Area -> Area) -> State -> State
 modArea f state = state { stateArea = f (stateArea state) }
 
-modIter :: (Word -> Word) -> State -> State
+modIter :: (Int -> Int) -> State -> State
 modIter f state = state { stateIter = f (stateIter state) }
 
 -- |Render the fractal and print the time it took
