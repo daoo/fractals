@@ -1,7 +1,7 @@
 {-# LANGUAGE MagicHash #-}
 module Fractals.Utility where
 
-import GHC.Exts
+import GHC.Base
 import System.CPUTime
 
 clampLow :: Ord a => a -> a -> a
@@ -29,9 +29,7 @@ scale :: Int -- ^ End of the first range [0, a], must be greater than zero
       -> Int -- ^ End of the second range [0, b], must be greater than zero
       -> Int -- ^ The number within range [0, a]
       -> Int -- ^ Number in range [0, b]
-scale a b i = (i * b) `unsafeQuot` a
-  where
-    unsafeQuot (I# x) (I# y) = I# (quotInt# x y)
+scale a b i = (i * b) `quotInt` a
 
 measureTime :: IO () -> IO ()
 measureTime f = do
