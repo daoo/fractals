@@ -8,14 +8,12 @@ import Control.Monad
 import Data.IORef
 import Fractals.Area
 import Fractals.Complex
+import Fractals.Utility
 import GL.Fractal
+import GL.Shaders
 import GL.Util
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
-
-whenRef, unlessRef :: IORef Bool -> IO () -> IO ()
-whenRef ref io   = readIORef ref >>= (`when` io)
-unlessRef ref io = readIORef ref >>= (`unless` io)
 
 posToTuple :: Position -> (Int, Int)
 posToTuple (Position x y) = (fromIntegral x, fromIntegral y)
@@ -25,65 +23,6 @@ sizeToTuple (Size w h) = (fromIntegral w, fromIntegral h)
 
 tupleToPos :: Integral a => (a, a) -> Position
 tupleToPos (x, y) = Position (fromIntegral x) (fromIntegral y)
-
-add :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
-add (a, b) (c, d) = (a + c, b + d)
-
-maxRect :: (Int, Int) -> (Int, Int) -> (Int, Int) -> (Int, Int)
-maxRect (w, h) (sx, sy) (ex, ey) = max s1 s2
-  where
-    w' = ex - sx
-    h' = ey - sy
-
-    s1 = (w', w'*h `quot` w)
-    s2 = (w*h' `quot` h, h')
-
-texFragShader :: String
-texFragShader =
-  "#version 130\n\
-
-  \precision highp float;\n\
-
-  \in  vec2 texCoord;\n\
-  \out vec4 fragmentColor;\n\
-
-  \uniform sampler2D framebuffer;\n\
-
-  \void main() {\n\
-  \  fragmentColor = texture2D(framebuffer, texCoord);\n\
-  \}"
-
-texVertShader :: String
-texVertShader =
-  "#version 130\n\
-
-  \in  vec3 position;\n\
-  \out vec2 texCoord;\n\
-
-  \void main() {\n\
-  \  texCoord    = (position.xy + vec2(1.0)) * vec2(0.5, -0.5);\n\
-  \  gl_Position = vec4(position, 1);\n\
-  \}"
-
-redFragShader :: String
-redFragShader =
-  "#version 130\n\
-  \precision highp float;\n\
-  \out vec4 fragmentColor;\n\
-  \void main() {\n\
-  \  fragmentColor = vec4(1, 0, 0, 1);\n\
-  \}"
-
-screenVertShader :: String
-screenVertShader =
-  "#version 130\n\
-
-  \in vec3 position;\n\
-  \uniform ivec2 size;\n\
-
-  \void main() {\n\
-  \  gl_Position = vec4((vec2(position) / size) * vec2(2, -2) + vec2(-1, 1), 0, 1);\n\
-  \}"
 
 data GL = GL Program Program
 
