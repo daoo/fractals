@@ -1,36 +1,39 @@
+{-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
 -- TODO: Implement zooming out
 -- TODO: Implement draging
 -- TODO: Render with threads and different resolution
 
+import Control.Arrow
+import Control.Concurrent.STM
 import Control.Monad
-import Data.IORef
+import Control.Monad.RWS.Strict hiding (state)
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Utility
-import GL.Fractal
+import GL.Image
 import GL.Shaders
 import GL.Util
-import Graphics.Rendering.OpenGL as GL
-import Graphics.UI.GLFW as GLFW
+import Graphics.Rendering.OpenGL as GL hiding (get)
+import qualified Graphics.UI.GLFW as GLFW
 
-posToTuple :: Position -> (Int, Int)
-posToTuple (Position x y) = (fromIntegral x, fromIntegral y)
+calcZoomRectEnd :: Integral n => (n, n) -> (n, n) -> (n, n) -> (n, n)
+calcZoomRectEnd size start end =
+  start `add` maxRect size start end
 
-sizeToTuple :: Size -> (Int, Int)
-sizeToTuple (Size w h) = (fromIntegral w, fromIntegral h)
+texturize :: Image -> IO ()
+texturize (Image ptr _ area) = texImage2D Nothing NoProxy 0 Luminance8 texSize 0 pixelData
+  where
+    (w, h) = areaScreen area
+    texSize   = TextureSize2D (fromIntegral w) (fromIntegral h)
+    pixelData = PixelData Luminance UnsignedByte ptr
 
-tupleToPos :: Integral a => (a, a) -> Position
-tupleToPos (x, y) = Position (fromIntegral x) (fromIntegral y)
-
-data GL = GL Program Program
-
-initGL :: IO GL
+initGL :: IO (Program, Program)
 initGL = do
   -- Shaders
-  fractal <- compileAndLink texVertShader texFragShader
-  screen  <- compileAndLink screenVertShader redFragShader
+  programFractal <- compileAndLink texVertShader texFragShader
+  programScreen  <- compileAndLink screenVertShader redFragShader
 
   -- Framebuffer texture
   [tex] <- genObjectNames 1
@@ -38,7 +41,7 @@ initGL = do
   textureBinding Texture2D $= Just tex
   textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
   rowAlignment Unpack      $= 1
-  setUniform fractal "framebuffer" (Index1 (0 :: GLint))
+  setUniform programFractal "framebuffer" (Index1 (0 :: GLint))
 
   -- VAO
   let quad :: [GLfloat]
@@ -52,156 +55,259 @@ initGL = do
   vao <- createBuffer quad >>= createVAO
   bindVertexArrayObject $= Just vao
 
-  return $ GL fractal screen
+  return (programFractal, programScreen)
 
-reshape :: Program -> IORef State -> IORef Bool -> Size -> IO ()
-reshape prog state redraw size@(Size w h) = do
-  setUniform prog "size" $ Vertex2 w h
-  viewport $= (Position 0 0, size)
-  resize state (fromIntegral w, fromIntegral h)
-  writeIORef redraw True
+data Event
+  = EventError !GLFW.Error !String
+  | EventWindowSize !GLFW.Window !Int !Int
+  | EventMouseButton !GLFW.Window !GLFW.MouseButton !GLFW.MouseButtonState !GLFW.ModifierKeys
+  | EventCursorPos !GLFW.Window !Double !Double
+  | EventKey !GLFW.Window !GLFW.Key !Int !GLFW.KeyState !GLFW.ModifierKeys
+  deriving Show
 
-texturize :: IORef State -> IO ()
-texturize state = do
-  State ptr _ area <- readIORef state
-  let (w, h) = areaScreen area
-  texImage2D
-    Nothing NoProxy 0 Luminance8
-    (TextureSize2D (fromIntegral w) (fromIntegral h))
-    0
-    (PixelData Luminance UnsignedByte ptr)
+data Env = Env
+  { envEventsChan     :: TQueue Event
+  , envWindow         :: !GLFW.Window
+  , envProgramFractal :: !GL.Program
+  , envProgramScreen  :: !GL.Program
+  }
 
-data Mode = Idle | Drag Position | Zoom Position
+data Mode = Idle | Drag (Int, Int) | Zoom (Int, Int)
+  deriving Show
 
-run :: IORef State -> IO ()
-run state = do
-  GL.clearColor $= Color4 0 0 0 0
+data State = State
+  { stateMode         :: !Mode
+  , stateImage        :: Image
+  , stateWindowWidth  :: !Int
+  , stateWindowHeight :: !Int
+  , stateMouseX       :: !Int
+  , stateMouseY       :: !Int
+  } deriving Show
 
-  GL pfractal pscreen <- initGL
+stateWindowSize :: State -> (Int, Int)
+stateWindowSize = stateWindowWidth &&& stateWindowHeight
 
-  quit   <- newIORef False
-  dirty  <- newIORef True
-  redraw <- newIORef True
-  mode   <- newIORef Idle
-  pos    <- newIORef $ Position 0 0
+stateMousePos :: State -> (Int, Int)
+stateMousePos = stateMouseX &&& stateMouseY
 
-  GLFW.windowSizeCallback $= reshape pscreen state redraw
-  GLFW.disableSpecial GLFW.AutoPollEvent
+type Context = RWST Env () State IO
 
-  GLFW.windowRefreshCallback $= writeIORef dirty True
+runContext :: Env -> State -> IO ()
+runContext env state = do
+  (_, state', _) <- runRWST (adjustWindow >> run) env state
+  freeImage (stateImage state')
 
-  GLFW.keyCallback $= \k s ->
-    when (s == GLFW.Press) $ case k of
-      GLFW.SpecialKey GLFW.F1  -> readIORef state >>= print
+redraw :: Context ()
+redraw = do
+  state <- get
+  liftIO $ update (stateImage state)
+  liftIO $ texturize (stateImage state) -- TODO: Only texturize if modified in render loop
 
-      GLFW.SpecialKey GLFW.ESC -> writeIORef quit True
-      GLFW.CharKey 'Q'         -> writeIORef quit True
+run :: Context ()
+run = do
+  env <- ask
+  state <- get
 
-      GLFW.CharKey 'I' -> modifyIORef state (modIter (+10)) >> writeIORef redraw True
-      GLFW.CharKey 'D' -> modifyIORef state (modIter (subtract 10)) >> writeIORef redraw True
+  liftIO $ do
+    clear [ ColorBuffer ]
+    currentProgram $= Just (envProgramFractal env)
+    drawArrays TriangleStrip 0 4
 
-      _ -> print k
+    case stateMode state of
+      Zoom start -> do
+        currentProgram $= Just (envProgramScreen env)
+        strokeRectangle start $ calcZoomRectEnd
+          (stateWindowSize state)
+          start
+          (stateMousePos state)
 
-  GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
+      _ -> return ()
 
-  let loop = do
-        GLFW.waitEvents
+    GLFW.swapBuffers (envWindow env)
+    GLFW.waitEvents
+  processEvents
 
-        whenRef redraw $ do
-          update state
-          texturize state
-          writeIORef redraw False
-          writeIORef dirty True
+  q <- liftIO $ GLFW.windowShouldClose (envWindow env)
+  unless q run
 
-        whenRef dirty $ do
-          clear [ ColorBuffer ]
+errorCallback       :: TQueue Event -> GLFW.Error -> String -> IO ()
+windowSizeCallback  :: TQueue Event -> GLFW.Window -> Int -> Int -> IO ()
+mouseButtonCallback :: TQueue Event -> GLFW.Window -> GLFW.MouseButton -> GLFW.MouseButtonState -> GLFW.ModifierKeys -> IO ()
+cursorPosCallback   :: TQueue Event -> GLFW.Window -> Double -> Double -> IO ()
+keyCallback         :: TQueue Event -> GLFW.Window -> GLFW.Key -> Int -> GLFW.KeyState -> GLFW.ModifierKeys -> IO ()
 
-          currentProgram $= Just pfractal
-          drawArrays TriangleStrip 0 4
+errorCallback tc e s                 = atomically $ writeTQueue tc $ EventError e s
+windowSizeCallback tc win w h        = atomically $ writeTQueue tc $ EventWindowSize win w h
+mouseButtonCallback tc win mb mba mk = atomically $ writeTQueue tc $ EventMouseButton win mb mba mk
+cursorPosCallback tc win x y         = atomically $ writeTQueue tc $ EventCursorPos win x y
+keyCallback tc win k sc ka mk        = atomically $ writeTQueue tc $ EventKey win k sc ka mk
 
-          readIORef mode >>= \m -> case m of
-            Idle       -> return ()
-            Drag _     -> return ()
-            Zoom start -> do
-              currentProgram $= Just pscreen
-              calcZoomRectEnd start >>= strokeRectangle start
+processEvents :: Context ()
+processEvents = do
+  tc <- asks envEventsChan
+  me <- liftIO $ atomically $ tryReadTQueue tc
+  case me of
+    Just e -> do
+      processEvent e
+      processEvents
+    Nothing -> return ()
 
-          GLFW.swapBuffers
-          writeIORef dirty False
+processEvent :: Event -> Context ()
+processEvent = \case
+  EventError e s -> do
+    liftIO $ putStrLn $ "error: " ++ show e ++ " " ++ show s
+    quit
 
-        unlessRef quit loop
+  EventWindowSize _ width height -> do
+    modify $ \state -> state
+      { stateWindowWidth = width
+      , stateWindowHeight = height
+      }
+    adjustWindow
 
-      calcZoomRectEnd start = do
-        end <- readIORef pos
-        size <- get windowSize
-        let s = posToTuple start
-            a = maxRect (sizeToTuple size) s (posToTuple end)
-        return $ tupleToPos (s `add` a)
+  EventMouseButton _ mb _ _ -> do
+    state <- get
+    case stateMode state of
+      Idle -> case mb of
+        GLFW.MouseButton'1 -> dragMode
+        GLFW.MouseButton'2 -> zoomMode
+        GLFW.MouseButton'3 -> do
+          let pos  = stateMousePos state
+              area = imageArea $ stateImage state
+          liftIO $ do
+            print pos
+            print $ screenToPlane area pos
+        _ -> return ()
 
-      idleMode = do
-        writeIORef mode Idle
-        writeIORef dirty True
+      Drag _ -> case mb of
+        GLFW.MouseButton'1 -> idleMode -- TODO
 
-        GLFW.mousePosCallback $= \p -> writeIORef pos p
+        _ -> return ()
 
-        GLFW.mouseButtonCallback $= \b _ -> case b of
-          ButtonLeft   -> dragMode
-          ButtonRight  -> zoomMode
-          ButtonMiddle -> do
-            p              <- readIORef pos
-            State _ _ area <- readIORef state
-            print p
-            print $ screenToPlane area $ posToTuple p
+      Zoom start -> case mb of
+        GLFW.MouseButton'2 -> do
+          let size = stateWindowSize state
+              pos  = (stateMouseX state, stateMouseY state)
+              end  = calcZoomRectEnd size start pos
+              area = imageArea $ stateImage state
 
-          _ -> return ()
+              -- TODO: Encapsulate this code in a function
+              f          = screenToPlane area
+              a@(sr:+si) = f start
+              (er:+ei)   = f end
+              s          = (er - sr) :+ (si - ei)
+              area'      = resizePlane a s area
 
-      dragMode = do
-        readIORef pos >>= writeIORef mode . Drag
-        writeIORef dirty True
+          modify $ modImage $ \img -> setArea area' img
+          redraw
+          idleMode
 
-        GLFW.mousePosCallback $= \p -> do
-          writeIORef pos p
-          writeIORef dirty True
+        _ -> return ()
 
-        GLFW.mouseButtonCallback $= \b _ -> case b of
-          ButtonLeft -> idleMode
-          _          -> return ()
+  EventCursorPos _ x y -> do
+    let x' = round x :: Int
+        y' = round y :: Int
 
-      zoomMode = do
-        start <- readIORef pos
-        writeIORef mode $ Zoom start
+    modify $ \s -> s
+      { stateMouseX = x'
+      , stateMouseY = y'
+      }
 
-        writeIORef dirty True
+  EventKey _ k _ ks _ -> case ks of
+    GLFW.KeyState'Pressed -> case k of
+      GLFW.Key'F1 -> get >>= (liftIO . print)
 
-        GLFW.mousePosCallback $= \p -> do
-          writeIORef pos p
-          writeIORef dirty True
+      GLFW.Key'Escape -> quit
+      GLFW.Key'Q      -> quit
 
-        GLFW.mouseButtonCallback $= \b _ -> case b of
-          ButtonRight -> do
-            end <- calcZoomRectEnd start
-            modifyIORef state $ modArea $ \area ->
-              let conv             = screenToPlane area . posToTuple
-                  topleft@(sr:+si) = conv start
-                  (er:+ei)         = conv end
-                  size             = (er - sr) :+ (si - ei)
-               in resizePlane topleft size area
-            writeIORef redraw True
-            idleMode
+      GLFW.Key'I -> modify (modImage $ modIter (+10)) >> redraw
+      GLFW.Key'D -> modify (modImage $ modIter (subtract 10)) >> redraw
 
-          _ -> return ()
+      _ -> return ()
 
-  idleMode
-  loop
+    _ -> return ()
+
+  where
+    quit = do
+      win <- asks envWindow
+      liftIO $ GLFW.setWindowShouldClose win True
+
+    idleMode = modify $ \s -> s { stateMode = Idle }
+    dragMode = modify $ \s -> s { stateMode = Drag (stateMousePos s) }
+    zoomMode = modify $ \s -> s { stateMode = Zoom (stateMousePos s) }
+
+    modImage f s = s { stateImage = f (stateImage s) }
+
+adjustWindow :: Context ()
+adjustWindow = do
+  env <- ask
+  state <- get
+  let size@(w, h) = stateWindowSize state
+
+      w' = fromIntegral w
+      h' = fromIntegral h
+
+      glpos  = GL.Position 0 0
+      glsize = GL.Size w' h'
+
+  liftIO $ do
+    setUniform (envProgramScreen env) "size" $ Vertex2 w' h'
+    GL.viewport $= (glpos, glsize)
+
+  image <- liftIO $ resize (stateImage state) size
+  modify $ \s -> s { stateImage = image }
+  redraw
 
 main :: IO ()
 main = do
-  GLFW.initialize >>= (`unless` error "Failed to initialize GLFW")
-  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayRGBBits 8 8 8] GLFW.Window >>=
-    (`unless` (GLFW.terminate >> error "Failed to open GLFW window"))
-  GLFW.windowTitle $= "Fractlas"
+  eventsChan <- newTQueueIO :: IO (TQueue Event)
 
-  withState run
+  let width  = 800
+      height = 600
 
-  GLFW.closeWindow
-  GLFW.terminate
+  withWindow 800 600 "Fractals" $ \win -> do
+    GLFW.setErrorCallback           $ Just $ errorCallback eventsChan
+    GLFW.setWindowSizeCallback win  $ Just $ windowSizeCallback eventsChan
+    GLFW.setMouseButtonCallback win $ Just $ mouseButtonCallback eventsChan
+    GLFW.setCursorPosCallback win   $ Just $ cursorPosCallback eventsChan
+    GLFW.setKeyCallback win         $ Just $ keyCallback eventsChan
+
+    (programDefault, programZoom) <- initGL
+    image <- newImage
+
+    let env = Env
+          { envEventsChan     = eventsChan
+          , envWindow         = win
+          , envProgramFractal = programDefault
+          , envProgramScreen  = programZoom
+          }
+
+        state = State
+          { stateMode         = Idle
+          , stateImage        = image
+          , stateWindowWidth  = width
+          , stateWindowHeight = height
+          , stateMouseX       = 0
+          , stateMouseY       = 0
+          }
+
+    runContext env state
+
+withWindow :: Int -> Int -> String -> (GLFW.Window -> IO ()) -> IO ()
+withWindow width height title f = do
+  GLFW.setErrorCallback $ Just simpleErrorCallback
+  r <- GLFW.init
+  when r $ do
+    m <- GLFW.createWindow width height title Nothing Nothing
+    case m of
+      Just win -> do
+        GLFW.makeContextCurrent m
+        f win
+        GLFW.setErrorCallback $ Just simpleErrorCallback
+        GLFW.destroyWindow win
+      Nothing -> return ()
+    GLFW.terminate
+
+  where
+    simpleErrorCallback e s =
+        putStrLn $ unwords [show e, show s]

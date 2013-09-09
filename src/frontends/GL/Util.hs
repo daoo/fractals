@@ -81,11 +81,11 @@ checkedLinkProgram prog = do
     deleteObjectNames [prog]
     ioError (userError "program linking failed")
 
-strokeRectangle :: Position -> Position -> IO ()
-strokeRectangle (Position x1 y1) (Position x2 y2) =
+strokeRectangle :: (Int, Int) -> (Int, Int) -> IO ()
+strokeRectangle (x1, y1) (x2, y2) =
   renderPrimitive LineLoop $ do
     color $ Color3 (1.0::GLfloat) 0 0
-    vertex $ Vertex2 x1 y1
-    vertex $ Vertex2 x2 y1
-    vertex $ Vertex2 x2 y2
-    vertex $ Vertex2 x1 y2
+    vertex $ Vertex2 (fromIntegral x1 :: GLfloat) (fromIntegral y1 :: GLfloat)
+    vertex $ Vertex2 (fromIntegral x2 :: GLfloat) (fromIntegral y1 :: GLfloat)
+    vertex $ Vertex2 (fromIntegral x2 :: GLfloat) (fromIntegral y2 :: GLfloat)
+    vertex $ Vertex2 (fromIntegral x1 :: GLfloat) (fromIntegral y2 :: GLfloat)
