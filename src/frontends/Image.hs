@@ -1,5 +1,6 @@
 module Main where
 
+-- TODO: Find replacement to DevIL
 import Codec.Image.DevIL
 import Data.Array.IO (IOUArray)
 import Data.Array.Unsafe
