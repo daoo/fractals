@@ -83,6 +83,7 @@ data State = State
   , stateWindowHeight :: !Int
   , stateMouseX       :: !Int
   , stateMouseY       :: !Int
+  , stateDirty        :: !Bool
   } deriving Show
 
 stateWindowSize :: State -> (Int, Int)
@@ -106,14 +107,17 @@ runContext env state = do
 
 redraw :: Context ()
 redraw = do
-  state <- get
-  liftIO $ update (stateImage state)
-  liftIO $ texturize (stateImage state) -- TODO: Only texturize if modified in render loop
+  img <- gets stateImage
+  liftIO $ update img
+  modify $ \s -> s { stateDirty = True }
 
 run :: Context ()
 run = do
   env <- ask
   state <- get
+
+  when (stateDirty state) $ do
+    liftIO $ texturize (stateImage state)
 
   liftIO $ do
     clear [ ColorBuffer ]
@@ -205,19 +209,16 @@ processEvent = \case
               s          = (er - sr) :+ (si - ei)
               area'      = resizePlane a s area
 
-          modImage $ \s -> setArea area' (stateImage s)
+          modImage $ setArea area'
           redraw
           idleMode
 
         _ -> return ()
 
-  EventCursorPos _ x y -> do
-    let x' = round x :: Int
-        y' = round y :: Int
-
+  EventCursorPos _ x y ->
     modify $ \s -> s
-      { stateMouseX = x'
-      , stateMouseY = y'
+      { stateMouseX = round x
+      , stateMouseY = round y
       }
 
   EventKey _ k _ ks _ -> case ks of
@@ -279,6 +280,7 @@ main = do
 
     (programDefault, programZoom) <- initGL
     image <- newImage
+    update image
 
     let env = Env
           { envEventsChan     = eventsChan
@@ -294,6 +296,7 @@ main = do
           , stateWindowHeight = height
           , stateMouseX       = 0
           , stateMouseY       = 0
+          , stateDirty        = True
           }
 
     runContext env state
