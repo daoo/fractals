@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module GL.Util
+module GL.Utility
   ( compileAndLink
   , setUniform
   , createBuffer

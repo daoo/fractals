@@ -14,7 +14,7 @@ import Fractals.Complex
 import Fractals.Utility
 import GL.Image
 import GL.Shaders
-import GL.Util
+import GL.Utility
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Graphics.UI.GLFW as GLFW
 
