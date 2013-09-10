@@ -15,37 +15,51 @@ import Fractals.Utility
 import GL.Image
 import GL.Shaders
 import GL.Util
-import Graphics.Rendering.OpenGL as GL hiding (get)
+import qualified Graphics.Rendering.OpenGL as GL
 import qualified Graphics.UI.GLFW as GLFW
 
-calcZoomRectEnd :: Integral n => (n, n) -> (n, n) -> (n, n) -> (n, n)
-calcZoomRectEnd size start end =
-  start `add` maxRect size start end
+type Point = (Int, Int)
+type Size  = (Int, Int)
+
+fixAspectOfRect :: Size -> Point -> Point -> (Point, Point)
+fixAspectOfRect winsize (sx, sy) (ex, ey) = (a, (ax + cx, ay + cy))
+  where
+    -- Find top left and bottom right, avoids problems where you click in the
+    -- bottom right corner first and then in the top corner.
+    a@(ax, ay) = (min sx ex, min sy ey)
+    b          = (max sx ex, max sy ey)
+
+    (cx, cy) = maxRect winsize a b
+
+resizeAreaFromRect :: Area -> Point -> Point -> Area
+resizeAreaFromRect area a b = resizePlane a' s area
+  where
+    a'@(ar :+ ac) = transform a
+    (br :+ bc)    = transform b
+    s             = (br - ar :+ bc - ac)
+
+    transform = screenToPlane area
 
 texturize :: Image -> IO ()
 texturize (Image ptr _ area) =
-  texImage2D Nothing NoProxy 0 Luminance8 texSize 0 pixelData
+  GL.texImage2D Nothing GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
   where
-    (w, h) = areaScreen area
-    texSize   = TextureSize2D (fromIntegral w) (fromIntegral h)
-    pixelData = PixelData Luminance UnsignedByte ptr
+    (w, h)    = areaScreen area
+    texSize   = GL.TextureSize2D (fromIntegral w) (fromIntegral h)
+    pixelData = GL.PixelData GL.Luminance GL.UnsignedByte ptr
 
-initGL :: IO (Program, Program)
+initGL :: IO (GL.Program, GL.Program)
 initGL = do
   -- Shaders
   programFractal <- compileAndLink texVertShader texFragShader
   programScreen  <- compileAndLink screenVertShader redFragShader
 
   -- Framebuffer texture
-  [tex] <- genObjectNames 1
-  activeTexture            $= TextureUnit 0
-  textureBinding Texture2D $= Just tex
-  textureFilter Texture2D  $= ((Nearest, Nothing), Nearest)
-  rowAlignment Unpack      $= 1
-  setUniform programFractal "framebuffer" (Index1 (0 :: GLint))
+  _ <- createActiveTexture
+  setUniform programFractal "framebuffer" (GL.Index1 (0 :: GL.GLint))
 
   -- VAO
-  let quad :: [GLfloat]
+  let quad :: [GL.GLfloat]
       quad =
         [  1.0, -1.0, 0.0
         ,  1.0,  1.0, 0.0
@@ -54,7 +68,7 @@ initGL = do
         ]
 
   vao <- createBuffer quad >>= createVAO
-  bindVertexArrayObject $= Just vao
+  GL.bindVertexArrayObject GL.$= Just vao
 
   return (programFractal, programScreen)
 
@@ -73,7 +87,7 @@ data Env = Env
   , envProgramScreen  :: !GL.Program
   }
 
-data Mode = Idle | Drag (Int, Int) | Zoom (Int, Int)
+data Mode = Idle | Drag Point | Zoom Point
   deriving Show
 
 data State = State
@@ -86,10 +100,10 @@ data State = State
   , stateDirty        :: !Bool
   } deriving Show
 
-stateWindowSize :: State -> (Int, Int)
+stateWindowSize :: State -> Size
 stateWindowSize = stateWindowWidth &&& stateWindowHeight
 
-stateMousePos :: State -> (Int, Int)
+stateMousePos :: State -> Point
 stateMousePos = stateMouseX &&& stateMouseY
 
 type Context = RWST Env () State IO
@@ -120,17 +134,18 @@ run = do
     liftIO $ texturize (stateImage state)
 
   liftIO $ do
-    clear [ ColorBuffer ]
-    currentProgram $= Just (envProgramFractal env)
-    drawArrays TriangleStrip 0 4
+    GL.clear [ GL.ColorBuffer ]
+    GL.currentProgram GL.$= Just (envProgramFractal env)
+    GL.drawArrays GL.TriangleStrip 0 4
 
     case stateMode state of
       Zoom start -> do
-        currentProgram $= Just (envProgramScreen env)
-        strokeRectangle start $ calcZoomRectEnd
-          (stateWindowSize state)
-          start
-          (stateMousePos state)
+        GL.currentProgram GL.$= Just (envProgramScreen env)
+        uncurry strokeRectangle $
+          fixAspectOfRect
+            (stateWindowSize state)
+            start
+            (stateMousePos state)
 
       _ -> return ()
 
@@ -197,19 +212,12 @@ processEvent = \case
 
       Zoom start -> case mb of
         GLFW.MouseButton'2 -> do
-          let size = stateWindowSize state
-              pos  = stateMousePos state
-              end  = calcZoomRectEnd size start pos
-              area = imageArea $ stateImage state
-
-              -- TODO: Encapsulate this code in a function
-              f          = screenToPlane area
-              a@(sr:+si) = f start
-              (er:+ei)   = f end
-              s          = (er - sr) :+ (si - ei)
-              area'      = resizePlane a s area
-
-          modImage $ setArea area'
+          let area = imageArea $ stateImage state
+              size = stateWindowSize state
+              end  = stateMousePos state
+           in modImage $ setArea $
+                uncurry (resizeAreaFromRect area) $
+                  fixAspectOfRect size start end
           redraw
           idleMode
 
@@ -257,8 +265,8 @@ adjustWindow = do
       glsize = GL.Size w' h'
 
   liftIO $ do
-    setUniform (envProgramScreen env) "size" $ Vertex2 w' h'
-    GL.viewport $= (glpos, glsize)
+    setUniform (envProgramScreen env) "size" $ GL.Vertex2 w' h'
+    GL.viewport GL.$= (glpos, glsize)
 
   image <- liftIO $ resize (stateImage state) size
   modify $ \s -> s { stateImage = image }

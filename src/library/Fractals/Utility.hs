@@ -45,9 +45,6 @@ whenRef, unlessRef :: IORef Bool -> IO () -> IO ()
 whenRef ref io   = readIORef ref >>= (`when` io)
 unlessRef ref io = readIORef ref >>= (`unless` io)
 
-add :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
-add (a, b) (c, d) = (a + c, b + d)
-
 maxRect :: Integral i => (i, i) -> (i, i) -> (i, i) -> (i, i)
 maxRect (w, h) (sx, sy) (ex, ey) = max s1 s2
   where

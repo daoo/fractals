@@ -4,6 +4,7 @@ module GL.Util
   , setUniform
   , createBuffer
   , createVAO
+  , createActiveTexture
   , strokeRectangle
   ) where
 
@@ -44,6 +45,15 @@ compileAndLink vert frag = do
   checkedLinkProgram prog
   return prog
 
+checkedLinkProgram :: Program -> IO ()
+checkedLinkProgram prog = do
+  linkProgram prog
+  ok <- get (linkStatus prog)
+  unless ok $ do
+    get (programInfoLog prog) >>= putStrLn
+    deleteObjectNames [prog]
+    ioError (userError "program linking failed")
+
 setUniform :: Uniform a => Program -> String -> a -> IO ()
 setUniform prog var val = do
   currentProgram $= Just prog
@@ -73,14 +83,14 @@ createVAO buffer = do
   bindVertexArrayObject      $= Nothing
   return vao
 
-checkedLinkProgram :: Program -> IO ()
-checkedLinkProgram prog = do
-  linkProgram prog
-  ok <- get (linkStatus prog)
-  unless ok $ do
-    get (programInfoLog prog) >>= putStrLn
-    deleteObjectNames [prog]
-    ioError (userError "program linking failed")
+createActiveTexture :: IO TextureObject
+createActiveTexture = do
+  [tex] <- GL.genObjectNames 1
+  GL.activeTexture               $= GL.TextureUnit 0
+  GL.textureBinding GL.Texture2D $= Just tex
+  GL.textureFilter GL.Texture2D  $= ((GL.Nearest, Nothing), GL.Nearest)
+  GL.rowAlignment GL.Unpack      $= 1
+  return tex
 
 strokeRectangle :: (Int, Int) -> (Int, Int) -> IO ()
 strokeRectangle (!x1, !y1) (!x2, !y2) =
