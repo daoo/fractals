@@ -23,7 +23,8 @@ calcZoomRectEnd size start end =
   start `add` maxRect size start end
 
 texturize :: Image -> IO ()
-texturize (Image ptr _ area) = texImage2D Nothing NoProxy 0 Luminance8 texSize 0 pixelData
+texturize (Image ptr _ area) =
+  texImage2D Nothing NoProxy 0 Luminance8 texSize 0 pixelData
   where
     (w, h) = areaScreen area
     texSize   = TextureSize2D (fromIntegral w) (fromIntegral h)
@@ -91,6 +92,12 @@ stateMousePos :: State -> (Int, Int)
 stateMousePos = stateMouseX &&& stateMouseY
 
 type Context = RWST Env () State IO
+
+modMode :: (State -> Mode) -> Context ()
+modMode f = modify $ \s -> s { stateMode = f s }
+
+modImage :: (Image -> Image) -> Context ()
+modImage f = modify $ \s -> s { stateImage = f (stateImage s) }
 
 runContext :: Env -> State -> IO ()
 runContext env state = do
@@ -187,7 +194,7 @@ processEvent = \case
       Zoom start -> case mb of
         GLFW.MouseButton'2 -> do
           let size = stateWindowSize state
-              pos  = (stateMouseX state, stateMouseY state)
+              pos  = stateMousePos state
               end  = calcZoomRectEnd size start pos
               area = imageArea $ stateImage state
 
@@ -198,7 +205,7 @@ processEvent = \case
               s          = (er - sr) :+ (si - ei)
               area'      = resizePlane a s area
 
-          modify $ modImage $ \img -> setArea area' img
+          modImage $ \s -> setArea area' (stateImage s)
           redraw
           idleMode
 
@@ -220,8 +227,8 @@ processEvent = \case
       GLFW.Key'Escape -> quit
       GLFW.Key'Q      -> quit
 
-      GLFW.Key'I -> modify (modImage $ modIter (+10)) >> redraw
-      GLFW.Key'D -> modify (modImage $ modIter (subtract 10)) >> redraw
+      GLFW.Key'I -> modImage (modIter (+10))         >> redraw
+      GLFW.Key'D -> modImage (modIter (subtract 10)) >> redraw
 
       _ -> return ()
 
@@ -232,11 +239,9 @@ processEvent = \case
       win <- asks envWindow
       liftIO $ GLFW.setWindowShouldClose win True
 
-    idleMode = modify $ \s -> s { stateMode = Idle }
-    dragMode = modify $ \s -> s { stateMode = Drag (stateMousePos s) }
-    zoomMode = modify $ \s -> s { stateMode = Zoom (stateMousePos s) }
-
-    modImage f s = s { stateImage = f (stateImage s) }
+    idleMode = modMode $ const Idle
+    dragMode = modMode $ \s -> Drag (stateMousePos s)
+    zoomMode = modMode $ \s -> Zoom (stateMousePos s)
 
 adjustWindow :: Context ()
 adjustWindow = do
