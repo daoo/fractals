@@ -46,6 +46,10 @@ executable fractals-image-rational
 executable fractals-opengl
   hs-source-dirs: src/frontends
   main-is: OpenGL.hs
+  other-modules:
+    GL.Image,
+    GL.Shaders,
+    GL.Utility
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLFW-b, stm
   ghc-options: -Wall
 
