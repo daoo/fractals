@@ -14,10 +14,10 @@ import Fractals.Complex
 -- The rendering area represents which part of the complex plane we are
 -- rendering and the resolution of the rendered image.
 data Area = Area
-  { areaScreen  :: (Int, Int)
-  , areaPlane   :: Comp
-  , areaTopLeft :: Comp
-  , areaDelta   :: Comp
+  { areaScreen  :: (Int, Int) -- ^ Size of the rendered image in pixels.
+  , areaPlane   :: Comp       -- ^ Size of the complex plane.
+  , areaTopLeft :: Comp       -- ^ Top left of the visible complex plane.
+  , areaDelta   :: Comp       -- ^ Complex distance between renderd pixels.
   } deriving Show
 
 {-# INLINE getAreaCenter #-}
