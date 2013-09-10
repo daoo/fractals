@@ -1,6 +1,7 @@
 module Main where
 
 -- TODO: Find replacement to DevIL
+-- http://www.haskell.org/haskellwiki/Library/PNG
 import Codec.Image.DevIL
 import Data.Array.IO (IOUArray)
 import Data.Array.Unsafe
