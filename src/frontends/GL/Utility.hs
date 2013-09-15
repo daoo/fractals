@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module GL.Utility
   ( compileAndLink
   , setUniform
@@ -12,6 +11,7 @@ import Control.Monad
 import Data.Array.Storable
 import Foreign.Ptr
 import Foreign.Storable
+import Fractals.Geometry
 import Graphics.Rendering.OpenGL as GL
 
 createShader :: Shader s => String -> IO s
@@ -92,8 +92,8 @@ createActiveTexture = do
   GL.rowAlignment GL.Unpack      $= 1
   return tex
 
-strokeRectangle :: (Int, Int) -> (Int, Int) -> IO ()
-strokeRectangle (!x1, !y1) (!x2, !y2) =
+strokeRectangle :: Rectangle -> IO ()
+strokeRectangle (Rectangle (Vec x1 y1) (Vec x2 y2)) =
   renderPrimitive LineLoop $ do
     color $ Color3 (1.0::GLfloat) 0 0
     vertex $ Vertex2 (fromIntegral x1 :: GLfloat) (fromIntegral y1 :: GLfloat)

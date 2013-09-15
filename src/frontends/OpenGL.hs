@@ -5,38 +5,24 @@ module Main (main) where
 -- TODO: Implement draging
 -- TODO: Render with threads and different resolution
 
-import Control.Arrow
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.RWS.Strict hiding (state)
 import Fractals.Area
 import Fractals.Complex
-import Fractals.Utility
+import Fractals.Geometry
 import GL.Image
 import GL.Shaders
 import GL.Utility
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Graphics.UI.GLFW as GLFW
 
-type Point = (Int, Int)
-type Size  = (Int, Int)
-
-fixAspectOfRect :: Size -> Point -> Point -> (Point, Point)
-fixAspectOfRect winsize (sx, sy) (ex, ey) = (a, (ax + cx, ay + cy))
-  where
-    -- Find top left and bottom right, avoids problems where you click in the
-    -- bottom right corner first and then in the top corner.
-    a@(ax, ay) = (min sx ex, min sy ey)
-    b          = (max sx ex, max sy ey)
-
-    (cx, cy) = maxRect winsize a b
-
-resizeAreaFromRect :: Area -> Point -> Point -> Area
-resizeAreaFromRect area a b = resizePlane a' s area
+resizeAreaFromRect :: Area -> Rectangle -> Area
+resizeAreaFromRect area (Rectangle a b) = resizePlane a' s area
   where
     a'@(ar :+ ac) = transform a
     (br :+ bc)    = transform b
-    s             = (br - ar :+ bc - ac)
+    s             = (abs (br - ar) :+ abs (bc - ac))
 
     transform = screenToPlane area
 
@@ -44,7 +30,7 @@ texturize :: Image -> IO ()
 texturize (Image ptr _ area) =
   GL.texImage2D Nothing GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
   where
-    (w, h)    = areaScreen area
+    Vec w h   = areaScreen area
     texSize   = GL.TextureSize2D (fromIntegral w) (fromIntegral h)
     pixelData = GL.PixelData GL.Luminance GL.UnsignedByte ptr
 
@@ -102,11 +88,11 @@ data State = State
 
 {-# INLINE stateWindowSize #-}
 stateWindowSize :: State -> Size
-stateWindowSize = stateWindowWidth &&& stateWindowHeight
+stateWindowSize s = Vec (stateWindowWidth s) (stateWindowHeight s)
 
 {-# INLINE stateMousePos #-}
 stateMousePos :: State -> Point
-stateMousePos = stateMouseX &&& stateMouseY
+stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
 
 type Context = RWST Env () State IO
 
@@ -143,8 +129,8 @@ run = do
     case stateMode state of
       Zoom start -> do
         GL.currentProgram GL.$= Just (envProgramScreen env)
-        uncurry strokeRectangle $
-          fixAspectOfRect
+        strokeRectangle $
+          fixAspect
             (stateWindowSize state)
             start
             (stateMousePos state)
@@ -218,8 +204,8 @@ processEvent = \case
               size = stateWindowSize state
               end  = stateMousePos state
            in modImage $ setArea $
-                uncurry (resizeAreaFromRect area) $
-                  fixAspectOfRect size start end
+                resizeAreaFromRect area $
+                  fixAspect size start end
           redraw
           idleMode
 
@@ -258,7 +244,7 @@ adjustWindow :: Context ()
 adjustWindow = do
   env <- ask
   state <- get
-  let size@(w, h) = stateWindowSize state
+  let size@(Vec w h) = stateWindowSize state
 
       w' = fromIntegral w
       h' = fromIntegral h

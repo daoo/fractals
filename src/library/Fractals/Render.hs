@@ -9,6 +9,7 @@ import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
+import Fractals.Geometry
 
 {-# INLINE lists #-}
 lists :: Definition -> Int -> R -> Area -> [[Int]]
@@ -19,8 +20,8 @@ lists fractal iter maxabs area = buildLists
   (\x y -> fractal (x:+y) maxabs iter)
 
 {-# INLINE buildLists #-}
-buildLists :: (Int, Int) -> Comp -> Comp -> (R -> R -> Int) -> [[Int]]
-buildLists (!w, !h) (x1:+y1) (dx:+dy) f = goy 0 y1
+buildLists :: Size -> Comp -> Comp -> (R -> R -> Int) -> [[Int]]
+buildLists (Vec w h) (x1:+y1) (dx:+dy) f = goy 0 y1
   where
     goy !i !y | i < h     = gox 0 x1 : goy (i+1) (y+dy)
               | otherwise = []
@@ -37,8 +38,8 @@ string fractal iter maxabs area = buildString
   (\x y -> ascii iter $ fractal (x:+y) maxabs iter)
 
 {-# INLINE buildString #-}
-buildString :: (Int, Int) -> Comp -> Comp -> (R -> R -> Char) -> String
-buildString (!w, !h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
+buildString :: Size -> Comp -> Comp -> (R -> R -> Char) -> String
+buildString (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
     go !i !j !x !y
       | i == w    = '\n' : go 0 (j+1) x1 (y+dy)
@@ -48,12 +49,12 @@ buildString (!w, !h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
 {-# INLINE monadic #-}
 monadic :: Monad m
   => Int
-  -> (Int, Int)
+  -> Size
   -> Comp
   -> Comp
   -> (Int -> R -> R -> m ())
   -> m ()
-monadic d (w, h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
+monadic d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
     n = d * w * h
 

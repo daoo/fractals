@@ -12,6 +12,7 @@ import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
+import Fractals.Geometry
 import Fractals.Render
 
 class Monad m => Writable s e m where
@@ -56,20 +57,20 @@ instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
   fill s = helper 4 (write s)
 
 {-# INLINE newRgbaArray #-}
-newRgbaArray :: (MArray a e m) => (Int, Int) -> m (a (Int, Int, Int) e)
-newRgbaArray (w, h) = newArray_ ((0,0,0), (h-1,w-1, 3))
+newRgbaArray :: (MArray a e m) => Size -> m (a (Int, Int, Int) e)
+newRgbaArray (Vec w h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 
 {-# INLINE newRgbPtr #-}
-newRgbPtr :: (Int, Int) -> IO (Ptr Word8)
-newRgbPtr (w, h) = mallocArray $ w * h * 3
+newRgbPtr :: Size -> IO (Ptr Word8)
+newRgbPtr (Vec w h) = mallocArray $ w * h * 3
 
 {-# INLINE newRgbaPtr #-}
-newRgbaPtr :: (Int, Int) -> IO (Ptr Word8)
-newRgbaPtr (w, h) = mallocArray $ w * h * 4
+newRgbaPtr :: Size -> IO (Ptr Word8)
+newRgbaPtr (Vec w h) = mallocArray $ w * h * 4
 
 {-# INLINE newGreyscalePtr #-}
-newGreyscalePtr :: (Int, Int) -> IO (Ptr Word8)
-newGreyscalePtr (w, h) = mallocArray $ w * h
+newGreyscalePtr :: Size -> IO (Ptr Word8)
+newGreyscalePtr (Vec w h) = mallocArray $ w * h
 
 {-# INLINE helper #-}
 helper :: (Monad m, Color c)

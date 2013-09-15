@@ -45,12 +45,3 @@ measureTime !f = do
 whenRef, unlessRef :: IORef Bool -> IO () -> IO ()
 whenRef ref io   = readIORef ref >>= (`when` io)
 unlessRef ref io = readIORef ref >>= (`unless` io)
-
-maxRect :: Integral i => (i, i) -> (i, i) -> (i, i) -> (i, i)
-maxRect (w, h) (sx, sy) (ex, ey) = max s1 s2
-  where
-    w' = ex - sx
-    h' = ey - sy
-
-    s1 = (w', w'*h `quot` w)
-    s2 = (w*h' `quot` h, h')

@@ -15,6 +15,7 @@ library
     Fractals.Coloring,
     Fractals.Complex,
     Fractals.Definitions,
+    Fractals.Geometry,
     Fractals.Image,
     Fractals.PNG,
     Fractals.Render,

@@ -10,6 +10,7 @@ import Control.Monad.State
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
+import Fractals.Geometry
 
 data Fractal = Fractal
   { fractalDefinition :: Definition
@@ -35,7 +36,7 @@ popComp = uncurry (:+) `fmap` popPoint
 
 {-# INLINE parseArea #-}
 parseArea :: State [String] Area
-parseArea = fromRectangle <$> popPoint <*> popComp <*> popComp
+parseArea = fromRectangle <$> (uncurry Vec <$> popPoint) <*> popComp <*> popComp
 
 {-# INLINE parseMandelbrot #-}
 parseMandelbrot :: State [String] Definition

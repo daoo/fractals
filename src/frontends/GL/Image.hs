@@ -16,6 +16,7 @@ import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
+import Fractals.Geometry
 import Fractals.Image
 import Fractals.Utility
 
@@ -30,7 +31,7 @@ newImage = do
   ptr <- newGreyscalePtr defsize
   return $ Image ptr iter area
   where
-    defsize = (800, 600)
+    defsize = Vec 800 600
     iter    = 100
     area    = fromAspectCentered defsize 4.3 (0:+0)
 
@@ -40,7 +41,7 @@ freeImage = free . imagePtr
 -- |Resize the storage
 -- Reallocate the storage to accustom the new size, does not render the
 -- frectal.
-resize :: Image -> (Int, Int) -> IO Image
+resize :: Image -> Size -> IO Image
 resize (Image ptr iter area) size = do
   free ptr
   ptr' <- newGreyscalePtr size
