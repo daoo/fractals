@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE MagicHash, BangPatterns #-}
 module Fractals.Utility where
 
 import Control.Monad
@@ -33,13 +33,14 @@ scale :: Int -- ^ End of the first range [0, a], must be greater than zero
       -> Int -- ^ Number in range [0, b]
 scale a b i = (i * b) `quotInt` a
 
+{-# INLINE measureTime #-}
 measureTime :: IO () -> IO ()
-measureTime f = do
+measureTime !f = do
   start <- getCPUTime
   f
   end <- getCPUTime
   let diff = (end - start) `quot` 1000000000
-  putStrLn $ "Rendered in " ++ show diff ++ " ms"
+  putStrLn $ showString "Rendered in " $ shows diff " ms"
 
 whenRef, unlessRef :: IORef Bool -> IO () -> IO ()
 whenRef ref io   = readIORef ref >>= (`when` io)

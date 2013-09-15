@@ -100,9 +100,11 @@ data State = State
   , stateDirty        :: !Bool
   } deriving Show
 
+{-# INLINE stateWindowSize #-}
 stateWindowSize :: State -> Size
 stateWindowSize = stateWindowWidth &&& stateWindowHeight
 
+{-# INLINE stateMousePos #-}
 stateMousePos :: State -> Point
 stateMousePos = stateMouseX &&& stateMouseY
 

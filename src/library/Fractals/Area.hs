@@ -27,12 +27,14 @@ getAreaCenter area = px + pw / 2.0 :+ py - ph / 2.0
     (pw:+ph) = areaPlane area
     (px:+py) = areaTopLeft area
 
--- |Construct a Area from render size, and a rectangle in the complex plane.
+-- |Construct an Area from render size, and a rectangle in the complex plane.
 {-# INLINE fromRectangle #-}
 fromRectangle :: (Int, Int) -> Comp -> Comp -> Area
 fromRectangle screen@(w, h) plane@(pw:+ph) topleft =
   Area screen plane topleft (pw / realToFrac w :+ - ph / realToFrac h)
 
+-- |Construct an Area from render size, the width of the complex plane and the
+-- center point of the complex plane.
 {-# INLINE fromAspectCentered #-}
 fromAspectCentered :: (Int, Int) -> R -> Comp -> Area
 fromAspectCentered screen@(w, h) pw (x:+y) = Area screen plane topleft delta
