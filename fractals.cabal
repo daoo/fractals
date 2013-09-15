@@ -33,7 +33,7 @@ executable fractals-image
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
-executable mandelbrot
+executable fractals-mandelbrot
   main-is: src/frontends/Mandelbrot.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
