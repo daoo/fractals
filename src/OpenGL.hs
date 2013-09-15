@@ -8,15 +8,22 @@ module Main (main) where
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.RWS.Strict hiding (state)
+import Data.Array.Storable
+import Data.Word
+import Foreign.Marshal.Alloc
+import Foreign.Ptr
+import Foreign.Storable
 import Fractals.Area
+import Fractals.Coloring
 import Fractals.Complex
+import Fractals.Definitions
 import Fractals.Geometry
-import GL.Image
-import GL.Shaders
-import GL.Utility
+import Fractals.Image
+import Fractals.Utility
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Graphics.UI.GLFW as GLFW
 
+-- {{{ Utility
 resizeAreaFromRect :: Area -> Rectangle -> Area
 resizeAreaFromRect area (Rectangle a b) = resizePlane a' s area
   where
@@ -25,7 +32,185 @@ resizeAreaFromRect area (Rectangle a b) = resizePlane a' s area
     s             = (abs (br - ar) :+ abs (bc - ac))
 
     transform = screenToPlane area
+-- }}}
+-- {{{ Image
+data Image = Image
+  { imagePtr :: Ptr Word8
+  , imageIter :: !Int
+  , imageArea :: Area
+  } deriving Show
 
+newImage :: IO Image
+newImage = do
+  ptr <- newGreyscalePtr defsize
+  return $ Image ptr iter area
+  where
+    defsize = Vec 800 600
+    iter    = 100
+    area    = fromAspectCentered defsize 4.3 (0:+0)
+
+freeImage :: Image -> IO ()
+freeImage = free . imagePtr
+
+-- |Resize the storage
+-- Reallocate the storage to accustom the new size, does not render the
+-- frectal.
+resize :: Image -> Size -> IO Image
+resize (Image ptr iter area) size = do
+  free ptr
+  ptr' <- newGreyscalePtr size
+  return $ Image ptr' iter (resizeScreen size area)
+
+setArea :: Area -> Image -> Image
+setArea area img = img { imageArea = area }
+
+modIter :: (Int -> Int) -> Image -> Image
+modIter f img = img { imageIter = clampLow 1 $ f (imageIter img) }
+
+-- |Render the fractal and print the time it took
+update :: Image -> IO ()
+update (Image ptr iter area) = measureTime $
+  fill ptr greyscale mandelbrot2 iter maxabs area
+  where
+    maxabs = 4
+-- }}}
+-- {{{ Generic OpenGL
+createShader :: GL.Shader s => String -> IO s
+createShader src = do
+  [shader] <- GL.genObjectNames 1
+  GL.shaderSource shader GL.$= [src]
+  GL.compileShader shader
+  ok <- GL.get (GL.compileStatus shader)
+  unless ok $ do
+    infoLog <- GL.get (GL.shaderInfoLog shader)
+    putStrLn $ unlines ["Shader error:", infoLog, ""]
+    GL.deleteObjectNames [shader]
+    ioError (userError "shader compilation failed")
+  return shader
+
+createProgram :: GL.VertexShader -> GL.FragmentShader -> IO GL.Program
+createProgram vs fs = do
+  [prog] <- GL.genObjectNames 1
+  GL.attachedShaders prog GL.$= ([vs], [fs])
+  GL.deleteObjectNames [vs]
+  GL.deleteObjectNames [fs]
+  return prog
+
+compileAndLink :: String -> String -> IO GL.Program
+compileAndLink vert frag = do
+  vs <- createShader vert
+  fs <- createShader frag
+  prog <- createProgram vs fs
+  GL.bindFragDataLocation prog "position" GL.$= 0
+  GL.attribLocation prog "fragmentColor"  GL.$= GL.AttribLocation 0
+  checkedLinkProgram prog
+  return prog
+
+checkedLinkProgram :: GL.Program -> IO ()
+checkedLinkProgram prog = do
+  GL.linkProgram prog
+  ok <- GL.get (GL.linkStatus prog)
+  unless ok $ do
+    GL.get (GL.programInfoLog prog) >>= putStrLn
+    GL.deleteObjectNames [prog]
+    ioError (userError "program linking failed")
+
+setUniform :: GL.Uniform a => GL.Program -> String -> a -> IO ()
+setUniform prog var val = do
+  GL.currentProgram GL.$= Just prog
+  location <- GL.get (GL.uniformLocation prog var)
+  GL.uniform location GL.$= val
+
+createBuffer :: Storable a => [a] -> IO GL.BufferObject
+createBuffer xs = do
+  let c = length xs
+      n = fromIntegral $ c * sizeOf (head xs)
+  [buffer] <- GL.genObjectNames 1
+  GL.bindBuffer GL.ArrayBuffer GL.$= Just buffer
+  newListArray (0, c-1) xs >>= (`withStorableArray` \ptr ->
+    GL.bufferData GL.ArrayBuffer GL.$= (n, ptr, GL.StaticDraw))
+  GL.bindBuffer GL.ArrayBuffer GL.$= Nothing
+  return buffer
+
+createVAO :: GL.BufferObject -> IO GL.VertexArrayObject
+createVAO buffer = do
+  let attrib = GL.AttribLocation 0
+  [vao] <- GL.genObjectNames 1
+  GL.bindVertexArrayObject      GL.$= Just vao
+  GL.bindBuffer GL.ArrayBuffer  GL.$= Just buffer
+  GL.vertexAttribArray attrib   GL.$= GL.Enabled
+  GL.vertexAttribPointer attrib GL.$= (GL.ToFloat, GL.VertexArrayDescriptor 3 GL.Float 0 nullPtr)
+  GL.bindBuffer GL.ArrayBuffer  GL.$= Nothing
+  GL.bindVertexArrayObject      GL.$= Nothing
+  return vao
+
+createActiveTexture :: IO GL.TextureObject
+createActiveTexture = do
+  [tex] <- GL.genObjectNames 1
+  GL.activeTexture               GL.$= GL.TextureUnit 0
+  GL.textureBinding GL.Texture2D GL.$= Just tex
+  GL.textureFilter GL.Texture2D  GL.$= ((GL.Nearest, Nothing), GL.Nearest)
+  GL.rowAlignment GL.Unpack      GL.$= 1
+  return tex
+
+strokeRectangle :: Rectangle -> IO ()
+strokeRectangle (Rectangle (Vec x1 y1) (Vec x2 y2)) =
+  GL.renderPrimitive GL.LineLoop $ do
+    GL.color $ GL.Color3 (1.0 :: GL.GLfloat) 0 0
+    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
+-- }}}
+-- {{{ Shaders
+texFragShader :: String
+texFragShader =
+  "#version 130\n\
+
+  \precision highp float;\n\
+
+  \in  vec2 texCoord;\n\
+  \out vec4 fragmentColor;\n\
+
+  \uniform sampler2D framebuffer;\n\
+
+  \void main() {\n\
+  \  fragmentColor = texture2D(framebuffer, texCoord);\n\
+  \}"
+
+texVertShader :: String
+texVertShader =
+  "#version 130\n\
+
+  \in  vec3 position;\n\
+  \out vec2 texCoord;\n\
+
+  \void main() {\n\
+  \  texCoord    = (position.xy + vec2(1.0)) * vec2(0.5, -0.5);\n\
+  \  gl_Position = vec4(position, 1);\n\
+  \}"
+
+redFragShader :: String
+redFragShader =
+  "#version 130\n\
+  \precision highp float;\n\
+  \out vec4 fragmentColor;\n\
+  \void main() {\n\
+  \  fragmentColor = vec4(1, 0, 0, 1);\n\
+  \}"
+
+screenVertShader :: String
+screenVertShader =
+  "#version 130\n\
+
+  \in vec3 position;\n\
+  \uniform ivec2 size;\n\
+
+  \void main() {\n\
+  \  gl_Position = vec4((vec2(position) / size) * vec2(2, -2) + vec2(-1, 1), 0, 1);\n\
+  \}"
+-- }}}
+-- {{{ Fractals OpenGL
 texturize :: Image -> IO ()
 texturize (Image ptr _ area) =
   GL.texImage2D Nothing GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
@@ -57,7 +242,8 @@ initGL = do
   GL.bindVertexArrayObject GL.$= Just vao
 
   return (programFractal, programScreen)
-
+-- }}}
+-- {{{ Program Logic
 data Event
   = EventError !GLFW.Error !String
   | EventWindowSize !GLFW.Window !Int !Int
@@ -315,3 +501,6 @@ withWindow width height title f = do
   where
     simpleErrorCallback e s =
         putStrLn $ unwords [show e, show s]
+-- }}}
+
+-- vim:set fdm=marker:

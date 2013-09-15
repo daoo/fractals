@@ -9,6 +9,7 @@ build-type:    Simple
 cabal-version: >=1.8
 
 library
+  hs-source-dirs: src
   exposed-modules:
     Fractals.Area,
     Fractals.Args,
@@ -21,37 +22,31 @@ library
     Fractals.Render,
     Fractals.Utility
   build-depends: base, mtl, bytestring >= 0.10.2.0, zlib, array, ghc-prim
-  hs-source-dirs: src/library
   ghc-options: -Wall
 
 executable fractals-ascii
-  main-is: src/frontends/ASCII.hs
+  main-is: src/ASCII.hs
   build-depends: fractals, base, mtl
   ghc-options: -Wall
 
 executable fractals-image
-  main-is: src/frontends/Image.hs
+  main-is: src/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
 executable fractals-mandelbrot
-  main-is: src/frontends/Mandelbrot.hs
+  main-is: src/Mandelbrot.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
 
 executable fractals-image-rational
-  main-is: src/frontends/Image.hs
+  main-is: src/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
   ghc-options: -Wall
   cpp-options: -DRATIONAL
 
 executable fractals-opengl
-  hs-source-dirs: src/frontends
-  main-is: OpenGL.hs
-  other-modules:
-    GL.Image,
-    GL.Shaders,
-    GL.Utility
+  main-is: src/OpenGL.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL, OpenGL, GLFW-b, stm
   ghc-options: -Wall
 
