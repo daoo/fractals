@@ -152,15 +152,6 @@ createActiveTexture = do
   GL.textureFilter GL.Texture2D  GL.$= ((GL.Nearest, Nothing), GL.Nearest)
   GL.rowAlignment GL.Unpack      GL.$= 1
   return tex
-
-strokeRectangle :: Rectangle -> IO ()
-strokeRectangle (Rectangle (Vec x1 y1) (Vec x2 y2)) =
-  GL.renderPrimitive GL.LineLoop $ do
-    GL.color $ GL.Color3 (1.0 :: GL.GLfloat) 0 0
-    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
-    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
 -- }}}
 -- {{{ Shaders
 texFragShader :: String
@@ -242,8 +233,17 @@ initGL = do
   GL.bindVertexArrayObject GL.$= Just vao
 
   return (programFractal, programScreen)
+
+strokeRectangle :: Rectangle -> IO ()
+strokeRectangle (Rectangle (Vec x1 y1) (Vec x2 y2)) =
+  GL.renderPrimitive GL.LineLoop $ do
+    GL.color $ GL.Color3 (1.0 :: GL.GLfloat) 0 0
+    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x2 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
+    GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y2 :: GL.GLfloat)
 -- }}}
--- {{{ Program Logic
+-- {{{ Events
 data Event
   = EventError !GLFW.Error !String
   | EventWindowSize !GLFW.Window !Int !Int
@@ -252,6 +252,19 @@ data Event
   | EventKey !GLFW.Window !GLFW.Key !Int !GLFW.KeyState !GLFW.ModifierKeys
   deriving Show
 
+errorCallback       :: TQueue Event -> GLFW.Error -> String -> IO ()
+windowSizeCallback  :: TQueue Event -> GLFW.Window -> Int -> Int -> IO ()
+mouseButtonCallback :: TQueue Event -> GLFW.Window -> GLFW.MouseButton -> GLFW.MouseButtonState -> GLFW.ModifierKeys -> IO ()
+cursorPosCallback   :: TQueue Event -> GLFW.Window -> Double -> Double -> IO ()
+keyCallback         :: TQueue Event -> GLFW.Window -> GLFW.Key -> Int -> GLFW.KeyState -> GLFW.ModifierKeys -> IO ()
+
+errorCallback tc e s                 = atomically $ writeTQueue tc $ EventError e s
+windowSizeCallback tc win w h        = atomically $ writeTQueue tc $ EventWindowSize win w h
+mouseButtonCallback tc win mb mba mk = atomically $ writeTQueue tc $ EventMouseButton win mb mba mk
+cursorPosCallback tc win x y         = atomically $ writeTQueue tc $ EventCursorPos win x y
+keyCallback tc win k sc ka mk        = atomically $ writeTQueue tc $ EventKey win k sc ka mk
+-- }}}
+-- {{{ Program Logic
 data Env = Env
   { envEventsChan     :: TQueue Event
   , envWindow         :: !GLFW.Window
@@ -259,7 +272,7 @@ data Env = Env
   , envProgramScreen  :: !GL.Program
   }
 
-data Mode = Idle | Drag Point | Zoom Point
+data Mode = Idle | Zoom Point
   deriving Show
 
 data State = State
@@ -330,18 +343,6 @@ run = do
   q <- liftIO $ GLFW.windowShouldClose (envWindow env)
   unless q run
 
-errorCallback       :: TQueue Event -> GLFW.Error -> String -> IO ()
-windowSizeCallback  :: TQueue Event -> GLFW.Window -> Int -> Int -> IO ()
-mouseButtonCallback :: TQueue Event -> GLFW.Window -> GLFW.MouseButton -> GLFW.MouseButtonState -> GLFW.ModifierKeys -> IO ()
-cursorPosCallback   :: TQueue Event -> GLFW.Window -> Double -> Double -> IO ()
-keyCallback         :: TQueue Event -> GLFW.Window -> GLFW.Key -> Int -> GLFW.KeyState -> GLFW.ModifierKeys -> IO ()
-
-errorCallback tc e s                 = atomically $ writeTQueue tc $ EventError e s
-windowSizeCallback tc win w h        = atomically $ writeTQueue tc $ EventWindowSize win w h
-mouseButtonCallback tc win mb mba mk = atomically $ writeTQueue tc $ EventMouseButton win mb mba mk
-cursorPosCallback tc win x y         = atomically $ writeTQueue tc $ EventCursorPos win x y
-keyCallback tc win k sc ka mk        = atomically $ writeTQueue tc $ EventKey win k sc ka mk
-
 processEvents :: Context ()
 processEvents = do
   tc <- asks envEventsChan
@@ -365,37 +366,16 @@ processEvent = \case
       }
     adjustWindow
 
-  EventMouseButton _ mb _ _ -> do
+  EventMouseButton _ mb s _ -> do
     state <- get
-    case stateMode state of
-      Idle -> case mb of
-        GLFW.MouseButton'1 -> dragMode
-        GLFW.MouseButton'2 -> zoomMode
-        GLFW.MouseButton'3 -> do
-          let pos  = stateMousePos state
-              area = imageArea $ stateImage state
-          liftIO $ do
-            print pos
-            print $ screenToPlane area pos
-        _ -> return ()
+    case (s, mb, stateMode state) of
 
-      Drag _ -> case mb of
-        GLFW.MouseButton'1 -> idleMode -- TODO
-
-        _ -> return ()
-
-      Zoom start -> case mb of
-        GLFW.MouseButton'2 -> do
-          let area = imageArea $ stateImage state
-              size = stateWindowSize state
-              end  = stateMousePos state
-           in modImage $ setArea $
-                resizeAreaFromRect area $
-                  fixAspect size start end
-          redraw
-          idleMode
-
-        _ -> return ()
+      (GLFW.MouseButtonState'Pressed  , GLFW.MouseButton'1 , Idle)       -> recenter
+      (GLFW.MouseButtonState'Pressed  , GLFW.MouseButton'3 , Idle)       -> printInfo
+      (GLFW.MouseButtonState'Pressed  , GLFW.MouseButton'2 , Idle)       -> zoomMode
+      (GLFW.MouseButtonState'Released , GLFW.MouseButton'2 , Zoom start) -> zoom start
+      (GLFW.MouseButtonState'Pressed  , _                  , Zoom _)     -> idleMode
+      (_                              , _                  , _)          -> return ()
 
   EventCursorPos _ x y ->
     modify $ \s -> s
@@ -422,8 +402,28 @@ processEvent = \case
       win <- asks envWindow
       liftIO $ GLFW.setWindowShouldClose win True
 
+    recenter = idleMode -- TODO
+
+    zoom start = do
+      state <- get
+      let area = imageArea $ stateImage state
+          size = stateWindowSize state
+          end  = stateMousePos state
+        in modImage $ setArea $
+            resizeAreaFromRect area $
+              fixAspect size start end
+      redraw
+      idleMode
+
+    printInfo = do
+      state <- get
+      let pos  = stateMousePos state
+          area = imageArea $ stateImage state
+      liftIO $ do
+        print pos
+        print $ screenToPlane area pos
+
     idleMode = modMode $ const Idle
-    dragMode = modMode $ \s -> Drag (stateMousePos s)
     zoomMode = modMode $ \s -> Zoom (stateMousePos s)
 
 adjustWindow :: Context ()
@@ -445,7 +445,8 @@ adjustWindow = do
   image <- liftIO $ resize (stateImage state) size
   modify $ \s -> s { stateImage = image }
   redraw
-
+-- }}}
+-- {{{ Main
 main :: IO ()
 main = do
   eventsChan <- newTQueueIO :: IO (TQueue Event)
