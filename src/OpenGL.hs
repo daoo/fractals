@@ -2,7 +2,6 @@
 module Main (main) where
 
 -- TODO: Implement zooming out
--- TODO: Implement draging
 -- TODO: Render with threads and different resolution
 
 import Control.Concurrent.STM
@@ -402,7 +401,14 @@ processEvent = \case
       win <- asks envWindow
       liftIO $ GLFW.setWindowShouldClose win True
 
-    recenter = idleMode -- TODO
+    recenter = do
+      state <- get
+      let area = imageArea $ stateImage state
+          pos  = stateMousePos state
+       in modImage $ setArea $
+            setPlaneCenter (screenToPlane area pos) area
+      redraw
+      idleMode
 
     zoom start = do
       state <- get

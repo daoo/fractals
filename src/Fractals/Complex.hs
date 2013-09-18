@@ -5,6 +5,7 @@ module Fractals.Complex
   , imgPart
   , R
   , magnitudeSquared
+  , (./)
   ) where
 
 #ifdef RATIONAL
@@ -47,3 +48,7 @@ instance Num Comp where
   negate      = undefined
   signum      = undefined
   fromInteger = undefined
+
+{-# INLINE (./) #-}
+(./) :: Comp -> R -> Comp
+(a:+b) ./ x = (a/x) :+ (b/x)

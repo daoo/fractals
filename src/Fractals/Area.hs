@@ -3,6 +3,7 @@ module Fractals.Area
   , getAreaCenter
   , fromRectangle
   , fromAspectCentered
+  , setPlaneCenter
   , resizeScreen
   , resizePlane
   , screenToPlane
@@ -45,6 +46,13 @@ fromAspectCentered screen@(Vec w h) pw (x:+y) = Area screen plane topleft delta
     plane@(_:+ph) = pw :+ pw / aspect
     topleft       = x - pw / 2 :+ y + ph / 2
     delta         = pw / w' :+ - ph / h'
+
+{-# INLINE setPlaneCenter #-}
+setPlaneCenter :: Comp -> Area -> Area
+setPlaneCenter (x:+y) (Area screen plane@(pw:+ph) _ delta) =
+  Area screen plane topleft delta
+  where
+    topleft = x - (pw / 2) :+ y + (ph / 2)
 
 {-# INLINE resizeScreen #-}
 resizeScreen :: Size -> Area -> Area
