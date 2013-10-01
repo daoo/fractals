@@ -2,6 +2,7 @@
 module Main (main) where
 
 -- TODO: Implement zooming out
+-- TODO: Deterministic redraw?
 -- TODO: Render with threads and different resolution
 
 import Control.Concurrent.STM
