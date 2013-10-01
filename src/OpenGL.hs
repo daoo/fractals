@@ -277,6 +277,7 @@ data Mode = Idle | Zoom Point
 data State = State
   { stateMode         :: !Mode
   , stateImage        :: Image
+  , stateAreaStack    :: [Area]
   , stateWindowWidth  :: !Int
   , stateWindowHeight :: !Int
   , stateMouseX       :: !Int
@@ -293,6 +294,26 @@ stateMousePos :: State -> Point
 stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
 
 type Context = RWST Env () State IO
+
+pushArea :: Area -> Context ()
+pushArea area = do
+  modify $ \s -> s
+    { stateImage     = setArea area (stateImage s)
+    , stateAreaStack = imageArea (stateImage s) : stateAreaStack s
+    }
+  redraw
+
+popArea :: Context ()
+popArea = do
+  stack <- gets stateAreaStack
+  case stack of
+    []     -> return ()
+    (x:xs) -> do
+      modify $ \s -> s
+        { stateImage     = setArea x (stateImage s)
+        , stateAreaStack = xs
+        }
+      redraw
 
 modMode :: (State -> Mode) -> Context ()
 modMode f = modify $ \s -> s { stateMode = f s }
@@ -392,6 +413,8 @@ processEvent = \case
       GLFW.Key'I -> modImage (modIter (+10))         >> redraw
       GLFW.Key'D -> modImage (modIter (subtract 10)) >> redraw
 
+      GLFW.Key'Up -> popArea
+
       _ -> return ()
 
     _ -> return ()
@@ -405,9 +428,7 @@ processEvent = \case
       state <- get
       let area = imageArea $ stateImage state
           pos  = stateMousePos state
-       in modImage $ setArea $
-            setPlaneCenter (screenToPlane area pos) area
-      redraw
+       in pushArea $ setPlaneCenter (screenToPlane area pos) area
       idleMode
 
     zoom start = do
@@ -415,10 +436,7 @@ processEvent = \case
       let area = imageArea $ stateImage state
           size = stateWindowSize state
           end  = stateMousePos state
-        in modImage $ setArea $
-            resizeAreaFromRect area $
-              fixAspect size start end
-      redraw
+        in pushArea $ resizeAreaFromRect area $ fixAspect size start end
       idleMode
 
     printInfo = do
@@ -481,6 +499,7 @@ main = do
         state = State
           { stateMode         = Idle
           , stateImage        = image
+          , stateAreaStack    = [imageArea image]
           , stateWindowWidth  = width
           , stateWindowHeight = height
           , stateMouseX       = 0
