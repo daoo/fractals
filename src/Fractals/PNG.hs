@@ -1,12 +1,14 @@
-{-# LANGUAGE OverloadedStrings, BangPatterns #-}
+{-# LANGUAGE OverloadedStrings, BangPatterns, FlexibleContexts #-}
 module Fractals.PNG ( png ) where
 
-import Data.Array
-import Data.Array.Base (unsafeAt)
+import Data.Array.Base (unsafeAt, unsafeRead)
+import Data.Array.IArray
+import Data.Array.IO
 import Data.Bits
 import Data.ByteString.Builder
 import Data.Monoid
 import Data.Word
+import System.IO
 import qualified Codec.Compression.Zlib as Z
 import qualified Data.ByteString.Lazy as B
 
@@ -18,10 +20,10 @@ chunk tag xs = word32BE (fromIntegral $ B.length xs) <> lazyByteString dat <> wo
   where
     dat = B.append tag xs
 
-iHDR :: (Word32, Word32) -> Builder
+iHDR :: (Int, Int) -> Builder
 iHDR (w, h) = chunk "IHDR" $ toLazyByteString $ mconcat
-  [ word32BE w
-  , word32BE h
+  [ word32BE $ fromIntegral w
+  , word32BE $ fromIntegral h
   , bitDepth
   , colorType
   , compressionMethod
@@ -42,23 +44,19 @@ iEND = chunk "IEND" B.empty
 
 -- | Return a monochrome PNG file from a two dimensional bitmap
 -- stored in a list of lines represented as a list of booleans.
-png :: (Word32, Word32) -> [[Bool]] -> Builder
-png size dat = hdr <> iHDR size <> iDAT imgbits <> iEND
+png :: FilePath -> (Int, Int) -> IOUArray (Int, Int) Word8 -> IO ()
+png path size@(w, h) dat = do
+  h <- openBinaryFile path ReadMode
+  hPutBuilder h (hdr <> iHDR size <> iDAT (toLazyByteString imgbits) <> iEND)
+  hClose h
   where
-    imgbits = B.concat $ map scanline dat
+    imgbits = goy 0
 
-scanline :: [Bool] -> B.ByteString
-scanline dat = 0 `B.cons` bitpack dat
+    goy j | j < h    = word8 0 <> gox j 0 <> goy (j+1)
+          | otherwise = mempty
 
-bitpack :: [Bool] -> B.ByteString
-bitpack = go 0 0x80
-  where
-    go !n !b []     = if b /= 0x80 then B.singleton n else B.empty
-    go !n !b (x:xs) = if b == 1
-      then v `B.cons` go 0 0x80 xs
-      else go v (b `shiftR` 1) xs
-      where v = if x then n else n .|. b
-
+    gox j i | i < w     = word8 (dat ! (i, j)) <> gox j (i+1)
+            | otherwise = mempty
 
 calculateCRC :: B.ByteString -> Word32
 calculateCRC xs = update 0xffffffff xs `xor` 0xffffffff

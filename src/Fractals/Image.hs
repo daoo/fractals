@@ -56,6 +56,10 @@ instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
   {-# INLINE fill #-}
   fill s = helper 4 (write s)
 
+{-# INLINE newGreyscaleArray #-}
+newGreyscaleArray :: (MArray a e m) => Size -> m (a (Int, Int) e)
+newGreyscaleArray (Vec w h) = newArray_ ((0,0), (h-1,w-1))
+
 {-# INLINE newRgbaArray #-}
 newRgbaArray :: (MArray a e m) => Size -> m (a (Int, Int, Int) e)
 newRgbaArray (Vec w h) = newArray_ ((0,0,0), (h-1,w-1, 3))
