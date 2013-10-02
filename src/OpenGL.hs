@@ -48,27 +48,30 @@ newImage = do
     iter    = 100
     area    = fromAspectCentered defsize 4.3 (0:+0)
 
+{-# INLINE freeImage #-}
 freeImage :: Image -> IO ()
 freeImage = free . imagePtr
 
 -- |Resize the storage
 -- Reallocate the storage to accustom the new size, does not render the
 -- frectal.
-resize :: Image -> Size -> IO Image
-resize (Image ptr iter area) size = do
+resizeImage :: Image -> Size -> IO Image
+resizeImage (Image ptr iter area) size = do
   free ptr
   ptr' <- newGreyscalePtr size
   return $ Image ptr' iter (resizeScreen size area)
 
+{-# INLINE setArea #-}
 setArea :: Area -> Image -> Image
 setArea area img = img { imageArea = area }
 
-modIter :: (Int -> Int) -> Image -> Image
-modIter f img = img { imageIter = clampLow 1 $ f (imageIter img) }
+{-# INLINE modifyIterations #-}
+modifyIterations :: (Int -> Int) -> Image -> Image
+modifyIterations f img = img { imageIter = clampLow 1 $ f (imageIter img) }
 
 -- |Render the fractal and print the time it took
-update :: Image -> IO ()
-update (Image ptr iter area) = measureTime $
+updateImage :: Image -> IO ()
+updateImage (Image ptr iter area) = measureTime $
   fill ptr greyscale mandelbrot2 iter maxabs area
   where
     maxabs = 4
@@ -298,7 +301,7 @@ type Context = RWST Env () State IO
 redraw :: Context ()
 redraw = do
   img <- gets stateImage
-  liftIO $ update img
+  liftIO $ updateImage img
   modify $ \s -> s { stateDirty = True }
 
 pushArea :: Area -> Context ()
@@ -324,7 +327,7 @@ popArea = do
 changeIter :: (Int -> Int) -> Context ()
 changeIter f = do
   modify $ \s -> s
-    { stateImage = modIter f (stateImage s) }
+    { stateImage = modifyIterations f (stateImage s) }
   redraw
 
 modMode :: (State -> Mode) -> Context ()
@@ -469,7 +472,7 @@ adjustWindow = do
     setUniform (envProgramScreen env) "size" $ GL.Vertex2 w' h'
     GL.viewport GL.$= (glpos, glsize)
 
-  image <- liftIO $ resize (stateImage state) size
+  image <- liftIO $ resizeImage (stateImage state) size
   modify $ \s -> s { stateImage = image }
   redraw
 -- }}}
@@ -490,7 +493,7 @@ main = do
 
     (programDefault, programZoom) <- initGL
     image <- newImage
-    update image
+    updateImage image
 
     let env = Env
           { envEventsChan     = eventsChan
