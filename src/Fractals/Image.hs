@@ -1,6 +1,13 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
-module Fractals.Image where
+module Fractals.Image
+  ( write
+  , fill
+  , newGreyscalePtr
+  , newRgbPtr
+  , newRgbaPtr
+  , newRgbaArray
+  ) where
 
 import Data.Array.Base (unsafeWrite)
 import Data.Array.IO
