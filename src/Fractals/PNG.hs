@@ -71,10 +71,10 @@ calculateCRC xs = update 0xffffffff xs `xor` 0xffffffff
         n = fromIntegral (crc `xor` fromIntegral ch)
 
 tab :: Array Word8 Word32
-tab = listArray (0, 255) $ flip map [0..255] (\n ->
+tab = listArray (0, 255) $ map (
     times 8 (\c -> if c .&. 1 == 1
                       then 0xedb88320 `xor` (c `shiftR` 1)
-                      else c `shiftR` 1) n)
+                      else c `shiftR` 1)) [0..255]
   where
 
     times :: Word8 -> (a -> a) -> a -> a

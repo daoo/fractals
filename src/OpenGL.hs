@@ -27,7 +27,7 @@ resizeAreaFromRect area (Rectangle a b) = resizePlane a' s area
   where
     a'@(ar :+ ac) = transform a
     (br :+ bc)    = transform b
-    s             = (abs (br - ar) :+ abs (bc - ac))
+    s             = abs (br - ar) :+ abs (bc - ac)
 
     transform = screenToPlane area
 -- }}}
@@ -342,7 +342,7 @@ run = do
   env <- ask
   state <- get
 
-  when (stateDirty state) $ do
+  when (stateDirty state) $
     liftIO $ texturize (stateImage state)
 
   liftIO $ do

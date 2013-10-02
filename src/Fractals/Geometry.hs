@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Fractals.Geometry
   ( Vec(Vec)
   , Size
@@ -47,4 +46,4 @@ findLargest (Vec w h) (Vec x1 y1) (Vec x2 y2)
 -- |Resize a rectangle to the largest rectangle that goes through the bottom
 -- left point with the specified aspect ratio.
 fixAspect :: Size -> Point -> Point -> Rectangle
-fixAspect aspect a b = fromPoints a (a .+ (findLargest aspect a b))
+fixAspect aspect a b = fromPoints a (a .+ findLargest aspect a b)

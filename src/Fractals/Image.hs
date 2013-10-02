@@ -46,15 +46,15 @@ class Storage s c m where
 
 instance (Writable a Word8 m) => Storage a Word8 m where
   {-# INLINE fill #-}
-  fill s = helper 1 (write s)
+  fill = helper 1 . write
 
 instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8) m where
   {-# INLINE fill #-}
-  fill s = helper 3 (write s)
+  fill = helper 3 . write
 
 instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
   {-# INLINE fill #-}
-  fill s = helper 4 (write s)
+  fill = helper 4 . write
 
 {-# INLINE newRgbaArray #-}
 newRgbaArray :: (MArray a e m) => Size -> m (a (Int, Int, Int) e)
