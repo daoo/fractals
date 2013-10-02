@@ -2,7 +2,6 @@
 module Main (main) where
 
 -- TODO: Implement zooming out
--- TODO: Deterministic redraw?
 -- TODO: Render with threads and different resolution
 
 import Control.Concurrent.STM
@@ -296,6 +295,12 @@ stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
 
 type Context = RWST Env () State IO
 
+redraw :: Context ()
+redraw = do
+  img <- gets stateImage
+  liftIO $ update img
+  modify $ \s -> s { stateDirty = True }
+
 pushArea :: Area -> Context ()
 pushArea area = do
   modify $ \s -> s
@@ -316,22 +321,19 @@ popArea = do
         }
       redraw
 
+changeIter :: (Int -> Int) -> Context ()
+changeIter f = do
+  modify $ \s -> s
+    { stateImage = modIter f (stateImage s) }
+  redraw
+
 modMode :: (State -> Mode) -> Context ()
 modMode f = modify $ \s -> s { stateMode = f s }
-
-modImage :: (Image -> Image) -> Context ()
-modImage f = modify $ \s -> s { stateImage = f (stateImage s) }
 
 runContext :: Env -> State -> IO ()
 runContext env state = do
   (_, state', _) <- runRWST (adjustWindow >> run) env state
   freeImage (stateImage state')
-
-redraw :: Context ()
-redraw = do
-  img <- gets stateImage
-  liftIO $ update img
-  modify $ \s -> s { stateDirty = True }
 
 run :: Context ()
 run = do
@@ -411,8 +413,8 @@ processEvent = \case
       GLFW.Key'Escape -> quit
       GLFW.Key'Q      -> quit
 
-      GLFW.Key'I -> modImage (modIter (+10))         >> redraw
-      GLFW.Key'D -> modImage (modIter (subtract 10)) >> redraw
+      GLFW.Key'I -> changeIter (+10)
+      GLFW.Key'D -> changeIter (subtract 10)
 
       GLFW.Key'Up -> popArea
 
