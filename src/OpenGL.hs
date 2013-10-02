@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
--- TODO: Implement zooming out
 -- TODO: Render with threads and different resolution
 
 import Control.Concurrent.STM
