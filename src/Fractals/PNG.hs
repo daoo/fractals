@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, BangPatterns #-}
-module Fractals.PNG ( png ) where
+module Fractals.PNG ( pngGray ) where
 
 import Data.Array
 import Data.Array.Base (unsafeAt)
@@ -7,6 +7,7 @@ import Data.Bits
 import Data.ByteString.Builder
 import Data.Monoid
 import Data.Word
+import Foreign.Ptr
 import qualified Codec.Compression.Zlib as Z
 import qualified Data.ByteString.Lazy as B
 
@@ -42,23 +43,13 @@ iEND = chunk "IEND" B.empty
 
 -- | Return a monochrome PNG file from a two dimensional bitmap
 -- stored in a list of lines represented as a list of booleans.
-png :: (Word32, Word32) -> [[Bool]] -> Builder
-png size dat = hdr <> iHDR size <> iDAT imgbits <> iEND
+pngGray :: (Word32, Word32) -> Ptr Word8 -> IO Builder
+pngGray size@(w, h) dat = hdr <> iHDR size <> iDAT imgbits <> iEND
   where
+    go i x y !acc | x == 0 = read i dat >>= (\x -> go (i+1) (0 <> acc <> x))
+                  | x < y  = read i dat >>= (\x -> go (i+1) (acc <> x))
+
     imgbits = B.concat $ map scanline dat
-
-scanline :: [Bool] -> B.ByteString
-scanline dat = 0 `B.cons` bitpack dat
-
-bitpack :: [Bool] -> B.ByteString
-bitpack = go 0 0x80
-  where
-    go !n !b []     = if b /= 0x80 then B.singleton n else B.empty
-    go !n !b (x:xs) = if b == 1
-      then v `B.cons` go 0 0x80 xs
-      else go v (b `shiftR` 1) xs
-      where v = if x then n else n .|. b
-
 
 calculateCRC :: B.ByteString -> Word32
 calculateCRC xs = update 0xffffffff xs `xor` 0xffffffff
