@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings #-}
 module Main (main) where
 
 -- TODO: Render with threads and different resolution
@@ -18,6 +18,7 @@ import Fractals.Definitions
 import Fractals.Geometry
 import Fractals.Image
 import Fractals.Utility
+import qualified Data.ByteString as BS
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified Graphics.UI.GLFW as GLFW
 
@@ -76,31 +77,34 @@ updateImage (Image ptr iter area) = measureTime $
     maxabs = 4
 -- }}}
 -- {{{ Generic OpenGL
-createShader :: GL.Shader s => String -> IO s
-createShader src = do
-  [shader] <- GL.genObjectNames 1
-  GL.shaderSource shader GL.$= [src]
+createShader :: GL.ShaderType -> BS.ByteString -> IO GL.Shader
+createShader t src = do
+  shader <- GL.createShader t
+  GL.shaderSourceBS shader GL.$= src
   GL.compileShader shader
   ok <- GL.get (GL.compileStatus shader)
   unless ok $ do
     infoLog <- GL.get (GL.shaderInfoLog shader)
-    putStrLn $ unlines ["Shader error:", infoLog, ""]
-    GL.deleteObjectNames [shader]
+    putStrLn "Shader error:"
+    putStrLn infoLog
+    putStrLn ""
+    GL.deleteObjectName shader
     ioError (userError "shader compilation failed")
   return shader
 
-createProgram :: GL.VertexShader -> GL.FragmentShader -> IO GL.Program
+createProgram :: GL.Shader -> GL.Shader -> IO GL.Program
 createProgram vs fs = do
-  [prog] <- GL.genObjectNames 1
-  GL.attachedShaders prog GL.$= ([vs], [fs])
-  GL.deleteObjectNames [vs]
-  GL.deleteObjectNames [fs]
+  prog <- GL.createProgram
+  GL.attachShader prog vs
+  GL.attachShader prog fs
+  GL.deleteObjectName vs
+  GL.deleteObjectName fs
   return prog
 
-compileAndLink :: String -> String -> IO GL.Program
+compileAndLink :: BS.ByteString -> BS.ByteString -> IO GL.Program
 compileAndLink vert frag = do
-  vs <- createShader vert
-  fs <- createShader frag
+  vs <- createShader GL.VertexShader vert
+  fs <- createShader GL.FragmentShader frag
   prog <- createProgram vs fs
   GL.bindFragDataLocation prog "position" GL.$= 0
   GL.attribLocation prog "fragmentColor"  GL.$= GL.AttribLocation 0
@@ -113,7 +117,7 @@ checkedLinkProgram prog = do
   ok <- GL.get (GL.linkStatus prog)
   unless ok $ do
     GL.get (GL.programInfoLog prog) >>= putStrLn
-    GL.deleteObjectNames [prog]
+    GL.deleteObjectName prog
     ioError (userError "program linking failed")
 
 setUniform :: GL.Uniform a => GL.Program -> String -> a -> IO ()
@@ -126,7 +130,7 @@ createBuffer :: Storable a => [a] -> IO GL.BufferObject
 createBuffer xs = do
   let c = length xs
       n = fromIntegral $ c * sizeOf (head xs)
-  [buffer] <- GL.genObjectNames 1
+  buffer <- GL.genObjectName
   GL.bindBuffer GL.ArrayBuffer GL.$= Just buffer
   newListArray (0, c-1) xs >>= (`withStorableArray` \ptr ->
     GL.bufferData GL.ArrayBuffer GL.$= (n, ptr, GL.StaticDraw))
@@ -136,7 +140,7 @@ createBuffer xs = do
 createVAO :: GL.BufferObject -> IO GL.VertexArrayObject
 createVAO buffer = do
   let attrib = GL.AttribLocation 0
-  [vao] <- GL.genObjectNames 1
+  vao <- GL.genObjectName
   GL.bindVertexArrayObject      GL.$= Just vao
   GL.bindBuffer GL.ArrayBuffer  GL.$= Just buffer
   GL.vertexAttribArray attrib   GL.$= GL.Enabled
@@ -147,7 +151,7 @@ createVAO buffer = do
 
 createActiveTexture :: IO GL.TextureObject
 createActiveTexture = do
-  [tex] <- GL.genObjectNames 1
+  tex <- GL.genObjectName
   GL.activeTexture               GL.$= GL.TextureUnit 0
   GL.textureBinding GL.Texture2D GL.$= Just tex
   GL.textureFilter GL.Texture2D  GL.$= ((GL.Nearest, Nothing), GL.Nearest)
@@ -155,7 +159,7 @@ createActiveTexture = do
   return tex
 -- }}}
 -- {{{ Shaders
-texFragShader :: String
+texFragShader :: BS.ByteString
 texFragShader =
   "#version 130\n\
 
@@ -170,7 +174,7 @@ texFragShader =
   \  fragmentColor = texture2D(framebuffer, texCoord);\n\
   \}"
 
-texVertShader :: String
+texVertShader :: BS.ByteString
 texVertShader =
   "#version 130\n\
 
@@ -182,7 +186,7 @@ texVertShader =
   \  gl_Position = vec4(position, 1);\n\
   \}"
 
-redFragShader :: String
+redFragShader :: BS.ByteString
 redFragShader =
   "#version 130\n\
   \precision highp float;\n\
@@ -191,7 +195,7 @@ redFragShader =
   \  fragmentColor = vec4(1, 0, 0, 1);\n\
   \}"
 
-screenVertShader :: String
+screenVertShader :: BS.ByteString
 screenVertShader =
   "#version 130\n\
 
@@ -205,7 +209,7 @@ screenVertShader =
 -- {{{ Fractals OpenGL
 texturize :: Image -> IO ()
 texturize (Image ptr _ area) =
-  GL.texImage2D Nothing GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
+  GL.texImage2D GL.Texture2D GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
   where
     Vec w h   = areaScreen area
     texSize   = GL.TextureSize2D (fromIntegral w) (fromIntegral h)
