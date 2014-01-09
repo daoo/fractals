@@ -22,39 +22,32 @@ library
     Fractals.Render,
     Fractals.Utility
   build-depends: base, mtl, bytestring >= 0.10.2.0, zlib, array, ghc-prim
-  ghc-options: -Wall
 
 executable fractals-ascii
   main-is: src/ASCII.hs
   build-depends: fractals, base, mtl
-  ghc-options: -Wall
 
 executable fractals-image
   main-is: src/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
-  ghc-options: -Wall
 
 executable fractals-mandelbrot
   main-is: src/Mandelbrot.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
-  ghc-options: -Wall
 
 executable fractals-image-rational
   main-is: src/Image.hs
   build-depends: fractals, base, mtl, array, Codec-Image-DevIL
-  ghc-options: -Wall
   cpp-options: -DRATIONAL
 
 executable fractals-opengl
   main-is: src/OpenGL.hs
   build-depends: fractals, base, mtl, array, bytestring, Codec-Image-DevIL, OpenGL, GLFW-b, stm
-  ghc-options: -Wall
 
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: src/Benchmark.hs
   build-depends: fractals, base, mtl, criterion, array
-  ghc-options: -Wall
 
 test-suite tests
   type: exitcode-stdio-1.0
