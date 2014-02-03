@@ -55,11 +55,11 @@ instance (Writable a Word8 m) => Storage a Word8 m where
   {-# INLINE fill #-}
   fill = helper 1 . write
 
-instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8) m where
+instance (Writable a (Word8, Word8, Word8) m) => Storage a (Word8, Word8, Word8) m where
   {-# INLINE fill #-}
   fill = helper 3 . write
 
-instance (Writable a Word8 m) => Storage a (Word8, Word8, Word8, Word8) m where
+instance (Writable a (Word8, Word8, Word8, Word8) m) => Storage a (Word8, Word8, Word8, Word8) m where
   {-# INLINE fill #-}
   fill = helper 4 . write
 
