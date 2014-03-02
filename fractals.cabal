@@ -20,7 +20,7 @@ library
     Fractals.Image,
     Fractals.Render,
     Fractals.Utility
-  build-depends: base, mtl, bytestring >= 0.10.2.0, zlib, array, ghc-prim
+  build-depends: base, mtl, bytestring >= 0.10.4.0, zlib, array, ghc-prim
 
 executable fractals-ascii
   main-is: src/ASCII.hs

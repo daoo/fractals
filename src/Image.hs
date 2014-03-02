@@ -3,7 +3,6 @@ module Main where
 -- TODO: Find replacement to DevIL
 -- http://www.haskell.org/haskellwiki/Library/PNG
 import Codec.Image.DevIL
-import Data.Array.IO (IOUArray)
 import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Args
@@ -16,6 +15,6 @@ main :: IO ()
 main = do
   ilInit
   (Fractal def iter maxabs area, [path]) <- parseFractal `fmap` getArgs
-  arr <- newRgbaArray (areaScreen area) :: IO (IOUArray (Int, Int, Int) Word8)
-  measureTime $ fill arr (toRgba `xy` greyscale) def iter maxabs area
+  arr <- newRgbaArray (areaScreen area)
+  measureTime $ fillRgbaArray arr (toRgba ... greyscale) def iter maxabs area
   unsafeFreeze arr >>= writeImage path

@@ -15,8 +15,8 @@ clamp (a, b) x | x < a     = a
                | x > b     = b
                | otherwise = x
 
-xy :: (a -> b) -> (t1 -> t2 -> a) -> t1 -> t2 -> b
-xy f g a b = f (g a b)
+(...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+(...) f g a b = f (g a b)
 
 {-# INLINE square #-}
 -- |Square a number
