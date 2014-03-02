@@ -52,12 +52,7 @@ fillRgbaArray arr = helper 4 (writeRgbaArray arr)
 helper :: (Monad m, Color c)
   => Int
   -> (Int -> c -> m ())
-  -> (Int -> Int -> c)
-  -> Definition
-  -> Int
-  -> R
-  -> Area
-  -> m ()
+  -> Filler c m
 helper n f color fractal iter maxabs area = monadic
   n
   (areaScreen area)
