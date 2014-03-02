@@ -28,6 +28,7 @@ newRgbaArray (Vec w h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 
 type Filler c m = (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
 
+{-# INLINE writeGreyscalePtr #-}
 writeGreyscalePtr :: Ptr Word8 -> Int -> Greyscale -> IO ()
 writeGreyscalePtr ptr n = poke (plusPtr ptr n)
 
