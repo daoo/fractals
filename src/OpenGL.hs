@@ -16,7 +16,7 @@ import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Geometry
-import Fractals.Image
+import Fractals.Storage
 import Fractals.Utility
 import qualified Data.ByteString as BS
 import qualified Graphics.Rendering.OpenGL as GL
@@ -41,7 +41,7 @@ data Image = Image
 
 newImage :: IO Image
 newImage = do
-  ptr <- newGreyscalePtr defsize
+  ptr <- newBytePtr defsize
   return $ Image ptr iter area
   where
     defsize = Vec 800 600
@@ -58,7 +58,7 @@ freeImage = free . imagePtr
 resizeImage :: Image -> Size -> IO Image
 resizeImage (Image ptr iter area) size = do
   free ptr
-  ptr' <- newGreyscalePtr size
+  ptr' <- newBytePtr size
   return $ Image ptr' iter (resizeScreen size area)
 
 {-# INLINE setArea #-}
@@ -72,7 +72,7 @@ modifyIterations f img = img { imageIter = clampLow 1 $ f (imageIter img) }
 -- |Render the fractal and print the time it took
 updateImage :: Image -> IO ()
 updateImage (Image ptr iter area) = measureTime $
-  fillGreyscalePtr ptr greyscale mandelbrot2 iter maxabs area
+  fillBytePtr ptr greyscale mandelbrot2 iter maxabs area
   where
     maxabs = 4
 -- }}}

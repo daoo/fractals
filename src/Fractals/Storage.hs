@@ -1,7 +1,9 @@
-module Fractals.Image
-  ( newGreyscalePtr
+module Fractals.Storage
+  ( newBytePtr
+  , newByteArray
   , newRgbaArray
-  , fillGreyscalePtr
+  , fillByteArray
+  , fillBytePtr
   , fillRgbaArray
   ) where
 
@@ -18,9 +20,13 @@ import Fractals.Definitions
 import Fractals.Geometry
 import Fractals.Render
 
-{-# INLINE newGreyscalePtr #-}
-newGreyscalePtr :: Size -> IO (Ptr Word8)
-newGreyscalePtr (Vec w h) = mallocArray $ w * h
+{-# INLINE newBytePtr #-}
+newBytePtr :: Size -> IO (Ptr Word8)
+newBytePtr (Vec w h) = mallocArray $ w * h
+
+{-# INLINE newByteArray #-}
+newByteArray :: Size -> IO (IOUArray (Int, Int) Word8)
+newByteArray (Vec w h) = newArray_ ((0, 0), (h-1, w-1))
 
 {-# INLINE newRgbaArray #-}
 newRgbaArray :: Size -> IO (IOUArray (Int, Int, Int) Word8)
@@ -28,9 +34,9 @@ newRgbaArray (Vec w h) = newArray_ ((0,0,0), (h-1,w-1, 3))
 
 type Filler c m = (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
 
-{-# INLINE writeGreyscalePtr #-}
-writeGreyscalePtr :: Ptr Word8 -> Int -> Greyscale -> IO ()
-writeGreyscalePtr ptr n = poke (plusPtr ptr n)
+{-# INLINE writeBytePtr #-}
+writeBytePtr :: Ptr Word8 -> Int -> Word8 -> IO ()
+writeBytePtr ptr n = poke (plusPtr ptr n)
 
 {-# INLINE writeRgbaArray #-}
 writeRgbaArray :: IOUArray (Int, Int, Int) Word8 -> Int -> RGBA -> IO ()
@@ -40,9 +46,13 @@ writeRgbaArray arr n (r, g, b, a) = do
   unsafeWrite arr (n+2) b
   unsafeWrite arr (n+3) a
 
-{-# INLINE fillGreyscalePtr #-}
-fillGreyscalePtr :: Ptr Word8 -> Filler Greyscale IO
-fillGreyscalePtr ptr = helper 1 (writeGreyscalePtr ptr)
+{-# INLINE fillByteArray #-}
+fillByteArray :: IOUArray (Int, Int) Word8 -> Filler Word8 IO
+fillByteArray arr = helper 1 (unsafeWrite arr)
+
+{-# INLINE fillBytePtr #-}
+fillBytePtr :: Ptr Word8 -> Filler Word8 IO
+fillBytePtr ptr = helper 1 (writeBytePtr ptr)
 
 {-# INLINE fillRgbaArray #-}
 fillRgbaArray :: IOUArray (Int, Int, Int) Word8 -> Filler RGBA IO
@@ -53,7 +63,7 @@ helper :: (Monad m, Color c)
   => Int
   -> (Int -> c -> m ())
   -> Filler c m
-helper n f color fractal iter maxabs area = monadic
+helper n f color fractal iter maxabs area = loop
   n
   (areaScreen area)
   (areaTopLeft area)

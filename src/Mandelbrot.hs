@@ -7,7 +7,7 @@ import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Geometry
-import Fractals.Image
+import Fractals.Storage
 import Fractals.Utility
 
 main :: IO ()

@@ -1,8 +1,7 @@
 {-# LANGUAGE BangPatterns, FlexibleContexts #-}
 module Fractals.Render
-  ( lists
-  , string
-  , monadic
+  ( string
+  , loop
   ) where
 
 import Fractals.Area
@@ -10,24 +9,6 @@ import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Geometry
-
-{-# INLINE lists #-}
-lists :: Definition -> Int -> R -> Area -> [[Int]]
-lists fractal iter maxabs area = buildLists
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\x y -> fractal (x:+y) maxabs iter)
-
-{-# INLINE buildLists #-}
-buildLists :: Size -> Comp -> Comp -> (R -> R -> Int) -> [[Int]]
-buildLists (Vec w h) (x1:+y1) (dx:+dy) f = goy 0 y1
-  where
-    goy !i !y | i < h     = gox 0 x1 : goy (i+1) (y+dy)
-              | otherwise = []
-      where
-        gox !j !x | j < w     = f x y : gox (j+1) (x+dx)
-                  | otherwise = []
 
 {-# INLINE string #-}
 string :: Definition -> Int -> R -> Area -> String
@@ -46,15 +27,15 @@ buildString (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
       | j == h    = []
       | otherwise = f x y : go (i+1) j (x+dx) y
 
-{-# INLINE monadic #-}
-monadic :: Monad m
+{-# INLINE loop #-}
+loop :: Monad m
   => Int
   -> Size
   -> Comp
   -> Comp
   -> (Int -> R -> R -> m ())
   -> m ()
-monadic d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
+loop d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
     n = d * w * h
 

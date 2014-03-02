@@ -17,8 +17,8 @@ library
     Fractals.Complex,
     Fractals.Definitions,
     Fractals.Geometry,
-    Fractals.Image,
     Fractals.Render,
+    Fractals.Storage,
     Fractals.Utility
   build-depends: base, mtl, bytestring >= 0.10.4.0, zlib, array, ghc-prim
 

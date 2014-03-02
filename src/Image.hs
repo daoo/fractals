@@ -7,7 +7,7 @@ import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
-import Fractals.Image
+import Fractals.Storage
 import Fractals.Utility
 import System.Environment
 
