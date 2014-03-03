@@ -1,63 +1,58 @@
 module Fractals.Args
-  ( Fractal(..)
+  ( Fractal(fracDef, fracIter, fracAbs, fracArea)
   , parseFractal
+  , usage
   ) where
 
--- TODO: More graceful handling of incorrect arguments
-
 import Control.Applicative
-import Control.Monad.State
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Geometry
+import Text.Read
 
 data Fractal = Fractal
-  { fractalDefinition :: Definition
-  , fractalIter :: Int
-  , fractalMaxAbs :: R
-  , fractalArea :: Area
+  { fracDef :: Definition
+  , fracIter :: Int
+  , fracAbs :: R
+  , fracArea :: Area
   }
 
-{-# INLINE pop #-}
-pop :: State [String] String
-pop = fmap head get >>= \s -> modify tail >> return s
+{-# INLINE readMaybeVec #-}
+readMaybeVec :: String -> String -> Maybe Vec
+readMaybeVec x y = Vec <$> readMaybe x <*> readMaybe y
 
-{-# INLINE popPoint #-}
-popPoint :: Read a => State [String] (a, a)
-popPoint = do
-  x <- pop
-  y <- pop
-  return (read x, read y)
+{-# INLINE readMaybeComp #-}
+readMaybeComp :: String -> String -> Maybe Comp
+readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
-{-# INLINE popComp #-}
-popComp :: State [String] Comp
-popComp = uncurry (:+) `fmap` popPoint
+{-# INLINE readMaybeArea #-}
+readMaybeArea :: String -> String -> String -> String -> String -> String -> Maybe Area
+readMaybeArea w h pw ph x0 y0 =
+  fromRectangle <$> readMaybeVec w h <*> readMaybeComp pw ph <*> readMaybeComp x0 y0
 
-{-# INLINE parseArea #-}
-parseArea :: State [String] Area
-parseArea = fromRectangle <$> (uncurry Vec <$> popPoint) <*> popComp <*> popComp
+parseFractal :: [String] -> Maybe Fractal
+parseFractal ["mandelbrot", "2", i, w, h, pw, ph, x0, y0] =
+  Fractal mandelbrot2 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
 
-{-# INLINE parseMandelbrot #-}
-parseMandelbrot :: State [String] Definition
-parseMandelbrot = mandelbrot . read <$> pop
+parseFractal ["mandelbrot", "3", i, w, h, pw, ph, x0, y0] =
+  Fractal mandelbrot3 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
 
-{-# INLINE parseJulia #-}
-parseJulia :: State [String] Definition
-parseJulia = julia <$> popComp
+parseFractal ["mandelbrot", power, i, w, h, pw, ph, x0, y0] =
+  Fractal <$> (mandelbrot <$> readMaybe power) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
 
-{-# INLINE parseFractal #-}
-parseFractal :: [String] -> (Fractal, [String])
-parseFractal = parseFractal1 (pop >>= f)
-  where
-    f "mandelbrot"  = parseMandelbrot
-    f "mandelbrot2" = return mandelbrot2
-    f "mandelbrot3" = return mandelbrot3
-    f "burningship" = return burningShip
-    f "julia"       = parseJulia
-    f _             = return mandelbrot2
+parseFractal ["burningship", i, w, h, pw, ph, x0, y0] =
+  Fractal burningShip <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
 
-{-# INLINE parseFractal1 #-}
-parseFractal1 :: State [String] Definition -> [String] -> (Fractal, [String])
-parseFractal1 frac args = (`runState` args) $ Fractal
-  <$> frac <*> (read <$> pop) <*> pure 4 <*> parseArea
+parseFractal ["julia", x, y, i, w, h, pw, ph, x0, y0] =
+  Fractal <$> (julia <$> readMaybeComp x y) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+
+parseFractal _ = Nothing
+
+usage :: String
+usage = "FRACTAL [FRACTAL ARGS] MAXITER WIDTH HEIGHT PLANEWIDTH PLANEHEIGHT TOPLEFTX TOPLEFTY\
+        \ \
+        \Availible fractals are:\
+        \  mandelbrot POWER\
+        \  burningship\
+        \  julia X Y"
