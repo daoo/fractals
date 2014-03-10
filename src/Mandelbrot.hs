@@ -1,7 +1,6 @@
 module Main where
 
 import Codec.Image.DevIL
-import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
@@ -13,8 +12,11 @@ import Fractals.Utility
 main :: IO ()
 main = do
   ilInit
-  arr <- newRgbaArray (areaScreen area)
-  measureTime $ fillRgbaArray arr (toRgba ... greyscale) mandelbrot2 200 4 area
-  unsafeFreeze arr >>= writeImage "dist/mandelbrot.png"
+  ptr <- newRgbaPtr (areaScreen area)
+  measureTime $ fillRgbaPtr ptr (toRgba ... greyscale) mandelbrot2 200 4 area
+  writeImageFromPtr "dist/mandelbrot.png" (w, h) ptr
   where
-    area = fromAspectCentered (Vec 1920 1080) 4.3 (0:+0)
+    w = 1920
+    h = 1080
+
+    area = fromAspectCentered (Vec w h) 4.3 (0:+0)

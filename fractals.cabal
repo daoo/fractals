@@ -20,37 +20,30 @@ library
     Fractals.Render,
     Fractals.Storage,
     Fractals.Utility
-  build-depends: base, mtl, bytestring >= 0.10.4.0, array, ghc-prim
+  build-depends: base
 
 executable fractals-ascii
   main-is: src/ASCII.hs
-  build-depends: fractals, base, mtl
+  build-depends: fractals, base
 
 executable fractals-image
   main-is: src/Image.hs
-  build-depends: fractals, base, mtl, array, Codec-Image-DevIL
+  build-depends: fractals, base, Codec-Image-DevIL
 
 executable fractals-mandelbrot
   main-is: src/Mandelbrot.hs
-  build-depends: fractals, base, mtl, array, Codec-Image-DevIL
+  build-depends: fractals, base, Codec-Image-DevIL
 
 executable fractals-image-rational
   main-is: src/Image.hs
-  build-depends: fractals, base, mtl, array, Codec-Image-DevIL
+  build-depends: fractals, base, Codec-Image-DevIL
   cpp-options: -DRATIONAL
 
 executable fractals-opengl
   main-is: src/OpenGL.hs
-  build-depends: fractals, base, mtl, array, bytestring, Codec-Image-DevIL, OpenGL, GLFW-b, stm
+  build-depends: fractals, base, mtl, bytestring, array, OpenGL, GLFW-b, stm
 
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: src/Benchmark.hs
   build-depends: fractals, base, mtl, criterion, array
-
-test-suite tests
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-  main-is: Main.hs
-  build-depends: fractals, base, smallcheck, QuickCheck, test-framework,
-    test-framework-smallcheck, test-framework-quickcheck2

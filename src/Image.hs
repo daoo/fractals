@@ -3,10 +3,10 @@ module Main (main) where
 -- TODO: Find replacement to DevIL
 -- http://www.haskell.org/haskellwiki/Library/PNG
 import Codec.Image.DevIL
-import Data.Array.Unsafe
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
+import Fractals.Geometry
 import Fractals.Storage
 import Fractals.Utility
 import System.Environment
@@ -23,7 +23,10 @@ main = do
 
 prog :: FilePath -> Fractal -> IO ()
 prog path f = do
-  arr <- newRgbaArray (areaScreen $ fracArea f)
-  measureTime $ fillRgbaArray arr (toRgba ... greyscale)
+  ptr <- newRgbaPtr size
+  measureTime $ fillRgbaPtr ptr (toRgba ... greyscale)
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
-  unsafeFreeze arr >>= writeImage path
+  writeImageFromPtr path (w, h) ptr
+
+  where
+    size@(Vec w h) = areaScreen $ fracArea f
