@@ -26,7 +26,7 @@ prog path f = do
   ptr <- newRgbaPtr size
   measureTime $ fillRgbaPtr ptr (toRgba ... greyscale)
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
-  writeImageFromPtr path (w, h) ptr
+  writeImageFromPtr path (h, w) ptr
 
   where
     size@(Vec w h) = areaScreen $ fracArea f

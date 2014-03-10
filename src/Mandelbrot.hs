@@ -14,7 +14,7 @@ main = do
   ilInit
   ptr <- newRgbaPtr (areaScreen area)
   measureTime $ fillRgbaPtr ptr (toRgba ... greyscale) mandelbrot2 200 4 area
-  writeImageFromPtr "dist/mandelbrot.png" (w, h) ptr
+  writeImageFromPtr "dist/mandelbrot.png" (h, w) ptr
   where
     w = 1920
     h = 1080
