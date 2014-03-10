@@ -36,7 +36,7 @@ type Filler c m = (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
 
 {-# INLINE writeBytePtr #-}
 writeBytePtr :: Ptr Word8 -> Int -> Word8 -> IO ()
-writeBytePtr ptr n = poke (plusPtr ptr n)
+writeBytePtr = pokeByteOff
 
 {-# INLINE writeRgbaArray #-}
 writeRgbaArray :: IOUArray (Int, Int, Int) Word8 -> Int -> RGBA -> IO ()
