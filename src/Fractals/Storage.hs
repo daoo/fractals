@@ -40,7 +40,7 @@ writeBytePtr ptr n = poke (plusPtr ptr n)
 
 {-# INLINE writeRgbaArray #-}
 writeRgbaArray :: IOUArray (Int, Int, Int) Word8 -> Int -> RGBA -> IO ()
-writeRgbaArray arr n (r, g, b, a) = do
+writeRgbaArray arr n (RGBA r g b a) = do
   unsafeWrite arr n r
   unsafeWrite arr (n+1) g
   unsafeWrite arr (n+2) b
@@ -59,10 +59,10 @@ fillRgbaArray :: IOUArray (Int, Int, Int) Word8 -> Filler RGBA IO
 fillRgbaArray arr = helper 4 (writeRgbaArray arr)
 
 {-# INLINE helper #-}
-helper :: (Monad m, Color c)
+helper :: Monad m
   => Int
-  -> (Int -> c -> m ())
-  -> Filler c m
+  -> (Int -> a -> m ())
+  -> Filler a m
 helper n f color fractal iter maxabs area = loop
   n
   (areaScreen area)
