@@ -1,3 +1,4 @@
+-- |Provide parsing of command line arguments.
 module Fractals.Args
   ( Fractal(fracDef, fracIter, fracAbs, fracArea)
   , parseFractal

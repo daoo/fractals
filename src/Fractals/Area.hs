@@ -1,3 +1,5 @@
+-- |This module provides a definition of a rendering area. That is the relation
+-- between screen space and fractal space.
 module Fractals.Area
   ( Area(..)
   , getAreaCenter
