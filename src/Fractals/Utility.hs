@@ -18,7 +18,6 @@ clamp (a, b) x | x < a     = a
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) f g a b = f (g a b)
 
-{-# INLINE square #-}
 -- |Square a number
 square :: Num a => a -> a
 square x = x * x
