@@ -32,30 +32,30 @@ readMaybeComp :: String -> String -> Maybe Comp
 readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
 {-# INLINE readMaybeArea #-}
-readMaybeArea :: String -> String -> String -> String -> String -> String -> Maybe Area
-readMaybeArea w h pw ph x0 y0 =
-  fromRectangle <$> readMaybeVec w h <*> readMaybeComp pw ph <*> readMaybeComp x0 y0
+readMaybeArea :: String -> String -> String -> String -> String -> Maybe Area
+readMaybeArea w h pw x0 y0 =
+  fromAspectCentered <$> readMaybeVec w h <*> readMaybe pw <*> readMaybeComp x0 y0
 
 parseFractal :: [String] -> Maybe Fractal
-parseFractal ["mandelbrot", "2", i, w, h, pw, ph, x0, y0] =
-  Fractal mandelbrot2 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+parseFractal ["mandelbrot", "2", i, w, h, pw, x0, y0] =
+  Fractal mandelbrot2 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw x0 y0
 
-parseFractal ["mandelbrot", "3", i, w, h, pw, ph, x0, y0] =
-  Fractal mandelbrot3 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+parseFractal ["mandelbrot", "3", i, w, h, pw, x0, y0] =
+  Fractal mandelbrot3 <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw x0 y0
 
-parseFractal ["mandelbrot", power, i, w, h, pw, ph, x0, y0] =
-  Fractal <$> (mandelbrot <$> readMaybe power) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+parseFractal ["mandelbrot", power, i, w, h, pw, x0, y0] =
+  Fractal <$> (mandelbrot <$> readMaybe power) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw x0 y0
 
-parseFractal ["burningship", i, w, h, pw, ph, x0, y0] =
-  Fractal burningShip <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+parseFractal ["burningship", i, w, h, pw, x0, y0] =
+  Fractal burningShip <$> readMaybe i <*> pure 4 <*> readMaybeArea w h pw x0 y0
 
-parseFractal ["julia", x, y, i, w, h, pw, ph, x0, y0] =
-  Fractal <$> (julia <$> readMaybeComp x y) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw ph x0 y0
+parseFractal ["julia", x, y, i, w, h, pw, x0, y0] =
+  Fractal <$> (julia <$> readMaybeComp x y) <*> readMaybe i <*> pure 4 <*> readMaybeArea w h pw x0 y0
 
 parseFractal _ = Nothing
 
 usage :: String
-usage = "FRACTAL [FRACTAL ARGS] MAXITER WIDTH HEIGHT PLANEWIDTH PLANEHEIGHT TOPLEFTX TOPLEFTY\n\
+usage = "FRACTAL [FRACTAL ARGS] MAXITER WIDTH HEIGHT PLANEWIDTH CENTERX CENTERY\n\
         \\n\
         \Availible fractals are:\n\
         \  mandelbrot POWER\n\
