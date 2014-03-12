@@ -3,6 +3,7 @@ module Fractals.Geometry
   , Size
   , Point
   , Rectangle(..)
+  , sizeArea
   , fixAspect
   ) where
 
@@ -24,8 +25,9 @@ data Rectangle = Rectangle
   , rectB :: !Point
   } deriving Show
 
-area :: Size -> Int
-area (Vec w h) = abs $ w * h
+-- |Calculate the area of the size.
+sizeArea :: Size -> Int
+sizeArea (Vec w h) = abs $ w * h
 
 fromPoints :: Point -> Point -> Rectangle
 fromPoints (Vec x1 y1) (Vec x2 y2) = Rectangle
@@ -34,8 +36,8 @@ fromPoints (Vec x1 y1) (Vec x2 y2) = Rectangle
 
 findLargest :: Size -> Point -> Point -> Size
 findLargest (Vec w h) (Vec x1 y1) (Vec x2 y2)
-  | area byw < area byh = byh
-  | otherwise           = byw
+  | sizeArea byw < sizeArea byh = byh
+  | otherwise                   = byw
   where
     rw = x2 - x1
     rh = y2 - y1
