@@ -2,6 +2,7 @@ disable_all=--disable-library-profiling --disable-executable-profiling --disable
 
 check:
 	@cabal build --ghc-options="-Wall -c" fractals
+	@cabal build --ghc-options="-Wall -c" fractals-image
 
 all:
 	@cabal build --ghc-options="-Wall -O -rtsopts -fno-ignore-asserts"
