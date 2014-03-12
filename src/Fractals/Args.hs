@@ -51,9 +51,9 @@ parseFractal ["julia", x, y, i, w, h, pw, ph, x0, y0] =
 parseFractal _ = Nothing
 
 usage :: String
-usage = "FRACTAL [FRACTAL ARGS] MAXITER WIDTH HEIGHT PLANEWIDTH PLANEHEIGHT TOPLEFTX TOPLEFTY\
-        \ \
-        \Availible fractals are:\
-        \  mandelbrot POWER\
-        \  burningship\
+usage = "FRACTAL [FRACTAL ARGS] MAXITER WIDTH HEIGHT PLANEWIDTH PLANEHEIGHT TOPLEFTX TOPLEFTY\n\
+        \\n\
+        \Availible fractals are:\n\
+        \  mandelbrot POWER\n\
+        \  burningship\n\
         \  julia X Y"
