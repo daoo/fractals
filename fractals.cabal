@@ -34,6 +34,11 @@ executable fractals-mandelbrot
   main-is: src/Mandelbrot.hs
   build-depends: fractals, base, Codec-Image-DevIL
 
+executable fractals-mandelbrot-rational
+  main-is: src/Mandelbrot.hs
+  build-depends: fractals, base, Codec-Image-DevIL
+  cpp-options: -DRATIONAL
+
 executable fractals-image-rational
   main-is: src/Image.hs
   build-depends: fractals, base, Codec-Image-DevIL
