@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 module Fractals.Definitions
-  ( Definition
+  ( Iterations
+  , Definition
   , mandelbrot
   , mandelbrot2
   , mandelbrot3
@@ -11,7 +12,9 @@ module Fractals.Definitions
 import Fractals.Complex
 import Fractals.Utility
 
-type Definition = Comp -> R -> Int -> Int
+type Iterations = Int
+
+type Definition = Comp -> R -> Int -> Iterations
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
@@ -35,7 +38,7 @@ julia !c !p = countIterations p (\z -> z * z + c)
 
 {-# INLINE countIterations #-}
 -- |Count the number of iterations in a point
-countIterations :: Comp -> (Comp -> Comp) -> R -> Int -> Int
+countIterations :: Comp -> (Comp -> Comp) -> R -> Int -> Iterations
 countIterations !z0 znext !maxAbs !maxIter = go 0 z0
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs

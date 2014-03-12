@@ -24,7 +24,7 @@ main = do
 prog :: FilePath -> Fractal -> IO ()
 prog path f = do
   ptr <- newRgbaPtr size
-  measureTime $ fillRgbaPtr ptr (toRgba ... greyscale)
+  measureTime $ fillRgbaPtr ptr (greyscaleToRGBA ... greyscale)
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   writeImageFromPtr path (h, w) ptr
 

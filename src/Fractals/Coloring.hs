@@ -3,12 +3,13 @@ module Fractals.Coloring
   ( Greyscale(..)
   , RGB(..)
   , RGBA(..)
-  , Color(..)
+  , greyscaleToRGBA
   , ascii
   , greyscale
   ) where
 
 import Data.Word
+import Fractals.Definitions (Iterations)
 import Fractals.Utility
 
 newtype Greyscale = Greyscale { grey :: Word8 }
@@ -26,30 +27,14 @@ data RGBA = RGBA
   , rgbaA :: {-# UNPACK #-} !Word8
   }
 
-class Color c where
-  toRgb  :: c -> RGB
-  toRgba :: c -> RGBA
-
-instance Color Greyscale where
-  {-# INLINE toRgb #-}
-  {-# INLINE toRgba #-}
-  toRgb (Greyscale c)  = RGB c c c
-  toRgba (Greyscale c) = RGBA c c c 255
-
-instance Color RGB where
-  {-# INLINE toRgb #-}
-  {-# INLINE toRgba #-}
-  toRgb              = id
-  toRgba (RGB r g b) = RGBA r g b 255
-
-instance Color RGBA where
-  {-# INLINE toRgb #-}
-  {-# INLINE toRgba #-}
-  toRgb (RGBA r g b _) = RGB r g b
-  toRgba               = id
+greyscaleToRGBA :: Greyscale -> RGBA
+greyscaleToRGBA (Greyscale c) = RGBA c c c 255
 
 {-# INLINE ascii #-}
-ascii :: Int -> Int -> Char
+-- |Find a ASCII character representation of a number of iterations.
+ascii :: Iterations -- ^Maximum number of iterations
+      -> Iterations -- ^Number of iterations for some pixel 
+      -> Char
 ascii m i = case scale m 10 i of
   0  -> ' '
   1  -> '-'
@@ -65,5 +50,8 @@ ascii m i = case scale m 10 i of
   _  -> undefined
 
 {-# INLINE greyscale #-}
-greyscale :: Int -> Int -> Greyscale
+-- |Find a single channel 8-bit color representation of a number of iterations.
+greyscale :: Iterations -- ^Maximum number of iterations
+          -> Iterations -- ^Number of iterations for som pixel
+          -> Greyscale
 greyscale m i = Greyscale $ fromIntegral $ scale m 255 i
