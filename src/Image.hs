@@ -17,9 +17,12 @@ main = do
   args <- getArgs
   case args of
     (path:xs) -> case parseFractal xs of
-      Nothing -> putStrLn usage
+      Nothing -> printHelp
       Just f  -> prog path f
-    _ -> putStrLn $ "fractals-image PATH " ++ usage
+    _ -> printHelp
+
+printHelp :: IO ()
+printHelp = putStrLn $ "fractals-image PATH " ++ usage
 
 prog :: FilePath -> Fractal -> IO ()
 prog path f = do
