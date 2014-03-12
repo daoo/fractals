@@ -54,3 +54,12 @@ executable fractals-opengl
   main-is: src/OpenGL.hs
   build-depends: fractals, base, mtl, bytestring, array, OpenGL, GLFW-b, stm
   default-language: Haskell2010
+
+test-suite fractals-tests
+  type: exitcode-stdio-1.0
+  other-modules:
+    Properties
+  hs-source-dirs: tests
+  main-is: Main.hs
+  build-depends: base, fractals, QuickCheck, tasty, tasty-quickcheck
+  default-language: Haskell2010

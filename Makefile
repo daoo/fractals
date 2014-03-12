@@ -23,8 +23,8 @@ init:
 
 test:
 	@cabal configure --enable-tests
-	@cabal build --ghc-options="-Wall -O -fno-ignore-asserts"
-	./dist/build/tests/tests
+	@cabal build --ghc-options="-Wall -O -fno-ignore-asserts" fractals-tests
+	./dist/build/fractals-tests/fractals-tests
 
 clean:
 	@cabal clean --save-configure
