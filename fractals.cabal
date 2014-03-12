@@ -42,8 +42,3 @@ executable fractals-image-rational
 executable fractals-opengl
   main-is: src/OpenGL.hs
   build-depends: fractals, base, mtl, bytestring, array, OpenGL, GLFW-b, stm
-
-benchmark bench
-  type: exitcode-stdio-1.0
-  main-is: src/Benchmark.hs
-  build-depends: fractals, base, mtl, criterion, array
