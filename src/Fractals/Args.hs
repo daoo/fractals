@@ -1,6 +1,7 @@
 -- |Provide parsing of command line arguments.
 module Fractals.Args
   ( Fractal(fracDef, fracIter, fracAbs, fracArea)
+  , exMandelbrot
   , parseFractal
   , usage
   ) where
@@ -18,6 +19,9 @@ data Fractal = Fractal
   , fracAbs :: R
   , fracArea :: Area
   }
+
+exMandelbrot :: Fractal
+exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (Vec 1920 1080) 4.3 (0:+0))
 
 {-# INLINE readMaybeVec #-}
 readMaybeVec :: String -> String -> Maybe Vec

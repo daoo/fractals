@@ -2,9 +2,8 @@ module Main where
 
 import Codec.Image.DevIL
 import Fractals.Area
+import Fractals.Args
 import Fractals.Coloring
-import Fractals.Complex
-import Fractals.Definitions
 import Fractals.Geometry
 import Fractals.Storage
 import Fractals.Utility
@@ -12,11 +11,14 @@ import Fractals.Utility
 main :: IO ()
 main = do
   ilInit
-  ptr <- newRgbaPtr (areaScreen area)
-  measureTime $ fillRgbaPtr ptr (greyscaleToRGBA ... greyscale) mandelbrot2 200 4 area
-  writeImageFromPtr "dist/mandelbrot.png" (h, w) ptr
-  where
-    w = 1920
-    h = 1080
+  prog "dist/mandelbrot.png" exMandelbrot
 
-    area = fromAspectCentered (Vec w h) 4.3 (0:+0)
+prog :: FilePath -> Fractal -> IO ()
+prog path f = do
+  ptr <- newRgbaPtr size
+  measureTime $ fillRgbaPtr ptr (greyscaleToRGBA ... greyscale)
+    (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
+  writeImageFromPtr path (h, w) ptr
+
+  where
+    size@(Vec w h) = areaScreen $ fracArea f
