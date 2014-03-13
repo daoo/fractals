@@ -17,7 +17,7 @@ loop :: Monad m
   -> Size
   -> Comp
   -> Comp
-  -> (Int -> R -> R -> m ())
+  -> (Int -> Comp -> m ())
   -> m ()
 loop d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
@@ -26,4 +26,4 @@ loop d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
     go !i !j !x !y
       | i == w    = go 0 j x1 (y+dy)
       | j == n    = return ()
-      | otherwise = f j x y >> go (i+1) (j+d) (x+dx) y
+      | otherwise = f j (x:+y) >> go (i+1) (j+d) (x+dx) y

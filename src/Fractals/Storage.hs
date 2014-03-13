@@ -56,4 +56,4 @@ helper n f color fractal iter maxabs area = loop
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\i x y -> f i $ color iter $ fractal (x:+y) maxabs iter)
+  (\i c -> f i $ color iter $ fractal c maxabs iter)
