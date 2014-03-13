@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+-- |Helper functions for rendering fractals.
 module Fractals.Render
   ( loop
   ) where
@@ -7,6 +8,10 @@ import Fractals.Complex
 import Fractals.Geometry
 
 {-# INLINE loop #-}
+-- |Render a square image using a monadic write function.
+--
+-- The write function takes an offset into the storage space and a complex
+-- number.
 loop :: Monad m
   => Int
   -> Size
