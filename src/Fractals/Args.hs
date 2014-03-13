@@ -23,15 +23,12 @@ data Fractal = Fractal
 exMandelbrot :: Fractal
 exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (Vec 1920 1080) 4.3 (0:+0))
 
-{-# INLINE readMaybeVec #-}
 readMaybeVec :: String -> String -> Maybe Vec
 readMaybeVec x y = Vec <$> readMaybe x <*> readMaybe y
 
-{-# INLINE readMaybeComp #-}
 readMaybeComp :: String -> String -> Maybe Comp
 readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
-{-# INLINE readMaybeArea #-}
 readMaybeArea :: String -> String -> String -> String -> String -> Maybe Area
 readMaybeArea w h pw x0 y0 =
   fromAspectCentered <$> readMaybeVec w h <*> readMaybe pw <*> readMaybeComp x0 y0
