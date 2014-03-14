@@ -20,8 +20,8 @@ main = do
 
 prog :: Fractal -> IO ()
 prog f = do
-  ptr <- newBytePtr size
-  fillBytePtr ptr (toWord ... ascii)
+  ptr <- newPixel8Ptr size
+  fillPixel8Ptr ptr (toWord ... ascii)
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   hPutBuf stdout ptr (sizeArea size)
   where

@@ -20,7 +20,7 @@ library
     Fractals.Render,
     Fractals.Storage,
     Fractals.Utility
-  build-depends: base
+  build-depends: base, vector, JuicyPixels
   default-language: Haskell2010
 
 executable fractals-ascii
@@ -30,23 +30,23 @@ executable fractals-ascii
 
 executable fractals-image
   main-is: src/Image.hs
-  build-depends: fractals, base, Codec-Image-DevIL
+  build-depends: fractals, base, vector, JuicyPixels
   default-language: Haskell2010
 
 executable fractals-mandelbrot
   main-is: src/Mandelbrot.hs
-  build-depends: fractals, base, Codec-Image-DevIL
+  build-depends: fractals, base, vector, JuicyPixels
   default-language: Haskell2010
 
 executable fractals-mandelbrot-rational
   main-is: src/Mandelbrot.hs
-  build-depends: fractals, base, Codec-Image-DevIL
+  build-depends: fractals, base, vector, JuicyPixels
   cpp-options: -DRATIONAL
   default-language: Haskell2010
 
 executable fractals-image-rational
   main-is: src/Image.hs
-  build-depends: fractals, base, Codec-Image-DevIL
+  build-depends: fractals, base, vector, JuicyPixels
   cpp-options: -DRATIONAL
   default-language: Haskell2010
 

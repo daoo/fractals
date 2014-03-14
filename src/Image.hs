@@ -1,8 +1,8 @@
 module Main (main) where
 
--- TODO: Find replacement to DevIL
--- http://www.haskell.org/haskellwiki/Library/PNG
-import Codec.Image.DevIL
+import Codec.Picture.Png
+import Codec.Picture.Types
+import Data.Vector.Unboxed (convert, unsafeFreeze)
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
@@ -13,7 +13,6 @@ import System.Environment
 
 main :: IO ()
 main = do
-  ilInit
   args <- getArgs
   case args of
     (path:xs) -> case parseFractal xs of
@@ -26,10 +25,11 @@ printHelp = putStrLn $ "fractals-image PATH " ++ usage
 
 prog :: FilePath -> Fractal -> IO ()
 prog path f = do
-  ptr <- newRgbaPtr size
-  measureTime $ fillRgbaPtr ptr (greyscaleToRGBA ... greyscale)
+  v <- newPixel8Vector size
+  measureTime $ fillPixel8Vector v greyscale
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
-  writeImageFromPtr path (h, w) ptr
+  v' <- unsafeFreeze v
+  writePng path (Image w h (convert v') :: Image Pixel8)
 
   where
     size@(Vec w h) = areaScreen $ fracArea f
