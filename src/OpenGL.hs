@@ -41,7 +41,7 @@ data Image = Image
 
 newImage :: IO Image
 newImage = do
-  ptr <- newPixel8Ptr defsize
+  ptr <- newPtr8 defsize
   return $ Image ptr iter area
   where
     defsize = Vec 800 600
@@ -58,7 +58,7 @@ freeImage = free . imagePtr
 resizeImage :: Image -> Size -> IO Image
 resizeImage (Image ptr iter area) size = do
   free ptr
-  ptr' <- newPixel8Ptr size
+  ptr' <- newPtr8 size
   return $ Image ptr' iter (resizeScreen size area)
 
 {-# INLINE setArea #-}
@@ -72,7 +72,7 @@ modifyIterations f img = img { imageIter = clampLow 1 $ f (imageIter img) }
 -- |Render the fractal and print the time it took
 updateImage :: Image -> IO ()
 updateImage (Image ptr iter area) = measureTime $
-  fillPixel8Ptr ptr greyscale mandelbrot2 iter maxabs area
+  fillStorage ptr greyscale mandelbrot2 iter maxabs area
   where
     maxabs = 4
 -- }}}

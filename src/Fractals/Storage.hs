@@ -1,14 +1,13 @@
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
 module Fractals.Storage
-  ( newPixel8Ptr
-  , newPixel8Vector
-  , newPixelRGBA8Ptr
-  , fillPixel8Ptr
-  , fillPixel8Vector
-  , fillPixelRGBA8Ptr
+  ( Storage(fillStorage)
+  , newPtr8
+  , newUVector8
+  , newSVector8
+  , newPtrRgba8
   ) where
 
 import Codec.Picture.Types
-import Data.Vector.Unboxed.Mutable
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
@@ -17,45 +16,55 @@ import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Geometry
 import Fractals.Render
+import qualified Data.Vector.Storable.Mutable as VS
+import qualified Data.Vector.Unboxed.Mutable as VU
 
-type Filler c m = (Int -> Int -> c) -> Definition -> Int -> R -> Area -> m ()
+type Filler pixel m = (Int -> Int -> pixel) -> Definition -> Int -> R -> Area -> m ()
 
-{-# INLINE newPixel8Ptr #-}
-newPixel8Ptr :: Size -> IO (Ptr Pixel8)
-newPixel8Ptr (Vec w h) = mallocArray $ w * h
+class Pixel a => Storage m s a where
+  fillStorage :: s (PixelBaseComponent a) -> Filler a m
 
-newPixel8Vector :: Size -> IO (IOVector (PixelBaseComponent Pixel8))
-newPixel8Vector (Vec w h) = unsafeNew $ w * h
+{-# INLINE newPtr8 #-}
+newPtr8 :: Size -> IO (Ptr (PixelBaseComponent Pixel8))
+newPtr8 (Vec w h) = mallocArray $ w * h
 
-{-# INLINE newPixelRGBA8Ptr #-}
-newPixelRGBA8Ptr :: Size -> IO (Ptr Pixel8)
-newPixelRGBA8Ptr (Vec w h) = mallocArray $ 4 * w * h
+{-# INLINE newUVector8 #-}
+newUVector8 :: Size -> IO (VU.IOVector (PixelBaseComponent Pixel8))
+newUVector8 (Vec w h) = VU.unsafeNew $ w * h
 
-{-# INLINE writePixelRGBA8Ptr #-}
-writePixelRGBA8Ptr :: Ptr Pixel8 -> Int -> PixelRGBA8 -> IO ()
-writePixelRGBA8Ptr arr n (PixelRGBA8 r g b a) = do
-  pokeByteOff arr n r
-  pokeByteOff arr (n+1) g
-  pokeByteOff arr (n+2) b
-  pokeByteOff arr (n+3) a
+{-# INLINE newSVector8 #-}
+newSVector8 :: Size -> IO (VS.IOVector (PixelBaseComponent Pixel8))
+newSVector8 (Vec w h) = VS.unsafeNew $ w * h
 
-{-# INLINE fillPixel8Ptr #-}
-fillPixel8Ptr :: Ptr Pixel8 -> Filler Pixel8 IO
-fillPixel8Ptr ptr = helper 1 (pokeByteOff ptr)
+{-# INLINE newPtrRgba8 #-}
+newPtrRgba8 :: Size -> IO (Ptr (PixelBaseComponent PixelRGBA8))
+newPtrRgba8 (Vec w h) = mallocArray $ 4 * w * h
 
-{-# INLINE fillPixel8Vector #-}
-fillPixel8Vector :: IOVector (PixelBaseComponent Pixel8) -> Filler (PixelBaseComponent Pixel8) IO
-fillPixel8Vector vec = helper 1 (unsafeWrite vec)
+instance Storage IO Ptr Pixel8 where
+  {-# INLINE fillStorage #-}
+  fillStorage p = helper 1 (pokeByteOff p)
 
-{-# INLINE fillPixelRGBA8Ptr #-}
-fillPixelRGBA8Ptr :: Ptr Pixel8 -> Filler PixelRGBA8 IO
-fillPixelRGBA8Ptr arr = helper 4 (writePixelRGBA8Ptr arr)
+instance Storage IO Ptr PixelRGBA8 where
+  {-# INLINE fillStorage #-}
+  fillStorage p = helper 4 $ \n (PixelRGBA8 r g b a) -> do
+    pokeByteOff p n r
+    pokeByteOff p (n+1) g
+    pokeByteOff p (n+2) b
+    pokeByteOff p (n+3) a
+
+instance Storage IO VU.IOVector Pixel8 where
+  {-# INLINE fillStorage #-}
+  fillStorage vec = helper 1 (VU.unsafeWrite vec)
+
+instance Storage IO VS.IOVector Pixel8 where
+  {-# INLINE fillStorage #-}
+  fillStorage vec = helper 1 (VS.unsafeWrite vec)
 
 {-# INLINE helper #-}
-helper :: Monad m
+helper :: (Pixel pixel, Monad m)
   => Int
-  -> (Int -> a -> m ())
-  -> Filler a m
+  -> (Int -> pixel -> m ())
+  -> Filler pixel m
 helper n f color fractal iter maxabs area = loop
   n
   (areaScreen area)
