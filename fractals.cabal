@@ -34,14 +34,15 @@ executable fractals-image
   default-language: Haskell2010
 
 executable fractals-mandelbrot
-  main-is: src/Mandelbrot.hs
+  main-is: src/Image.hs
   build-depends: fractals, base, vector, JuicyPixels
+  cpp-options: -DMANDELBROT
   default-language: Haskell2010
 
 executable fractals-mandelbrot-rational
-  main-is: src/Mandelbrot.hs
+  main-is: src/Image.hs
   build-depends: fractals, base, vector, JuicyPixels
-  cpp-options: -DRATIONAL
+  cpp-options: -DRATIONAL -DMANDELBROT
   default-language: Haskell2010
 
 executable fractals-image-rational

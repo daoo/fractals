@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Main (main) where
 
 import Codec.Picture.Png
@@ -9,22 +10,31 @@ import Fractals.Coloring
 import Fractals.Geometry
 import Fractals.Storage
 import Fractals.Utility
+#ifndef MANDELBROT
 import System.Environment
+#endif
 
 main :: IO ()
-main = do
+main = getFractal >>= prog
+
+getFractal :: IO (FilePath, Fractal)
+#ifdef MANDELBROT
+getFractal = return ("dist/mandelbrot.png", exMandelbrot)
+#else
+getFractal = do
   args <- getArgs
   case args of
     (path:xs) -> case parseFractal xs of
-      Nothing -> printHelp
-      Just f  -> prog path f
-    _ -> printHelp
+      Nothing -> error help
+      Just f  -> return (path, f)
+    _ -> error help
 
-printHelp :: IO ()
-printHelp = putStrLn $ "fractals-image PATH " ++ usage
+help :: String
+help = "fractals-image PATH " ++ usage
+#endif
 
-prog :: FilePath -> Fractal -> IO ()
-prog path f = do
+prog :: (FilePath, Fractal) -> IO ()
+prog (path, f) = do
   v <- newSVector8 size
   measureTime $ fillStorage v greyscale
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
