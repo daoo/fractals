@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, ScopedTypeVariables #-}
 module Fractals.Storage
-  ( Storage(fillStorage)
+  ( fillStorage
   , newPtr8
   , newUVector8
   , newSVector8
@@ -23,7 +23,7 @@ import qualified Data.Vector.Unboxed.Mutable as VU
 type Filler pixel m = (Int -> Int -> pixel) -> Definition -> Int -> R -> Area -> m ()
 
 class Pixel a => Storage m s a where
-  fillStorage :: s (PixelBaseComponent a) -> Filler a m
+  writeStorage :: s (PixelBaseComponent a) -> Int -> a -> m ()
 
 {-# INLINE newPtr8 #-}
 newPtr8 :: Size -> IO (Ptr (PixelBaseComponent Pixel8))
@@ -46,43 +46,48 @@ newPtrRgba8 :: Size -> IO (Ptr (PixelBaseComponent PixelRGBA8))
 newPtrRgba8 (Vec w h) = mallocArray $ 4 * w * h
 
 instance Storage IO Ptr Pixel8 where
-  {-# INLINE fillStorage #-}
-  fillStorage p = helper (pokeByteOff p)
+  {-# INLINE writeStorage #-}
+  writeStorage = pokeByteOff
 
 instance Storage IO Ptr PixelRGBA8 where
-  {-# INLINE fillStorage #-}
-  fillStorage p = helper $ \n (PixelRGBA8 r g b a) -> do
+  {-# INLINE writeStorage #-}
+  writeStorage p n (PixelRGBA8 r g b a) = do
     pokeByteOff p n r
     pokeByteOff p (n+1) g
     pokeByteOff p (n+2) b
     pokeByteOff p (n+3) a
 
 instance Storage IO VU.IOVector Pixel8 where
-  {-# INLINE fillStorage #-}
-  fillStorage vec = helper (VU.unsafeWrite vec)
+  {-# INLINE writeStorage #-}
+  writeStorage = VU.unsafeWrite
 
 instance Storage IO VS.IOVector Pixel8 where
-  {-# INLINE fillStorage #-}
-  fillStorage vec = helper (VS.unsafeWrite vec)
+  {-# INLINE writeStorage #-}
+  writeStorage = VS.unsafeWrite
 
 instance Storage IO VS.IOVector PixelRGB8 where
-  {-# INLINE fillStorage #-}
-  fillStorage vec = helper $ \n (PixelRGB8 r g b) -> do
+  {-# INLINE writeStorage #-}
+  writeStorage vec n (PixelRGB8 r g b) = do
     VS.unsafeWrite vec n r
     VS.unsafeWrite vec (n+1) g
     VS.unsafeWrite vec (n+2) b
 
+{-# INLINE fillStorage #-}
+fillStorage :: forall m s a. (Pixel a, Monad m, Storage m s a)
+            => s (PixelBaseComponent a)
+            -> Filler a m
+fillStorage s = helper n (writeStorage s)
+  where
+    n = (componentCount :: a -> Int) undefined
+
 {-# INLINE helper #-}
-helper :: forall pixel m. (Pixel pixel, Monad m)
-  => (Int -> pixel -> m ())
-  -> Filler pixel m
-helper f color fractal iter maxabs area = loop
+helper :: Monad m
+  => Int
+  -> (Int -> a -> m ())
+  -> Filler a m
+helper n f color fractal iter maxabs area = loop
   n
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
   (\i c -> f i $ color iter $ fractal c maxabs iter)
-
-  where
-
-    n = (componentCount :: pixel -> Int) undefined
