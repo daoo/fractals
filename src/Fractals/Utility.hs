@@ -32,6 +32,9 @@ scale :: Int -- ^ End of the first range [0, a], must be greater than zero
       -> Int -- ^ Number in range [0, b]
 scale a b i = (i * b) `quotInt` a
 
+lerp :: Integral a => a -> (a, a) -> a -> a
+lerp steps (a, b) x = (a*(steps-x) + b*x) `div` steps
+
 {-# INLINE measureTime #-}
 measureTime :: IO () -> IO ()
 measureTime !f = do
