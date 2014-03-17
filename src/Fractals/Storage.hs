@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, ScopedTypeVariables #-}
 module Fractals.Storage
   ( Storage(fillStorage)
   , newPtr8
@@ -47,11 +47,11 @@ newPtrRgba8 (Vec w h) = mallocArray $ 4 * w * h
 
 instance Storage IO Ptr Pixel8 where
   {-# INLINE fillStorage #-}
-  fillStorage p = helper 1 (pokeByteOff p)
+  fillStorage p = helper (pokeByteOff p)
 
 instance Storage IO Ptr PixelRGBA8 where
   {-# INLINE fillStorage #-}
-  fillStorage p = helper 4 $ \n (PixelRGBA8 r g b a) -> do
+  fillStorage p = helper $ \n (PixelRGBA8 r g b a) -> do
     pokeByteOff p n r
     pokeByteOff p (n+1) g
     pokeByteOff p (n+2) b
@@ -59,27 +59,30 @@ instance Storage IO Ptr PixelRGBA8 where
 
 instance Storage IO VU.IOVector Pixel8 where
   {-# INLINE fillStorage #-}
-  fillStorage vec = helper 1 (VU.unsafeWrite vec)
+  fillStorage vec = helper (VU.unsafeWrite vec)
 
 instance Storage IO VS.IOVector Pixel8 where
   {-# INLINE fillStorage #-}
-  fillStorage vec = helper 1 (VS.unsafeWrite vec)
+  fillStorage vec = helper (VS.unsafeWrite vec)
 
 instance Storage IO VS.IOVector PixelRGB8 where
   {-# INLINE fillStorage #-}
-  fillStorage vec = helper 3 $ \n (PixelRGB8 r g b) -> do
+  fillStorage vec = helper $ \n (PixelRGB8 r g b) -> do
     VS.unsafeWrite vec n r
     VS.unsafeWrite vec (n+1) g
     VS.unsafeWrite vec (n+2) b
 
 {-# INLINE helper #-}
-helper :: (Pixel pixel, Monad m)
-  => Int
-  -> (Int -> pixel -> m ())
+helper :: forall pixel m. (Pixel pixel, Monad m)
+  => (Int -> pixel -> m ())
   -> Filler pixel m
-helper n f color fractal iter maxabs area = loop
+helper f color fractal iter maxabs area = loop
   n
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
   (\i c -> f i $ color iter $ fractal c maxabs iter)
+
+  where
+
+    n = (componentCount :: pixel -> Int) undefined
