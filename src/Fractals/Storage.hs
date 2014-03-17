@@ -4,6 +4,7 @@ module Fractals.Storage
   , newPtr8
   , newUVector8
   , newSVector8
+  , newSVectorRgb8
   , newPtrRgba8
   ) where
 
@@ -36,6 +37,10 @@ newUVector8 (Vec w h) = VU.unsafeNew $ w * h
 newSVector8 :: Size -> IO (VS.IOVector (PixelBaseComponent Pixel8))
 newSVector8 (Vec w h) = VS.unsafeNew $ w * h
 
+{-# INLINE newSVectorRgb8 #-}
+newSVectorRgb8 :: Size -> IO (VS.IOVector (PixelBaseComponent PixelRGB8))
+newSVectorRgb8 (Vec w h) = VS.unsafeNew $ 3 * w * h
+
 {-# INLINE newPtrRgba8 #-}
 newPtrRgba8 :: Size -> IO (Ptr (PixelBaseComponent PixelRGBA8))
 newPtrRgba8 (Vec w h) = mallocArray $ 4 * w * h
@@ -59,6 +64,13 @@ instance Storage IO VU.IOVector Pixel8 where
 instance Storage IO VS.IOVector Pixel8 where
   {-# INLINE fillStorage #-}
   fillStorage vec = helper 1 (VS.unsafeWrite vec)
+
+instance Storage IO VS.IOVector PixelRGB8 where
+  {-# INLINE fillStorage #-}
+  fillStorage vec = helper 3 $ \n (PixelRGB8 r g b) -> do
+    VS.unsafeWrite vec n r
+    VS.unsafeWrite vec (n+1) g
+    VS.unsafeWrite vec (n+2) b
 
 {-# INLINE helper #-}
 helper :: (Pixel pixel, Monad m)
