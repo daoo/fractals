@@ -43,7 +43,7 @@ greyscale m i = fromIntegral $ scale m 255 i
 
 {-# LANGUAGE paletted #-}
 paletted :: [PixelRGB8] -> Iterations -> Iterations -> PixelRGB8
-paletted p _ i = p !! (i `rem` (length p))
+paletted p _ i = cycle p !! i
 
 {-# INLINE interpolate #-}
 interpolate :: [PixelRGB8] -> [PixelRGB8]
