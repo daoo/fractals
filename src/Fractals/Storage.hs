@@ -85,9 +85,9 @@ helper :: Monad m
   => Int
   -> (Int -> a -> m ())
   -> Filler a m
-helper n f color fractal iter maxabs area = loop
+helper n f color def iter maxabs area = loop
   n
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\i c -> f i $ color iter $ fractal c maxabs iter)
+  (\i -> f i . color iter . iterations def maxabs iter)

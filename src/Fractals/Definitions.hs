@@ -7,6 +7,7 @@ module Fractals.Definitions
   , mandelbrot3
   , burningShip
   , julia
+  , iterations
   ) where
 
 import Fractals.Complex
@@ -14,33 +15,35 @@ import Fractals.Utility
 
 type Iterations = Int
 
-type Definition = Comp -> R -> Iterations -> Iterations
+type Definition = Comp -> (Comp, Comp -> Comp)
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot !a !p = countIterations (0:+0) (\z -> z ^ a + p)
+mandelbrot !a !p = (0:+0, \z -> z ^ a + p)
 
 {-# INLINE mandelbrot2 #-}
 mandelbrot2 :: Definition
-mandelbrot2 !p = countIterations (0:+0) (\z -> z * z + p)
+mandelbrot2 !p = (0:+0, \z -> z * z + p)
 
 {-# INLINE mandelbrot3 #-}
 mandelbrot3 :: Definition
-mandelbrot3 !p = countIterations (0:+0) (\z -> z * z * z + p)
+mandelbrot3 !p = (0:+0, \z -> z * z * z + p)
 
 {-# INLINE burningShip #-}
 burningShip :: Definition
-burningShip !p = countIterations (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
+burningShip !p = (0:+0, \(r:+i) -> square (abs r :+ abs i) + p)
 
 {-# INLINE julia #-}
 julia :: Comp -> Definition
-julia !c !p = countIterations p (\z -> z * z + c)
+julia !c !p = (p, \z -> z * z + c)
 
-{-# INLINE countIterations #-}
+{-# INLINE iterations #-}
 -- |Count the number of iterations in a point
-countIterations :: Comp -> (Comp -> Comp) -> R -> Iterations -> Iterations
-countIterations !z0 znext !maxAbs !maxIter = go 0 z0
+iterations :: Definition -> R -> Iterations -> Comp -> Iterations
+iterations def !maxAbs !maxIter p = go 0 z0
   where
+    (z0, znext) = def p
+
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
       then i
       else go (i + 1) (znext z)
