@@ -14,7 +14,7 @@ import Fractals.Utility
 
 type Iterations = Int
 
-type Definition = Comp -> R -> Int -> Iterations
+type Definition = Comp -> R -> Iterations -> Iterations
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
@@ -38,7 +38,7 @@ julia !c !p = countIterations p (\z -> z * z + c)
 
 {-# INLINE countIterations #-}
 -- |Count the number of iterations in a point
-countIterations :: Comp -> (Comp -> Comp) -> R -> Int -> Iterations
+countIterations :: Comp -> (Comp -> Comp) -> R -> Iterations -> Iterations
 countIterations !z0 znext !maxAbs !maxIter = go 0 z0
   where
     go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
