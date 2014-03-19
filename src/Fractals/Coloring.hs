@@ -53,20 +53,23 @@ interpolate colors = go colors
   where
     first = head colors
 
-    steps = 11
+    steps = 12
 
     go []         = []
-    go [c1]       = inner c1 first
-    go (c1:c2:cs) = inner c1 c2 ++ go (c2:cs)
+    go [c1]       = lerpRgb8 steps c1 first
+    go (c1:c2:cs) = lerpRgb8 steps c1 c2 ++ go (c2:cs)
 
-    inner c1 c2 = map (color c1 c2) [0..steps]
+lerpRgb8 :: Word -> PixelRGB8 -> PixelRGB8 -> [PixelRGB8]
+lerpRgb8 steps a b = map (color a b) [0..steps']
+  where
+    steps' = steps - 1
 
-    color (PixelRGB8 r1 g1 b1) (PixelRGB8 r2 g2 b2) j =
+    color (PixelRGB8 r1 g1 b1) (PixelRGB8 r2 g2 b2) i =
       PixelRGB8 (f r1 r2) (f g1 g2) (f b1 b2)
 
       where
         f :: Pixel8 -> Pixel8 -> Pixel8
-        f c1 c2 = fromIntegral $ lerp steps (c1', c2') j
+        f c1 c2 = fromIntegral $ lerp steps' (c1', c2') i
           where
             c1', c2' :: Word
             c1' = fromIntegral c1
