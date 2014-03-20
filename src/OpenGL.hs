@@ -414,8 +414,8 @@ processEvent = \case
       GLFW.Key'Escape -> quit
       GLFW.Key'Q      -> quit
 
-      GLFW.Key'I -> changeIter (+10)
-      GLFW.Key'D -> changeIter (subtract 10)
+      GLFW.Key'I -> changeIter (+100)
+      GLFW.Key'D -> changeIter (subtract 100)
 
       GLFW.Key'Up -> popArea
 
