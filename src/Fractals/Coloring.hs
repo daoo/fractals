@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Fractals.Coloring
   ( ascii
   , greyscale
