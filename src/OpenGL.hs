@@ -48,7 +48,6 @@ newImage = do
     iter    = 100
     area    = fromAspectCentered defsize 4.3 (0:+0)
 
-{-# INLINE freeImage #-}
 freeImage :: Image -> IO ()
 freeImage = free . imagePtr
 
@@ -61,11 +60,9 @@ resizeImage (Image ptr iter area) size = do
   ptr' <- newPtr8 size
   return $ Image ptr' iter (resizeScreen size area)
 
-{-# INLINE setArea #-}
 setArea :: Area -> Image -> Image
 setArea area img = img { imageArea = area }
 
-{-# INLINE modifyIterations #-}
 modifyIterations :: (Int -> Int) -> Image -> Image
 modifyIterations f img = img { imageIter = clampLow 1 $ f (imageIter img) }
 
@@ -291,11 +288,9 @@ data State = State
   , stateDirty        :: !Bool
   } deriving Show
 
-{-# INLINE stateWindowSize #-}
 stateWindowSize :: State -> Size
 stateWindowSize s = Vec (stateWindowWidth s) (stateWindowHeight s)
 
-{-# INLINE stateMousePos #-}
 stateMousePos :: State -> Point
 stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
 
