@@ -11,7 +11,12 @@ prof:
 	@cabal configure --enable-library-profiling --enable-executable-profiling
 	@cabal build --ghc-options="-Wall -rtsopts -prof -fprof-auto"
 
-release:
+optimal:
+	@cabal clean
+	@cabal configure $(disable_all)
+	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -funbox-strict-fields"
+
+llvm:
 	@cabal clean
 	@cabal configure $(disable_all)
 	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -funbox-strict-fields -fllvm -optlo-O3"
