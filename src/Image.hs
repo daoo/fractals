@@ -39,7 +39,7 @@ prog (path, f) = do
   measureTime $ fillStorage v (paletted (optimizeStorage $ interpolate palette1))
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   v' <- unsafeFreeze v
-  writePng path (Image w h v' :: Image PixelRGB8)
+  writePng path (Image (width size) (height size) v' :: Image PixelRGB8)
 
   where
-    size@(Vec w h) = areaScreen $ fracArea f
+    size = areaScreen $ fracArea f

@@ -19,9 +19,11 @@ loop :: Monad m
   -> Comp
   -> (Int -> Comp -> m ())
   -> m ()
-loop d (Vec w h) (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
+loop d size (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where
-    n = d * w * h
+    w = width size
+
+    n = d * sizeArea size
 
     go !i !j !x !y
       | i == w    = go 0 j x1 (y+dy)

@@ -34,20 +34,22 @@ getAreaCenter area = px + pw / 2.0 :+ py - ph / 2.0
 -- |Construct an Area from render size, and a rectangle in the complex plane.
 {-# INLINE fromRectangle #-}
 fromRectangle :: Size -> Comp -> Comp -> Area
-fromRectangle screen@(Vec w h) plane@(pw:+ph) topleft =
-  Area screen plane topleft (pw / realToFrac w :+ - ph / realToFrac h)
+fromRectangle screen plane@(pw:+ph) topleft =
+  Area screen plane topleft
+    (pw / realToFrac (width screen) :+ - ph / realToFrac (height screen))
 
 -- |Construct an Area from render size, the width of the complex plane and the
 -- center point of the complex plane.
 {-# INLINE fromAspectCentered #-}
 fromAspectCentered :: Size -> R -> Comp -> Area
-fromAspectCentered screen@(Vec w h) pw (x:+y) = Area screen plane topleft delta
+fromAspectCentered screen pw (x:+y) = Area screen plane topleft delta
   where
-    (w', h')      = (realToFrac w, realToFrac h)
-    aspect        = w' / h'
+    w             = realToFrac $ width screen
+    h             = realToFrac $ height screen
+    aspect        = w / h
     plane@(_:+ph) = pw :+ pw / aspect
     topleft       = x - pw / 2 :+ y + ph / 2
-    delta         = pw / w' :+ - ph / h'
+    delta         = pw / w :+ - ph / h
 
 {-# INLINE setPlaneCenter #-}
 setPlaneCenter :: Comp -> Area -> Area
@@ -65,8 +67,10 @@ resizeScreen ns area =
 resizePlane :: Comp -> Comp -> Area -> Area
 resizePlane topleft plane@(pw:+ph) area = Area screen plane topleft delta
   where
-    screen@(Vec w h) = areaScreen area
-    delta            = (pw / realToFrac w) :+ (- ph / realToFrac h)
+    screen = areaScreen area
+    w      = realToFrac $ width screen
+    h      = realToFrac $ height screen
+    delta  = (pw / w) :+ (- ph / h)
 
 {-# INLINE screenToPlane #-}
 screenToPlane :: Area -> Point -> Comp

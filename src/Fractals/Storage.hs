@@ -27,23 +27,23 @@ class Pixel a => Storage m s a where
 
 {-# INLINE newPtr8 #-}
 newPtr8 :: Size -> IO (Ptr (PixelBaseComponent Pixel8))
-newPtr8 (Vec w h) = mallocArray $ w * h
+newPtr8 = mallocArray . sizeArea
 
 {-# INLINE newUVector8 #-}
 newUVector8 :: Size -> IO (VU.IOVector (PixelBaseComponent Pixel8))
-newUVector8 (Vec w h) = VU.unsafeNew $ w * h
+newUVector8 = VU.unsafeNew . sizeArea
 
 {-# INLINE newSVector8 #-}
 newSVector8 :: Size -> IO (VS.IOVector (PixelBaseComponent Pixel8))
-newSVector8 (Vec w h) = VS.unsafeNew $ w * h
+newSVector8 = VS.unsafeNew . sizeArea
 
 {-# INLINE newSVectorRgb8 #-}
 newSVectorRgb8 :: Size -> IO (VS.IOVector (PixelBaseComponent PixelRGB8))
-newSVectorRgb8 (Vec w h) = VS.unsafeNew $ 3 * w * h
+newSVectorRgb8 size = VS.unsafeNew $ 3 * sizeArea size
 
 {-# INLINE newPtrRgba8 #-}
 newPtrRgba8 :: Size -> IO (Ptr (PixelBaseComponent PixelRGBA8))
-newPtrRgba8 (Vec w h) = mallocArray $ 4 * w * h
+newPtrRgba8 size = mallocArray $ 4 * sizeArea size
 
 instance Storage IO Ptr Pixel8 where
   {-# INLINE writeStorage #-}

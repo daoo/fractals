@@ -21,17 +21,17 @@ data Fractal = Fractal
   }
 
 exMandelbrot :: Fractal
-exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (Vec 1920 1080) 4.3 (0:+0))
+exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (mkSize 1920 1080) 4.3 (0:+0))
 
-readMaybeVec :: String -> String -> Maybe Vec
-readMaybeVec x y = Vec <$> readMaybe x <*> readMaybe y
+readMaybeSize :: String -> String -> Maybe Size
+readMaybeSize w h = mkSize <$> readMaybe w <*> readMaybe h
 
 readMaybeComp :: String -> String -> Maybe Comp
 readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
 readMaybeArea :: String -> String -> String -> String -> String -> Maybe Area
 readMaybeArea w h pw x0 y0 =
-  fromAspectCentered <$> readMaybeVec w h <*> readMaybe pw <*> readMaybeComp x0 y0
+  fromAspectCentered <$> readMaybeSize w h <*> readMaybe pw <*> readMaybeComp x0 y0
 
 parseFractal :: [String] -> Maybe Fractal
 parseFractal ["mandelbrot", "2", i, w, h, pw, x0, y0] =

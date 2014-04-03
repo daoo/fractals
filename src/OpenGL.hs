@@ -44,7 +44,7 @@ newImage = do
   ptr <- newPtr8 defsize
   return $ Image ptr iter area
   where
-    defsize = Vec 800 600
+    defsize = mkSize 800 600
     iter    = 100
     area    = fromAspectCentered defsize 4.3 (0:+0)
 
@@ -208,7 +208,9 @@ texturize :: Image -> IO ()
 texturize (Image ptr _ area) =
   GL.texImage2D GL.Texture2D GL.NoProxy 0 GL.Luminance8 texSize 0 pixelData
   where
-    Vec w h   = areaScreen area
+    size      = areaScreen area
+    w         = width size
+    h         = height size
     texSize   = GL.TextureSize2D (fromIntegral w) (fromIntegral h)
     pixelData = GL.PixelData GL.Luminance GL.UnsignedByte ptr
 
@@ -289,7 +291,7 @@ data State = State
   } deriving Show
 
 stateWindowSize :: State -> Size
-stateWindowSize s = Vec (stateWindowWidth s) (stateWindowHeight s)
+stateWindowSize s = mkSize (stateWindowWidth s) (stateWindowHeight s)
 
 stateMousePos :: State -> Point
 stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
@@ -383,10 +385,10 @@ processEvent = \case
     liftIO $ putStrLn $ "error: " ++ show e ++ " " ++ show s
     quit
 
-  EventWindowSize _ width height -> do
+  EventWindowSize _ w h -> do
     modify $ \state -> state
-      { stateWindowWidth = width
-      , stateWindowHeight = height
+      { stateWindowWidth  = w
+      , stateWindowHeight = h
       }
     adjustWindow
 
@@ -458,16 +460,16 @@ adjustWindow :: Context ()
 adjustWindow = do
   env <- ask
   state <- get
-  let size@(Vec w h) = stateWindowSize state
+  let size = stateWindowSize state
 
-      w' = fromIntegral w
-      h' = fromIntegral h
+      w = fromIntegral $ width size
+      h = fromIntegral $ height size
 
       glpos  = GL.Position 0 0
-      glsize = GL.Size w' h'
+      glsize = GL.Size w h
 
   liftIO $ do
-    setUniform (envProgramScreen env) "size" $ GL.Vertex2 w' h'
+    setUniform (envProgramScreen env) "size" $ GL.Vertex2 w h
     GL.viewport GL.$= (glpos, glsize)
 
   image <- liftIO $ resizeImage (stateImage state) size
@@ -479,10 +481,10 @@ main :: IO ()
 main = do
   eventsChan <- newTQueueIO :: IO (TQueue Event)
 
-  let width  = 800
-      height = 600
+  let w = 800
+      h = 600
 
-  withWindow 800 600 "Fractals" $ \win -> do
+  withWindow w h "Fractals" $ \win -> do
     GLFW.setErrorCallback           $ Just $ errorCallback eventsChan
     GLFW.setWindowSizeCallback win  $ Just $ windowSizeCallback eventsChan
     GLFW.setMouseButtonCallback win $ Just $ mouseButtonCallback eventsChan
@@ -504,8 +506,8 @@ main = do
           { stateMode         = Idle
           , stateImage        = image
           , stateAreaStack    = [imageArea image]
-          , stateWindowWidth  = width
-          , stateWindowHeight = height
+          , stateWindowWidth  = w
+          , stateWindowHeight = h
           , stateMouseX       = 0
           , stateMouseY       = 0
           , stateDirty        = True
@@ -514,11 +516,11 @@ main = do
     runContext env state
 
 withWindow :: Int -> Int -> String -> (GLFW.Window -> IO ()) -> IO ()
-withWindow width height title f = do
+withWindow w h title f = do
   GLFW.setErrorCallback $ Just simpleErrorCallback
   r <- GLFW.init
   when r $ do
-    m <- GLFW.createWindow width height title Nothing Nothing
+    m <- GLFW.createWindow w h title Nothing Nothing
     case m of
       Just win -> do
         GLFW.makeContextCurrent m
