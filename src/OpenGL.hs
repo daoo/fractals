@@ -1,6 +1,8 @@
 {-# LANGUAGE LambdaCase, OverloadedStrings #-}
 module Main (main) where
 
+-- TODO: Render in chunks so we can move around quickly
+-- TODO: Fix window size changes in the zoom stack
 -- TODO: Render with threads and different resolution
 
 import Control.Concurrent.STM
