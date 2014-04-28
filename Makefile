@@ -5,7 +5,7 @@ check:
 	@cabal build --ghc-options="-Wall -c" fractals-image
 
 all:
-	@cabal build --ghc-options="-Wall -O -rtsopts -fno-ignore-asserts -funbox-strict-fields"
+	@cabal build --ghc-options="-Wall -O -rtsopts -fno-ignore-asserts"
 
 prof:
 	@cabal configure --enable-library-profiling --enable-executable-profiling
@@ -14,12 +14,12 @@ prof:
 optimal:
 	@cabal clean
 	@cabal configure $(disable_all)
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -funbox-strict-fields"
+	@cabal build --ghc-options="-Wall -O2 -fignore-asserts"
 
 llvm:
 	@cabal clean
 	@cabal configure $(disable_all)
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -funbox-strict-fields -fllvm -optlo-O3"
+	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -fllvm -optlo-O3 -optlo-march=native -optlo-mattr=native"
 
 init:
 	@cabal sandbox init
