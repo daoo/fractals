@@ -1,12 +1,14 @@
 {-# LANGUAGE CPP #-}
 module Fractals.Complex
-  ( Comp(..)
-  , realPart
-  , imgPart
+  ( Data.Complex.Complex(..)
+  , Data.Complex.realPart
+  , Data.Complex.imagPart
   , R
   , magnitudeSquared
   , (./)
   ) where
+
+import Data.Complex
 
 #ifdef RATIONAL
 import Data.Ratio
@@ -15,40 +17,12 @@ type R = Rational
 type R = Double
 #endif
 
-infix 1 :+
-
--- |Definition of a complex number
-data Comp = {-# UNPACK #-} !R :+ {-# UNPACK #-} !R
-  deriving Show
-
-{-# INLINE realPart #-}
-realPart :: Comp -> R
-realPart (r:+_) = r
-
-{-# INLINE imgPart #-}
-imgPart :: Comp -> R
-imgPart (_:+i) = i
-
 {-# INLINE magnitudeSquared #-}
 -- |The magintude of a complex number squared.
 -- Avoids the expensive square root.
-magnitudeSquared :: Comp -> R
+magnitudeSquared :: Complex R -> R
 magnitudeSquared (a :+ b) = a*a + b*b
 
-instance Num Comp where
-  {-# INLINE (+) #-}
-  {-# INLINE (-) #-}
-  {-# INLINE (*) #-}
-  (a:+b) + (c:+d) = (a + c) :+ (b + d)
-  (a:+b) - (c:+d) = (a - c) :+ (b - d)
-  (a:+b) * (c:+d) = (a*c - b*d) :+ (b*c + a*d)
-
-  abs (a:+b) = abs a :+ abs b
-
-  negate      = undefined
-  signum      = undefined
-  fromInteger = undefined
-
 {-# INLINE (./) #-}
-(./) :: Comp -> R -> Comp
+(./) :: Complex R -> R -> Complex R
 (a:+b) ./ x = (a/x) :+ (b/x)

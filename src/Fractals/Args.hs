@@ -26,7 +26,7 @@ exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (mkSize 1920 1080) 
 readMaybeSize :: String -> String -> Maybe Size
 readMaybeSize w h = mkSize <$> readMaybe w <*> readMaybe h
 
-readMaybeComp :: String -> String -> Maybe Comp
+readMaybeComp :: String -> String -> Maybe (Complex R)
 readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
 readMaybeArea :: String -> String -> String -> String -> String -> Maybe Area

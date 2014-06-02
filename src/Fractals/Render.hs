@@ -15,9 +15,9 @@ import Fractals.Geometry
 loop :: Monad m
   => Int
   -> Size
-  -> Comp
-  -> Comp
-  -> (Int -> Comp -> m ())
+  -> Complex R
+  -> Complex R
+  -> (Int -> Complex R -> m ())
   -> m ()
 loop d size (x1:+y1) (dx:+dy) f = go 0 0 x1 y1
   where

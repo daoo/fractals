@@ -16,7 +16,7 @@ import Numeric.FastMath ()
 
 type Iterations = Int
 
-type Definition = Comp -> (Comp, Comp -> Comp)
+type Definition = Complex R -> (Complex R, Complex R -> Complex R)
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
@@ -35,12 +35,12 @@ burningShip :: Definition
 burningShip !p = (0:+0, \(r:+i) -> square (abs r :+ abs i) + p)
 
 {-# INLINE julia #-}
-julia :: Comp -> Definition
+julia :: Complex R -> Definition
 julia !c !p = (p, \z -> z * z + c)
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
-iterations :: Definition -> R -> Iterations -> Comp -> Iterations
+iterations :: Definition -> R -> Iterations -> Complex R -> Iterations
 iterations def !maxAbs !maxIter p = go 0 z0
   where
     (z0, znext) = def p
