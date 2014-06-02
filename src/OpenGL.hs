@@ -303,7 +303,7 @@ type Context = RWST Env () State IO
 redraw :: Context ()
 redraw = do
   img <- gets stateImage
-  liftIO $ updateImage img
+  lift $ updateImage img
   modify $ \s -> s { stateDirty = True }
 
 pushArea :: Area -> Context ()
@@ -346,9 +346,9 @@ run = do
   state <- get
 
   when (stateDirty state) $
-    liftIO $ texturize (stateImage state)
+    lift $ texturize (stateImage state)
 
-  liftIO $ do
+  lift $ do
     GL.clear [ GL.ColorBuffer ]
     GL.currentProgram GL.$= Just (envProgramFractal env)
     GL.drawArrays GL.TriangleStrip 0 4
@@ -368,13 +368,13 @@ run = do
     GLFW.waitEvents
   processEvents
 
-  q <- liftIO $ GLFW.windowShouldClose (envWindow env)
+  q <- lift $ GLFW.windowShouldClose (envWindow env)
   unless q run
 
 processEvents :: Context ()
 processEvents = do
   tc <- asks envEventsChan
-  me <- liftIO $ atomically $ tryReadTQueue tc
+  me <- lift $ atomically $ tryReadTQueue tc
   case me of
     Just e -> do
       processEvent e
@@ -384,7 +384,7 @@ processEvents = do
 processEvent :: Event -> Context ()
 processEvent = \case
   EventError e s -> do
-    liftIO $ putStrLn $ "error: " ++ show e ++ " " ++ show s
+    lift $ putStrLn $ "error: " ++ show e ++ " " ++ show s
     quit
 
   EventWindowSize _ w h -> do
@@ -413,7 +413,7 @@ processEvent = \case
 
   EventKey _ k _ ks _ -> case ks of
     GLFW.KeyState'Pressed -> case k of
-      GLFW.Key'F1 -> get >>= (liftIO . print)
+      GLFW.Key'F1 -> get >>= (lift . print)
 
       GLFW.Key'Escape -> quit
       GLFW.Key'Q      -> quit
@@ -430,7 +430,7 @@ processEvent = \case
   where
     quit = do
       win <- asks envWindow
-      liftIO $ GLFW.setWindowShouldClose win True
+      lift $ GLFW.setWindowShouldClose win True
 
     recenter = do
       state <- get
@@ -451,7 +451,7 @@ processEvent = \case
       state <- get
       let pos  = stateMousePos state
           area = imageArea $ stateImage state
-      liftIO $ do
+      lift $ do
         print pos
         print $ screenToPlane area pos
 
@@ -470,11 +470,11 @@ adjustWindow = do
       glpos  = GL.Position 0 0
       glsize = GL.Size w h
 
-  liftIO $ do
+  lift $ do
     setUniform (envProgramScreen env) "size" $ GL.Vertex2 w h
     GL.viewport GL.$= (glpos, glsize)
 
-  image <- liftIO $ resizeImage (stateImage state) size
+  image <- lift $ resizeImage (stateImage state) size
   modify $ \s -> s { stateImage = image }
   redraw
 -- }}}
