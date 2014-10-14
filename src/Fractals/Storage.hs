@@ -25,6 +25,8 @@ type Filler pixel m = (Int -> Int -> pixel) -> Definition -> Int -> R -> Area ->
 class Pixel a => Storage m s a where
   writeStorage :: s (PixelBaseComponent a) -> Int -> a -> m ()
 
+-- TODO: Freeing of allocated storage
+
 {-# INLINE newPtr8 #-}
 newPtr8 :: Size -> IO (Ptr (PixelBaseComponent Pixel8))
 newPtr8 = mallocArray . sizeArea
