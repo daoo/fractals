@@ -34,7 +34,7 @@ ascii m i = case scale m 10 i of
   8  -> '@'
   9  -> '&'
   10 -> '$'
-  _  -> undefined
+  _  -> 'E'
 
 {-# INLINE greyscale #-}
 -- |Find a single channel 8-bit color representation of a number of iterations.
