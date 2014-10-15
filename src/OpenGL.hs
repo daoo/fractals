@@ -285,8 +285,8 @@ data State = State
   { stateMode         :: !Mode
   , stateImage        :: Image
   , stateAreaStack    :: [Area]
-  , stateWindowWidth  :: !Int
-  , stateWindowHeight :: !Int
+  , stateWindowWidth  :: !Word
+  , stateWindowHeight :: !Word
   , stateMouseX       :: !Int
   , stateMouseY       :: !Int
   , stateDirty        :: !Bool
@@ -389,8 +389,8 @@ processEvent = \case
 
   EventWindowSize _ w h -> do
     modify $ \state -> state
-      { stateWindowWidth  = w
-      , stateWindowHeight = h
+      { stateWindowWidth  = fromIntegral w
+      , stateWindowHeight = fromIntegral h
       }
     adjustWindow
 
@@ -483,10 +483,10 @@ main :: IO ()
 main = do
   eventsChan <- newTQueueIO :: IO (TQueue Event)
 
-  let w = 800
-      h = 600
+  let w = 800 :: Word
+      h = 600 :: Word
 
-  withWindow w h "Fractals" $ \win -> do
+  withWindow (fromIntegral w) (fromIntegral h) "Fractals" $ \win -> do
     GLFW.setErrorCallback           $ Just $ errorCallback eventsChan
     GLFW.setWindowSizeCallback win  $ Just $ windowSizeCallback eventsChan
     GLFW.setMouseButtonCallback win $ Just $ mouseButtonCallback eventsChan
