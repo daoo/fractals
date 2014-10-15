@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Main (main) where
 
 import Data.Char
@@ -13,10 +14,14 @@ import System.IO
 
 main :: IO ()
 main = do
+#ifdef MANDELBROT
+  prog exMandelbrot
+#else
   args <- getArgs
   case parseFractal args of
     Nothing -> putStrLn usage
     Just f  -> prog f
+#endif
 
 prog :: Fractal -> IO ()
 prog f = do
