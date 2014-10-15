@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, BangPatterns #-}
+{-# LANGUAGE MagicHash #-}
 module Fractals.Utility where
 
 import Control.Monad
@@ -7,13 +7,15 @@ import GHC.Base
 import System.CPUTime
 
 clampLow :: Ord a => a -> a -> a
-clampLow a x | x < a     = a
-             | otherwise = x
+clampLow a x
+  | x < a     = a
+  | otherwise = x
 
 clamp :: Ord a => (a, a) -> a -> a
-clamp (a, b) x | x < a     = a
-               | x > b     = b
-               | otherwise = x
+clamp (a, b) x
+  | x < a     = a
+  | x > b     = b
+  | otherwise = x
 
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) f g a b = f (g a b)
@@ -37,7 +39,7 @@ lerp steps (a, b) x = (a*(steps-x) + b*x) `div` steps
 
 {-# INLINE measureTime #-}
 measureTime :: IO () -> IO ()
-measureTime !f = do
+measureTime f = do
   start <- getCPUTime
   f
   end <- getCPUTime

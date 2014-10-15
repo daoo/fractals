@@ -11,14 +11,14 @@ cabal-version: >=1.10
 library
   hs-source-dirs: src
   exposed-modules:
-    Fractals.Area,
-    Fractals.Args,
-    Fractals.Coloring,
-    Fractals.Complex,
-    Fractals.Definitions,
-    Fractals.Geometry,
-    Fractals.Render,
-    Fractals.Storage,
+    Fractals.Area
+    Fractals.Args
+    Fractals.Coloring
+    Fractals.Complex
+    Fractals.Definitions
+    Fractals.Geometry
+    Fractals.Render
+    Fractals.Storage
     Fractals.Utility
   build-depends: base, fast-math, vector, JuicyPixels
   default-language: Haskell2010
