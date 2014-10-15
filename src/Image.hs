@@ -7,7 +7,7 @@ import Data.Vector.Storable (unsafeFreeze)
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
-import Fractals.Geometry
+import Fractals.Math
 import Fractals.Storage
 import Fractals.Utility
 #ifndef MANDELBROT

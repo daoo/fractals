@@ -10,7 +10,7 @@ import Control.Applicative
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Geometry
+import Fractals.Math
 import Text.Read
 
 data Fractal = Fractal

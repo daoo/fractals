@@ -12,7 +12,7 @@ module Fractals.Area
   ) where
 
 import Fractals.Complex
-import Fractals.Geometry
+import Fractals.Math
 
 -- |Defines an rendering area.
 -- The rendering area represents which part of the complex plane we are

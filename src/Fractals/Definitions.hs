@@ -11,7 +11,7 @@ module Fractals.Definitions
   ) where
 
 import Fractals.Complex
-import Fractals.Utility
+import Fractals.Math (square)
 import Numeric.FastMath ()
 
 type Iterations = Int

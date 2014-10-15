@@ -15,7 +15,7 @@ import Codec.Picture.Types
 import Data.Vector.Storable as V (Vector, fromList, length)
 import Data.Word
 import Fractals.Definitions (Iterations)
-import Fractals.Utility
+import Fractals.Math
 
 {-# INLINE ascii #-}
 -- |Find a ASCII character representation of a number of iterations.

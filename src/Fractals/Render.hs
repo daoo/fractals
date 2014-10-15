@@ -5,7 +5,7 @@ module Fractals.Render
   ) where
 
 import Fractals.Complex
-import Fractals.Geometry
+import Fractals.Math
 
 {-# INLINE loop #-}
 -- |Render a square image using a monadic write function.

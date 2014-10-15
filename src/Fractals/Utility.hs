@@ -3,7 +3,6 @@ module Fractals.Utility where
 
 import Control.Monad
 import Data.IORef
-import GHC.Base
 import System.CPUTime
 
 clampLow :: Ord a => a -> a -> a
@@ -19,23 +18,6 @@ clamp (a, b) x
 
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) f g a b = f (g a b)
-
--- |Square a number
-square :: Num a => a -> a
-square x = x * x
-
--- |Scale a number from one range to another.
--- Both ranges are inclusive, start at 0 and ends at the given number. This
--- function is tuned for speed and does not do any division by zero or range
--- checks.
-scale :: Int -- ^ End of the first range [0, a], must be greater than zero
-      -> Int -- ^ End of the second range [0, b], must be greater than zero
-      -> Int -- ^ The number within range [0, a]
-      -> Int -- ^ Number in range [0, b]
-scale a b i = (i * b) `quotInt` a
-
-lerp :: Integral a => a -> (a, a) -> a -> a
-lerp steps (a, b) x = (a*(steps-x) + b*x) `div` steps
 
 {-# INLINE measureTime #-}
 measureTime :: IO () -> IO ()

@@ -15,7 +15,7 @@ import Foreign.Storable
 import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Geometry
+import Fractals.Math
 import Fractals.Render
 import qualified Data.Vector.Storable.Mutable as VS
 import qualified Data.Vector.Unboxed.Mutable as VU

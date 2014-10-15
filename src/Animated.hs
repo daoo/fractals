@@ -8,7 +8,7 @@ import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
 import Fractals.Definitions
-import Fractals.Geometry
+import Fractals.Math
 import Fractals.Storage
 import Fractals.Utility
 import System.Environment

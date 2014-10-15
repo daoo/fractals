@@ -16,7 +16,7 @@ library
     Fractals.Coloring
     Fractals.Complex
     Fractals.Definitions
-    Fractals.Geometry
+    Fractals.Math
     Fractals.Render
     Fractals.Storage
     Fractals.Utility
