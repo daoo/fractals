@@ -1,50 +1,57 @@
 {-# LANGUAGE BangPatterns #-}
+-- |Definitions of some fractals.
+--
+-- Note that these have specialized hand-optimized implementations rather than
+-- the more general and simpler code. This is for performance reasons only,
+-- given a sufficently smart compiler the optimal output should be reached
+-- anyway.
 module Fractals.Definitions
-  ( Iterations
-  , Definition
+  ( Definition
   , mandelbrot
   , mandelbrot2
   , mandelbrot3
   , burningShip
   , julia
-  , iterations
   ) where
 
 import Fractals.Complex
 import Fractals.Math (square)
 import Numeric.FastMath ()
 
-type Iterations = Int
+type Definition = (R, Int) -> Complex R -> Int
 
-type Definition = Complex R -> (Complex R, Complex R -> Complex R)
-
-{-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
-mandelbrot !a !p = (0:+0, \z -> z ^ a + p)
+mandelbrot !a !t !p = iterations t (0:+0) (\z -> z ^ a + p)
 
-{-# INLINE mandelbrot2 #-}
 mandelbrot2 :: Definition
-mandelbrot2 !p = (0:+0, \z -> z * z + p)
+mandelbrot2 !t !p = go 0 (0:+0)
+  where
+    go :: Int -> Complex R -> Int
+    go !i !(a:+b) = if check t (abs2, i) then i else go (i+1) (z2+p)
+      where
+        a2 = a*a
+        b2 = b*b
+        z2 = (a2-b2) :+ (2*a*b)
+        abs2 = a2+b2
 
-{-# INLINE mandelbrot3 #-}
 mandelbrot3 :: Definition
-mandelbrot3 !p = (0:+0, \z -> z * z * z + p)
+mandelbrot3 !t !p = iterations t (0:+0) (\z -> z * z * z + p)
 
-{-# INLINE burningShip #-}
 burningShip :: Definition
-burningShip !p = (0:+0, \(r:+i) -> square (abs r :+ abs i) + p)
+burningShip !t !p = iterations t (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
 
-{-# INLINE julia #-}
 julia :: Complex R -> Definition
-julia !c !p = (p, \z -> z * z + c)
+julia !c !t !p = iterations t p (\z -> z * z + c)
+
+{-# INLINE check #-}
+check :: (R, Int) -> (R, Int) -> Bool
+check (!maxAbs, !maxIter) (!abs, !iter) = abs >= maxAbs || iter >= maxIter
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
-iterations :: Definition -> R -> Iterations -> Complex R -> Iterations
-iterations def !maxAbs !maxIter p = go 0 z0
+iterations :: (R, Int) -> Complex R -> (Complex R -> Complex R) -> Int
+iterations (!maxAbs, !maxIter) !z0 !f = go 0 z0
   where
-    (z0, znext) = def p
-
-    go !i !z = if i >= maxIter || magnitudeSquared z >= maxAbs
-      then i
-      else go (i + 1) (znext z)
+    go !i !z
+      | i >= maxIter || magnitudeSquared z >= maxAbs = i
+      | otherwise                                    = go (i + 1) (f z)

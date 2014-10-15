@@ -92,4 +92,4 @@ helper n f color def iter maxabs area = loop
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\i -> f i . color iter . iterations def maxabs iter)
+  (\i -> f i . color iter . def (maxabs, iter))

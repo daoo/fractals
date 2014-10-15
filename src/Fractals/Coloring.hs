@@ -14,13 +14,12 @@ module Fractals.Coloring
 import Codec.Picture.Types
 import Data.Vector.Storable as V (Vector, fromList, length)
 import Data.Word
-import Fractals.Definitions (Iterations)
 import Fractals.Math
 
 {-# INLINE ascii #-}
 -- |Find a ASCII character representation of a number of iterations.
-ascii :: Iterations -- ^Maximum number of iterations
-      -> Iterations -- ^Number of iterations for some pixel
+ascii :: Int -- ^Maximum number of iterations
+      -> Int -- ^Number of iterations for some pixel
       -> Char
 ascii m i = case scale m 10 i of
   0  -> ' '
@@ -38,13 +37,13 @@ ascii m i = case scale m 10 i of
 
 {-# INLINE greyscale #-}
 -- |Find a single channel 8-bit color representation of a number of iterations.
-greyscale :: Iterations -- ^Maximum number of iterations
-          -> Iterations -- ^Number of iterations for som pixel
+greyscale :: Int -- ^Maximum number of iterations
+          -> Int -- ^Number of iterations for som pixel
           -> Pixel8
 greyscale m i = fromIntegral $ scale m 255 i
 
 {-# INLINE paletted #-}
-paletted :: Vector (PixelBaseComponent PixelRGB8) -> Iterations -> Iterations -> PixelRGB8
+paletted :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
 paletted p m i
   | i == 0 || m == i = unsafePixelAt p 0
   | otherwise        = p `unsafePixelAt` ((i*3) `rem` V.length p)
