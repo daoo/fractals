@@ -20,7 +20,7 @@ llvm:
 	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -fllvm -optlo-O3 -optlo-march=native -optlo-mattr=native"
 
 doc:
-	@cabal haddock --haddock-options=--ignore-all-exports
+	@cabal haddock
 
 test:
 	@cabal test
