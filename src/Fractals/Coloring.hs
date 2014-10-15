@@ -66,7 +66,7 @@ interpolate colors = go colors
     go (c1:c2:cs) = lerpRgb8 steps c1 c2 ++ go (c2:cs)
 
 {-# INLINE lerpRgb8 #-}
-lerpRgb8 :: Word -> PixelRGB8 -> PixelRGB8 -> [PixelRGB8]
+lerpRgb8 :: Int -> PixelRGB8 -> PixelRGB8 -> [PixelRGB8]
 lerpRgb8 steps a b = map (color a b) [0..steps']
   where
     steps' = steps - 1

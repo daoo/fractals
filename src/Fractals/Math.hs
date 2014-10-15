@@ -17,7 +17,8 @@ module Fractals.Math
   , square
   , scale
   , lerp
-  , lerp'
+  , lerpf
+  , lerps
   ) where
 
 import Data.Word
@@ -95,18 +96,19 @@ fixAspect :: Size   -- ^Aspect ratio given by size
 fixAspect aspect a b = fromPoints a (a .+. findLargest aspect a b)
 
 -- |Definition of linear interpolation.
-lerp :: Integral a => a      -- ^Number of steps
+lerp :: Integral a => Int    -- ^Number of steps
                    -> (a, a) -- ^Interpolation range
-                   -> a      -- ^Offset
+                   -> Int    -- ^Offset
                    -> a      -- ^Interpolated value
-lerp steps (a, b) x = (a*(steps-x) + b*x) `div` steps
+lerp steps (a, b) x = a + (fromIntegral x * (b-a)) `div` fromIntegral steps
 
--- |Another definition of linear interpolation with fewer multiplications.
-lerp' :: Integral a => a     -- ^Number of steps
-                   -> (a, a) -- ^Interpolation range
-                   -> a      -- ^Offset
-                   -> a      -- ^Interpolated value
-lerp' steps (a, b) x = a - (x * (a-b)) `div` steps
+lerpf :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
+lerpf steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
+
+lerps :: (Fractional a, Num a) => Int -> (a, a) -> [a]
+lerps steps range = map f [0..steps-1]
+  where
+    f = lerpf (steps-1) range . fromIntegral
 
 -- |Square a number.
 square :: Num a => a -> a
