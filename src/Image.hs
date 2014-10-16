@@ -3,7 +3,7 @@ module Main (main) where
 
 import Codec.Picture.Png
 import Codec.Picture.Types
-import Data.Vector.Storable (unsafeFreeze)
+import Data.Vector.Storable (Vector, unsafeFreeze)
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
@@ -36,10 +36,16 @@ help = "fractals-image PATH " ++ usage
 prog :: (FilePath, Fractal) -> IO ()
 prog (path, f) = do
   v <- newSVectorRgb8 size
-  measureTime $ fillStorage v (paletted (optimizeStorage $ interpolate palette1))
+  measureTime $ fillStorage v coloring
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   v' <- unsafeFreeze v
   writePng path (Image (width size) (height size) v' :: Image PixelRGB8)
 
   where
     size = areaScreen $ fracArea f
+
+coloring :: Int -> Int -> PixelRGB8
+coloring = paletted palette
+
+palette :: Vector (PixelBaseComponent PixelRGB8)
+palette = optimizeStorage $ interpolate palette1
