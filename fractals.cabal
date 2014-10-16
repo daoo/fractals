@@ -12,6 +12,10 @@ flag rational
   description: Use rational numbers for arbitrary large zoom
   default: False
 
+flag mandelbrot
+  description: Force the mandelbrot set as fractal, useful for debuging
+  default: False
+
 library
   hs-source-dirs: src
   exposed-modules:
@@ -26,40 +30,32 @@ library
     Fractals.Utility
   build-depends: base, fast-math, vector, JuicyPixels
   default-language: Haskell2010
+  if flag(rational)
+    cpp-options: -DRATIONAL
 
 executable fractals-ascii
   main-is: src/ASCII.hs
   build-depends: fractals, base
   default-language: Haskell2010
-  if flag(rational)
-    cpp-options: -DRATIONAL
+  if flag(mandelbrot)
+    cpp-options: -DMANDELBROT
 
 executable fractals-ascii-animated
   main-is: src/Animated.hs
   build-depends: fractals, base
   default-language: Haskell2010
-  if flag(rational)
-    cpp-options: -DRATIONAL
 
 executable fractals-image
   main-is: src/Image.hs
   build-depends: fractals, base, vector, JuicyPixels
   default-language: Haskell2010
-  if flag(rational)
-    cpp-options: -DRATIONAL
-
-executable fractals-mandelbrot
-  main-is: src/Image.hs
-  build-depends: fractals, base, vector, JuicyPixels
-  cpp-options: -DMANDELBROT
-  default-language: Haskell2010
+  if flag(mandelbrot)
+    cpp-options: -DMANDELBROT
 
 executable fractals-opengl
   main-is: src/OpenGL.hs
   build-depends: fractals, base, mtl, bytestring, array, OpenGL, GLFW-b, stm
   default-language: Haskell2010
-  if flag(rational)
-    cpp-options: -DRATIONAL
 
 test-suite fractals-doctest
   type: exitcode-stdio-1.0
