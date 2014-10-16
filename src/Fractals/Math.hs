@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns, MagicHash #-}
 module Fractals.Math
   (
   -- * Vector
@@ -17,6 +18,7 @@ module Fractals.Math
   , square
   , scale
   , lerp
+  , lerpw
   , lerpf
   , lerps
   ) where
@@ -101,6 +103,10 @@ lerp :: Integral a => Int    -- ^Number of steps
                    -> Int    -- ^Offset
                    -> a      -- ^Interpolated value
 lerp steps (a, b) x = a + (fromIntegral x * (b-a)) `div` fromIntegral steps
+
+-- |Unsafe linear interpolation, does not check for division by zero.
+lerpw :: Word -> (Word, Word) -> Word -> Word
+lerpw !(W# s) (a, b) x = let !(W# w) = a + (x * (b-a)) in W# (quotWord# w s)
 
 lerpf :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
 lerpf steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
