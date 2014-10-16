@@ -15,6 +15,10 @@ optimal:
 	@cabal clean
 	@cabal build --ghc-options="-Wall -O2 -fignore-asserts"
 
+mandelbrot:
+	@cabal clean
+	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -DMANDELBROT" fractals-image fractals-ascii
+
 llvm:
 	@cabal clean
 	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -fllvm -optlo-O3 -optlo-march=native -optlo-mattr=native"
