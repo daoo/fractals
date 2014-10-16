@@ -20,7 +20,7 @@ import Fractals.Render
 import qualified Data.Vector.Storable.Mutable as VS
 import qualified Data.Vector.Unboxed.Mutable as VU
 
-type Filler pixel m = (Int -> Int -> pixel) -> Definition -> Int -> R -> Area -> m ()
+type Filler pixel m = (Int -> pixel) -> Definition -> Int -> R -> Area -> m ()
 
 class Pixel a => Storage m s a where
   writeStorage :: s (PixelBaseComponent a) -> Int -> a -> m ()
@@ -92,4 +92,4 @@ helper n f color def iter maxabs area = loop
   (areaScreen area)
   (areaTopLeft area)
   (areaDelta area)
-  (\i -> f i . color iter . def (maxabs, iter))
+  (\i -> f i . color . def (maxabs, iter))

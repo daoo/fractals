@@ -10,7 +10,6 @@ import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Math
 import Fractals.Storage
-import Fractals.Utility
 import System.Environment
 import System.IO
 
@@ -31,7 +30,7 @@ prog size = do
     toWord :: Char -> Word8
     toWord = fromIntegral . ord
 
-    fill ptr c = fillStorage ptr (toWord ... ascii)
+    fill ptr c = fillStorage ptr (toWord . ascii 100)
       (julia c)
       100
       4

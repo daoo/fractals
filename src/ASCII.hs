@@ -8,7 +8,6 @@ import Fractals.Args
 import Fractals.Coloring
 import Fractals.Math
 import Fractals.Storage
-import Fractals.Utility
 import System.Environment
 import System.IO
 
@@ -26,7 +25,7 @@ main = do
 prog :: Fractal -> IO ()
 prog f = do
   ptr <- newPtr8 size
-  fillStorage ptr (toWord ... ascii)
+  fillStorage ptr (toWord . ascii (fracIter f))
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   hPutBuf stdout ptr (sizeArea size)
   where

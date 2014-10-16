@@ -36,7 +36,7 @@ help = "fractals-image PATH " ++ usage
 prog :: (FilePath, Fractal) -> IO ()
 prog (path, f) = do
   v <- newSVectorRgb8 size
-  measureTime $ fillStorage v coloring
+  measureTime $ fillStorage v (coloring (fracIter f))
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   v' <- unsafeFreeze v
   writePng path (Image (width size) (height size) v' :: Image PixelRGB8)
