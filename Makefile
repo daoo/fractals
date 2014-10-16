@@ -23,7 +23,8 @@ doc:
 	@cabal haddock
 
 test:
-	@cabal test
+	@cabal build fractals-tests --ghc-options="-Wall"
+	@./dist/build/fractals-tests/fractals-tests
 
 clean:
 	@cabal clean

@@ -26,6 +26,22 @@ module Fractals.Math
 import Data.Word
 import GHC.Base
 
+-- $setup
+-- >>> import Test.QuickCheck
+-- >>> import System.Random
+-- >>>
+-- >>> let genInRange (a, b) = choose (a, b)
+-- >>> let genLarger a = sized $ \n -> choose (a+1, a + max 2 (abs $ a * fromIntegral n))
+-- >>> let genRange = arbitrarySizedIntegral >>= \a -> genLarger a >>= \b -> return (a, b)
+-- >>> let genSteps (a, b) = genInRange (1, abs (b-a))
+-- >>>
+-- >>> let forAllLerp f = forAll genRange $ \r -> forAll (genSteps r) $ \s -> forAll (genInRange (0, s)) $ \x -> f s r x
+-- >>> let forAllIn r f = forAll (choose r) f
+
+-- |
+-- prop> \a -> forAll (genLarger a) $ \b -> (b :: Int) > (a :: Int)
+-- prop> forAll genRange $ \(a, b) -> (a :: Int) < (b :: Int)
+
 -- |Definition of a 2d 'Int' vector.
 data Vec = Vec !Int !Int
   deriving Show
@@ -98,15 +114,25 @@ fixAspect :: Size   -- ^Aspect ratio given by size
 fixAspect aspect a b = fromPoints a (a .+. findLargest aspect a b)
 
 -- |Definition of linear interpolation.
+--
+-- prop> forAllLerp $ \s (a, b) _ -> lerp s (a, b) 0 == a
+-- prop> forAllLerp $ \s (a, b) _ -> lerp s (a, b) s == b
+-- prop> forAllLerp $ \s (a, b) x -> lerp s (a, b) x >= a
+-- prop> forAllLerp $ \s (a, b) x -> lerp s (a, b) x <= b
 lerp :: Integral a => Int    -- ^Number of steps
                    -> (a, a) -- ^Interpolation range
                    -> Int    -- ^Offset
                    -> a      -- ^Interpolated value
-lerp steps (a, b) x = a + (fromIntegral x * (b-a)) `div` fromIntegral steps
+lerp steps (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral steps)
 
 -- |Unsafe linear interpolation, does not check for division by zero.
+--
+-- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) 0 == a
+-- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) s == b
+-- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x >= a
+-- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x <= b
 lerpw :: Word -> (Word, Word) -> Word -> Word
-lerpw !(W# s) (a, b) x = let !(W# w) = a + (x * (b-a)) in W# (quotWord# w s)
+lerpw (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
 
 lerpf :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
 lerpf steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
@@ -117,6 +143,11 @@ lerps steps range = map f [0..steps-1]
     f = lerpf (steps-1) range . fromIntegral
 
 -- |Square a number.
+--
+-- prop> square 0 == 0
+-- prop> square 1 == 1
+-- prop> \x -> square (x :: Int) >= 0
+-- prop> \x -> square (x :: Int) == square (-x)
 square :: Num a => a -> a
 square x = x * x
 
@@ -125,10 +156,12 @@ square x = x * x
 -- function is tuned for speed and does not do any division by zero or range
 -- checks.
 --
--- prop> forall a b i. scale a b 0 == 0
--- prop> forall a b i. scale a b a == b
-scale :: Int -- ^ End of the first range @[0, a]@, must be greater than zero
-      -> Int -- ^ End of the second range @[0, b]@, must be greater than zero
+-- prop> \(Positive a) (Positive b) -> scale a b 0 == 0
+-- prop> \(Positive a) (Positive b) -> scale a b a == b
+-- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> scale a b i >= 0
+-- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> scale a b i <= b
+scale :: Int -- ^ @a@, end of the first range @[0, a]@, must be greater than zero
+      -> Int -- ^ @b@, end of the second range @[0, b]@, must be greater than zero
       -> Int -- ^ The number within range @[0, a]@
       -> Int -- ^ Number in range @[0, b]@
 scale a b i = (i * b) `quotInt` a
