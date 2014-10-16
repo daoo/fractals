@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Fractals.Coloring
   ( ascii
   , greyscale
@@ -15,6 +16,7 @@ import Codec.Picture.Types
 import Data.Vector.Storable as V (Vector, fromList, length)
 import Data.Word
 import Fractals.Math
+import GHC.Base
 
 {-# INLINE ascii #-}
 -- |Find a ASCII character representation of a number of iterations.
@@ -46,13 +48,11 @@ greyscale m i = fromIntegral $ scale m 255 i
 paletted :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
 paletted p m i
   | i == 0 || m == i = unsafePixelAt p 0
-  | otherwise        = p `unsafePixelAt` ((i*3) `rem` V.length p)
+  | otherwise        = p `unsafePixelAt` ((i*3) `remInt` V.length p)
 
-{-# INLINE optimizeStorage #-}
 optimizeStorage :: [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
 optimizeStorage = fromList . concatMap (\(PixelRGB8 r g b) -> [r,g,b])
 
-{-# INLINE interpolate #-}
 interpolate :: [PixelRGB8] -> [PixelRGB8]
 interpolate colors = go colors
   where
@@ -61,25 +61,15 @@ interpolate colors = go colors
     steps = 12
 
     go []         = []
-    go [c1]       = lerpRgb8 steps c1 first
-    go (c1:c2:cs) = lerpRgb8 steps c1 c2 ++ go (c2:cs)
+    go [c1]       = map (lerpRgb8 steps (c1, first)) [0..steps-1]
+    go (c1:c2:cs) = map (lerpRgb8 (steps-1) (c1, c2)) [0..steps-1] ++ go (c2:cs)
 
 {-# INLINE lerpRgb8 #-}
-lerpRgb8 :: Int -> PixelRGB8 -> PixelRGB8 -> [PixelRGB8]
-lerpRgb8 steps a b = map (color a b) [0..steps']
+lerpRgb8 :: Word -> (PixelRGB8, PixelRGB8) -> Word -> PixelRGB8
+lerpRgb8 s ((PixelRGB8 !r1 !g1 !b1), (PixelRGB8 !r2 !g2 !b2)) i =
+  PixelRGB8 (g r1 r2) (g g1 g2) (g b1 b2)
   where
-    steps' = steps - 1
-
-    color (PixelRGB8 r1 g1 b1) (PixelRGB8 r2 g2 b2) i =
-      PixelRGB8 (f r1 r2) (f g1 g2) (f b1 b2)
-
-      where
-        f :: Pixel8 -> Pixel8 -> Pixel8
-        f c1 c2 = fromIntegral $ lerp steps' (c1', c2') i
-          where
-            c1', c2' :: Word
-            c1' = fromIntegral c1
-            c2' = fromIntegral c2
+    g c1 c2 = fromIntegral $ lerpw s (fromIntegral c1, fromIntegral c2) i
 
 {-# INLINE palette1 #-}
 palette1 :: [PixelRGB8]
