@@ -47,8 +47,8 @@ greyscale m i = fromIntegral $ scale m 255 i
 {-# INLINE paletted #-}
 paletted :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
 paletted p m i
-  | i == 0 || m == i = unsafePixelAt p 0
-  | otherwise        = p `unsafePixelAt` ((i*3) `remInt` V.length p)
+  | m == i    = unsafePixelAt p 0
+  | otherwise = unsafePixelAt p ((i*3) `remInt` V.length p)
 
 optimizeStorage :: [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
 optimizeStorage = fromList . concatMap (\(PixelRGB8 r g b) -> [r,g,b])
