@@ -66,7 +66,7 @@ interpolate colors = go colors
 
 {-# INLINE lerpRgb8 #-}
 lerpRgb8 :: Word -> (PixelRGB8, PixelRGB8) -> Word -> PixelRGB8
-lerpRgb8 s ((PixelRGB8 !r1 !g1 !b1), (PixelRGB8 !r2 !g2 !b2)) i =
+lerpRgb8 s (PixelRGB8 !r1 !g1 !b1, PixelRGB8 !r2 !g2 !b2) i =
   PixelRGB8 (g r1 r2) (g g1 g2) (g b1 b2)
   where
     g c1 c2 = fromIntegral $ lerpw s (fromIntegral c1, fromIntegral c2) i

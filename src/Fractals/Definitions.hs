@@ -27,7 +27,7 @@ mandelbrot2 :: Definition
 mandelbrot2 !t !p = go 0 (0:+0)
   where
     go :: Int -> Complex R -> Int
-    go !i !(a:+b) = if check t (abs2, i) then i else go (i+1) (z2+p)
+    go !i (a:+b) = if check t (abs2, i) then i else go (i+1) (z2+p)
       where
         a2 = a*a
         b2 = b*b
