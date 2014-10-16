@@ -1,9 +1,11 @@
 module Properties
   ( prop_clampLow
   , prop_clamp
-  , prop_scale
+  , prop_scaleInRange
+  , prop_scale0
   ) where
 
+import Fractals.Math
 import Fractals.Utility
 import Test.QuickCheck
 
@@ -23,9 +25,17 @@ nonLargePositiveInt :: Int -> Gen Int
 nonLargePositiveInt 0 = return 1
 nonLargePositiveInt n = choose (1, n*1000)
 
-prop_scale :: Property
-prop_scale =
+forAllScale f =
+  forAll (sized nonLargePositiveInt) $ \a ->
+    forAll (sized nonLargePositiveInt) $ \b ->
+      forAll (choose (0, a)) $ f a b
+
+prop_scaleInRange :: Property
+prop_scaleInRange =
   forAll (sized nonLargePositiveInt) $ \a ->
     forAll (sized nonLargePositiveInt) $ \b ->
       forAll (choose (0, a)) $ \i ->
         inRange (0, b) (scale a b i)
+
+prop_scale0 :: Property
+prop_scale0 = forAllScale $ \a b _ -> scale a b 0 == 0
