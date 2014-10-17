@@ -127,10 +127,10 @@ lerp steps (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral steps)
 
 -- |Unsafe linear interpolation, does not check for division by zero.
 --
--- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) 0 == a
--- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) s == b
--- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x >= a
--- #prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x <= b
+-- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) 0 == a
+-- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) s == b
+-- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x >= a
+-- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x <= b
 lerpw :: Word -> (Word, Word) -> Word -> Word
 lerpw (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
 
