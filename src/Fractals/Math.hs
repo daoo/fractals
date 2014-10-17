@@ -36,7 +36,7 @@ import GHC.Base
 -- >>> let genRange = arbitrarySizedIntegral >>= \a -> genLarger a >>= \b -> return (a, b)
 -- >>> let genSteps (a, b) = genInRange (1, abs (b-a))
 -- >>>
--- >>> let forAllLerp f = forAll genRange $ \r -> forAll (genSteps r) $ \s -> forAll (genInRange (0, s)) $ \x -> f s r x
+-- >>> let forAllLerp f = forAll genRange $ \r -> forAll (genSteps r) $ \s -> forAll (genInRange (0, s)) $ \x -> f r s x
 -- >>> let forAllIn r f = forAll (choose r) f
 
 -- |
@@ -117,10 +117,10 @@ fixAspect aspect a b = fromPoints a (a .+. findLargest aspect a b)
 {-# SPECIALIZE INLINE lerp :: Int -> (Int, Int) -> Int -> Int #-}
 -- |Definition of linear interpolation.
 --
--- prop> forAllLerp $ \s (a, b) _ -> lerp s (a, b) 0 == a
--- prop> forAllLerp $ \s (a, b) _ -> lerp s (a, b) s == b
--- prop> forAllLerp $ \s (a, b) x -> lerp s (a, b) x >= a
--- prop> forAllLerp $ \s (a, b) x -> lerp s (a, b) x <= b
+-- prop> forAllLerp $ \(a, b) s _ -> lerp s (a, b) 0 == a
+-- prop> forAllLerp $ \(a, b) s _ -> lerp s (a, b) s == b
+-- prop> forAllLerp $ \(a, b) s x -> lerp s (a, b) x >= a
+-- prop> forAllLerp $ \(a, b) s x -> lerp s (a, b) x <= b
 lerp :: Integral a => Int    -- ^Number of steps
                    -> (a, a) -- ^Interpolation range
                    -> Int    -- ^Offset
@@ -129,11 +129,11 @@ lerp s (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral s)
 
 -- |Unsafe linear interpolation, does not check for division by zero.
 --
--- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) 0 == a
--- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) s == b
--- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) x >= a
--- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) x <= b
--- prop> forAllLerp $ \s (a, b) x -> fromIntegral (unsafeLerpWord s (a, b) x) == lerp (fromIntegral s) ((fromIntegral a) :: Int, fromIntegral b) (fromIntegral x)
+-- prop> forAllLerp $ \(a, b) s x -> unsafeLerpWord s (a, b) 0 == a
+-- prop> forAllLerp $ \(a, b) s x -> unsafeLerpWord s (a, b) s == b
+-- prop> forAllLerp $ \(a, b) s x -> unsafeLerpWord s (a, b) x >= a
+-- prop> forAllLerp $ \(a, b) s x -> unsafeLerpWord s (a, b) x <= b
+-- prop> forAllLerp $ \(a, b) s x -> fromIntegral (unsafeLerpWord s (a, b) x) == lerp (fromIntegral s) ((fromIntegral a) :: Int, fromIntegral b) (fromIntegral x)
 unsafeLerpWord :: Word -> (Word, Word) -> Word -> Word
 unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
 
