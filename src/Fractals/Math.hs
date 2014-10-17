@@ -23,6 +23,7 @@ module Fractals.Math
   , lerpFractionals
   ) where
 
+import Control.Exception
 import Data.Word
 import GHC.Base
 
@@ -99,8 +100,8 @@ findLargest (Size w h) (Vec x1 y1) (Vec x2 y2)
     rw = x2 - x1
     rh = y2 - y1
 
-    rh' = rw*h `quot` w
-    rw' = rh*w `quot` h
+    rh' = (rw*h) `quotInt` (assert (w>0) w)
+    rw' = (rh*w) `quotInt` (assert (h>0) h)
 
     byw = Vec rw  rh'
     byh = Vec rw' rh
