@@ -125,7 +125,8 @@ lerp :: Integral a => Int    -- ^Number of steps
                    -> (a, a) -- ^Interpolation range
                    -> Int    -- ^Offset
                    -> a      -- ^Interpolated value
-lerp s (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral s)
+--lerp s (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral s)
+lerp s (a, b) x = (a*(fromIntegral s - fromIntegral x) + b * fromIntegral x) `div` fromIntegral s
 
 -- |Unsafe linear interpolation, does not check for division by zero.
 --
@@ -135,7 +136,8 @@ lerp s (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral s)
 -- prop> forAllLerp $ \(a, b) s x -> unsafeLerpWord s (a, b) x <= b
 -- prop> forAllLerp $ \(a, b) s x -> fromIntegral (unsafeLerpWord s (a, b) x) == lerp (fromIntegral s) ((fromIntegral a) :: Int, fromIntegral b) (fromIntegral x)
 unsafeLerpWord :: Word -> (Word, Word) -> Word -> Word
-unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
+--unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
+unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (quotWord# (plusWord# (timesWord# a (minusWord# s x)) (timesWord# b x)) s)
 
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Float , Float ) -> Int -> Float  #-}
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Double, Double) -> Int -> Double #-}
