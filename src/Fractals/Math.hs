@@ -125,7 +125,7 @@ lerp :: Integral a => Int    -- ^Number of steps
                    -> (a, a) -- ^Interpolation range
                    -> Int    -- ^Offset
                    -> a      -- ^Interpolated value
-lerp steps (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral steps)
+lerp s (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral s)
 
 -- |Unsafe linear interpolation, does not check for division by zero.
 --
@@ -140,14 +140,14 @@ unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (time
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Float , Float ) -> Int -> Float  #-}
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Double, Double) -> Int -> Double #-}
 lerpFractional :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
-lerpFractional steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
+lerpFractional s (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral s
 
 lerpFractionals :: (Fractional a, Num a) => Int -> (a, a) -> [a]
-lerpFractionals steps range = go 0
+lerpFractionals s range = go 0
   where
-    go i = if i < steps then f i : go (i+1) else []
+    go i = if i < s then f i : go (i+1) else []
 
-    f = lerpFractional (steps-1) range . fromIntegral
+    f = lerpFractional (s-1) range . fromIntegral
 
 -- |Square a number.
 --
