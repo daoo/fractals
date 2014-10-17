@@ -26,7 +26,7 @@ import GHC.Base
 ascii :: Int -- ^Maximum number of iterations
       -> Int -- ^Number of iterations for some pixel
       -> Char
-ascii m i = case scale m 10 i of
+ascii m i = case unsafeScaleInt m 10 i of
   0  -> ' '
   1  -> '-'
   2  -> '~'
@@ -45,7 +45,7 @@ ascii m i = case scale m 10 i of
 greyscale :: Int -- ^Maximum number of iterations
           -> Int -- ^Number of iterations for som pixel
           -> Pixel8
-greyscale m i = fromIntegral $ scale m 255 i
+greyscale m i = fromIntegral $ unsafeScaleInt m 255 i
 
 {-# INLINE unsafeColor #-}
 unsafeColor :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
@@ -72,7 +72,7 @@ lerpRgb8 :: Word -> (PixelRGB8, PixelRGB8) -> Word -> PixelRGB8
 lerpRgb8 s (PixelRGB8 !r1 !g1 !b1, PixelRGB8 !r2 !g2 !b2) i =
   PixelRGB8 (g r1 r2) (g g1 g2) (g b1 b2)
   where
-    g c1 c2 = fromIntegral $ lerpw s (fromIntegral c1, fromIntegral c2) i
+    g c1 c2 = fromIntegral $ unsafeLerpWord s (fromIntegral c1, fromIntegral c2) i
 
 colors1 :: [PixelRGB8]
 colors1 =

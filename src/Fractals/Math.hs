@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, MagicHash #-}
+{-# LANGUAGE Unsafe, BangPatterns, MagicHash #-}
 module Fractals.Math
   (
   -- * Vector
@@ -16,11 +16,11 @@ module Fractals.Math
 
   -- * Algebra
   , square
-  , scale
+  , unsafeScaleInt
   , lerp
-  , lerpw
-  , lerpf
-  , lerps
+  , unsafeLerpWord
+  , lerpFractional
+  , lerpFractionals
   ) where
 
 import Data.Word
@@ -107,12 +107,13 @@ findLargest (Size w h) (Vec x1 y1) (Vec x2 y2)
 
 -- |Resize a rectangle to the largest rectangle that goes through the bottom
 -- left point with the specified aspect ratio.
-fixAspect :: Size   -- ^Aspect ratio given by size
-           -> Point -- ^Point a
-           -> Point -- ^Point b
-           -> Rectangle -- ^The largest rectangle containing both point a and b.
+fixAspect :: Size      -- ^Aspect ratio given by size
+          -> Point     -- ^Point a
+          -> Point     -- ^Point b
+          -> Rectangle -- ^The largest rectangle containing both point a and b.
 fixAspect aspect a b = fromPoints a (a .+. findLargest aspect a b)
 
+{-# SPECIALIZE INLINE lerp :: Int -> (Int, Int) -> Int -> Int #-}
 -- |Definition of linear interpolation.
 --
 -- prop> forAllLerp $ \s (a, b) _ -> lerp s (a, b) 0 == a
@@ -127,20 +128,23 @@ lerp steps (a, b) x = a + ((fromIntegral x * (b-a)) `div` fromIntegral steps)
 
 -- |Unsafe linear interpolation, does not check for division by zero.
 --
--- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) 0 == a
--- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) s == b
--- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x >= a
--- prop> forAllLerp $ \s (a, b) x -> lerpw s (a, b) x <= b
-lerpw :: Word -> (Word, Word) -> Word -> Word
-lerpw (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
+-- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) 0 == a
+-- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) s == b
+-- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) x >= a
+-- prop> forAllLerp $ \s (a, b) x -> unsafeLerpWord s (a, b) x <= b
+-- prop> forAllLerp $ \s (a, b) x -> fromIntegral (unsafeLerpWord s (a, b) x) == lerp (fromIntegral s) ((fromIntegral a) :: Int, fromIntegral b) (fromIntegral x)
+unsafeLerpWord :: Word -> (Word, Word) -> Word -> Word
+unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
 
-lerpf :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
-lerpf steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
+{-# SPECIALIZE INLINE lerpFractional :: Int -> (Float , Float ) -> Int -> Float  #-}
+{-# SPECIALIZE INLINE lerpFractional :: Int -> (Double, Double) -> Int -> Double #-}
+lerpFractional :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
+lerpFractional steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
 
-lerps :: (Fractional a, Num a) => Int -> (a, a) -> [a]
-lerps steps range = map f [0..steps-1]
+lerpFractionals :: (Fractional a, Num a) => Int -> (a, a) -> [a]
+lerpFractionals steps range = map f [0..steps-1]
   where
-    f = lerpf (steps-1) range . fromIntegral
+    f = lerpFractional (steps-1) range . fromIntegral
 
 -- |Square a number.
 --
@@ -151,17 +155,18 @@ lerps steps range = map f [0..steps-1]
 square :: Num a => a -> a
 square x = x * x
 
--- |Scale a number from one range to another.
+-- |Scale an int from one integer range to another.
+--
 -- Both ranges are inclusive, start at 0 and ends at the given number. This
 -- function is tuned for speed and does not do any division by zero or range
 -- checks.
 --
--- prop> \(Positive a) (Positive b) -> scale a b 0 == 0
--- prop> \(Positive a) (Positive b) -> scale a b a == b
--- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> scale a b i >= 0
--- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> scale a b i <= b
-scale :: Int -- ^ @a@, end of the first range @[0, a]@, must be greater than zero
-      -> Int -- ^ @b@, end of the second range @[0, b]@, must be greater than zero
-      -> Int -- ^ The number within range @[0, a]@
-      -> Int -- ^ Number in range @[0, b]@
-scale a b i = (i * b) `quotInt` a
+-- prop> \(Positive a) (Positive b) -> unsafeScaleInt a b 0 == 0
+-- prop> \(Positive a) (Positive b) -> unsafeScaleInt a b a == b
+-- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> unsafeScaleInt a b i >= 0
+-- prop> \(Positive a) (Positive b) -> forAllIn (0, a) $ \i -> unsafeScaleInt a b i <= b
+unsafeScaleInt :: Int -- ^ @a@, end of the first range @[0, a]@, must be greater than zero
+               -> Int -- ^ @b@, end of the second range @[0, b]@, must be greater than zero
+               -> Int -- ^ The number within range @[0, a]@
+               -> Int -- ^ Number in range @[0, b]@
+unsafeScaleInt a b i = (i * b) `quotInt` a
