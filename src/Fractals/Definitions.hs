@@ -45,7 +45,7 @@ julia !c !t !p = iterations t p (\z -> z * z + c)
 
 {-# INLINE check #-}
 check :: (R, Int) -> (R, Int) -> Bool
-check (!maxAbs, !maxIter) (!abs, !iter) = abs >= maxAbs || iter >= maxIter
+check (!ma, !mi) (!a, !i) = a >= ma || i >= mi
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
