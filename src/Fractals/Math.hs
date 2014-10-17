@@ -143,8 +143,10 @@ lerpFractional :: (Num a, Fractional a) => Int -> (a, a) -> Int -> a
 lerpFractional steps (a, b) x = a + (fromIntegral x * (b-a)) / fromIntegral steps
 
 lerpFractionals :: (Fractional a, Num a) => Int -> (a, a) -> [a]
-lerpFractionals steps range = map f [0..steps-1]
+lerpFractionals steps range = go 0
   where
+    go i = if i < steps then f i : go (i+1) else []
+
     f = lerpFractional (steps-1) range . fromIntegral
 
 -- |Square a number.
