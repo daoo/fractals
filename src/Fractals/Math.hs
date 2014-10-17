@@ -1,4 +1,4 @@
-{-# LANGUAGE Unsafe, BangPatterns, MagicHash #-}
+{-# LANGUAGE Unsafe, MagicHash #-}
 module Fractals.Math
   (
   -- * Vector
@@ -100,8 +100,8 @@ findLargest (Size w h) (Vec x1 y1) (Vec x2 y2)
     rw = x2 - x1
     rh = y2 - y1
 
-    rh' = (rw*h) `quotInt` (assert (w>0) w)
-    rw' = (rh*w) `quotInt` (assert (h>0) h)
+    rh' = (rw*h) `quotInt` assert (w>0) w
+    rw' = (rh*w) `quotInt` assert (h>0) h
 
     byw = Vec rw  rh'
     byh = Vec rw' rh
@@ -137,7 +137,7 @@ lerp s (a, b) x = (a*(fromIntegral s - fromIntegral x) + b * fromIntegral x) `di
 -- prop> forAllLerp $ \(a, b) s x -> fromIntegral (unsafeLerpWord s (a, b) x) == lerp (fromIntegral s) ((fromIntegral a) :: Int, fromIntegral b) (fromIntegral x)
 unsafeLerpWord :: Word -> (Word, Word) -> Word -> Word
 --unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (plusWord# a (quotWord# (timesWord# x (minusWord# b a)) s))
-unsafeLerpWord (W# s) ((W# a), (W# b)) (W# x) = W# (quotWord# (plusWord# (timesWord# a (minusWord# s x)) (timesWord# b x)) s)
+unsafeLerpWord (W# s) (W# a, W# b) (W# x) = W# (quotWord# (plusWord# (timesWord# a (minusWord# s x)) (timesWord# b x)) s)
 
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Float , Float ) -> Int -> Float  #-}
 {-# SPECIALIZE INLINE lerpFractional :: Int -> (Double, Double) -> Int -> Double #-}

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE Safe, CPP #-}
 module Fractals.Complex
   ( Data.Complex.Complex(..)
   , Data.Complex.realPart

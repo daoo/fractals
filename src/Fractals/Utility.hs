@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE Safe, MagicHash #-}
 module Fractals.Utility where
 
 import Control.Monad
