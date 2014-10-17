@@ -1,15 +1,18 @@
 {-# LANGUAGE BangPatterns #-}
 module Fractals.Coloring
-  ( ascii
+  (
+    -- * ASCII
+    ascii
+    -- * Greyscale
   , greyscale
-  , interpolate
-  , optimizeStorage
-  , paletted
-  , palette1
-  , palette2
-  , palette3
-  , palette4
-  , palette5
+    -- * Palettes
+  , mkColorMap
+  , unsafeColor
+  , colors1
+  , colors2
+  , colors3
+  , colors4
+  , colors5
   ) where
 
 import Codec.Picture.Types
@@ -44,14 +47,14 @@ greyscale :: Int -- ^Maximum number of iterations
           -> Pixel8
 greyscale m i = fromIntegral $ scale m 255 i
 
-{-# INLINE paletted #-}
-paletted :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
-paletted p m i
+{-# INLINE unsafeColor #-}
+unsafeColor :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
+unsafeColor p m i
   | m == i    = unsafePixelAt p 0
   | otherwise = unsafePixelAt p ((i*3) `remInt` V.length p)
 
-optimizeStorage :: [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
-optimizeStorage = fromList . concatMap (\(PixelRGB8 r g b) -> [r,g,b])
+mkColorMap :: [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
+mkColorMap = fromList . concatMap (\(PixelRGB8 r g b) -> [r,g,b]) . interpolate
 
 interpolate :: [PixelRGB8] -> [PixelRGB8]
 interpolate colors = go colors
@@ -71,9 +74,8 @@ lerpRgb8 s (PixelRGB8 !r1 !g1 !b1, PixelRGB8 !r2 !g2 !b2) i =
   where
     g c1 c2 = fromIntegral $ lerpw s (fromIntegral c1, fromIntegral c2) i
 
-{-# INLINE palette1 #-}
-palette1 :: [PixelRGB8]
-palette1 =
+colors1 :: [PixelRGB8]
+colors1 =
   [ PixelRGB8 0 10 20
   , PixelRGB8 50 100 240
   , PixelRGB8 20 3 26
@@ -90,27 +92,24 @@ palette1 =
   , PixelRGB8 30 70 200
   ]
 
-{-# INLINE palette2 #-}
-palette2 :: [PixelRGB8]
-palette2 =
+colors2 :: [PixelRGB8]
+colors2 =
   [ PixelRGB8 70 0 20
   , PixelRGB8 100 0 100
   , PixelRGB8 255 0 0
   , PixelRGB8 255 200 0
   ]
 
-{-# INLINE palette3 #-}
-palette3 :: [PixelRGB8]
-palette3 =
+colors3 :: [PixelRGB8]
+colors3 =
   [ PixelRGB8 40 70 10
   , PixelRGB8 40 170 10
   , PixelRGB8 100 255 70
   , PixelRGB8 255 255 255
   ]
 
-{-# INLINE palette4 #-}
-palette4 :: [PixelRGB8]
-palette4 =
+colors4 :: [PixelRGB8]
+colors4 =
   [ PixelRGB8 0 0 0
   , PixelRGB8 0 0 255
   , PixelRGB8 0 255 255
@@ -118,9 +117,8 @@ palette4 =
   , PixelRGB8 0 128 255
   ]
 
-{-# INLINE palette5 #-}
-palette5 :: [PixelRGB8]
-palette5 =
+colors5 :: [PixelRGB8]
+colors5 =
   [ PixelRGB8 0 0 0
   , PixelRGB8 255 255 255
   , PixelRGB8 128 128 128
