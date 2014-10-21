@@ -19,26 +19,33 @@ main = getArgs >>= \case
   _      -> error "Usage: fractals-ascii-animated WIDTH HEIGHT"
 
 prog :: Size -> IO ()
-prog size = do
-  ptr <- newPtr8 size
-  mapM_ (\f -> fill ptr f >> put ptr >> threadDelay 10000) fractals
+prog size = newPtr8 size >>= helper
   where
-    n = sizeArea size
+    helper ptr = go 0 1
+      where
+        go i d
+          | i <= 0    = go 0 1
+          | i > steps = go steps (-1)
+          | otherwise = do
+            fill ptr (lerpFractional steps (a, b) i)
+            put ptr
+            threadDelay (round $ delay * 1000000.0)
+            go (i+d) d
+
+    steps = 100
+    iters = 100
+    fps   = 100
+    delay = (1.0 :: Double) / (realToFrac (fps :: Int))
+    cells = sizeArea size
+
+    a = (-2.0) :+ 2.0
+    b = 2.0    :+ (-2.0)
 
     area = fromAspectCentered size 8 (0 :+ 0)
 
-    toWord :: Char -> Word8
-    toWord = fromIntegral . ord
+    fill ptr c = fillStorage ptr (toWord . ascii 100) (julia c) iters 4 area
+      where
+        toWord :: Char -> Word8
+        toWord = fromIntegral . ord
 
-    fill ptr c = fillStorage ptr (toWord . ascii 100)
-      (julia c)
-      100
-      4
-      area
-
-    put ptr = hPutBuf stdout ptr n
-
-    xs = let a = [-2.2, -2.19 .. 1.2] in cycle (a ++ reverse a)
-    ys = repeat 0.1554
-
-    fractals = zipWith (:+) xs ys
+    put ptr = hPutBuf stdout ptr cells
