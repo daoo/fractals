@@ -17,7 +17,6 @@ library
     Fractals.Complex
     Fractals.Definitions
     Fractals.Math
-    Fractals.Render
     Fractals.Storage
     Fractals.Utility
   build-depends: base, fast-math, vector, JuicyPixels

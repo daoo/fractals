@@ -71,7 +71,7 @@ modifyIterations f img = img { imageIter = clampLow 1 $ f (imageIter img) }
 -- |Render the fractal and print the time it took
 updateImage :: Image -> IO ()
 updateImage (Image ptr iter area) = measureTime $
-  fillStorage ptr (greyscale iter) mandelbrot2 iter maxabs area
+  fill ptr (greyscale iter) mandelbrot2 iter maxabs area
   where
     maxabs = 4
 -- }}}

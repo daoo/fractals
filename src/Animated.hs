@@ -27,7 +27,7 @@ prog size = newPtr8 size >>= helper
           | i <= 0    = go 0 1
           | i > steps = go steps (-1)
           | otherwise = do
-            fill ptr (lerpFractional steps (a, b) i)
+            fill1 ptr (lerpFractional steps (a, b) i)
             put ptr
             threadDelay (round $ delay * 1000000.0)
             go (i+d) d
@@ -43,7 +43,7 @@ prog size = newPtr8 size >>= helper
 
     area = fromAspectCentered size 8 (0 :+ 0)
 
-    fill ptr c = fillStorage ptr (toWord . ascii 100) (julia c) iters 4 area
+    fill1 ptr c = fill ptr (toWord . ascii 100) (julia c) iters 4 area
       where
         toWord :: Char -> Word8
         toWord = fromIntegral . ord

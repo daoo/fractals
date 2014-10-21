@@ -1,6 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Fractals.Storage
-  ( fillStorage
+  ( fill
   , newPtr8
   , newUVector8
   , newSVector8
@@ -16,11 +19,8 @@ import Fractals.Area
 import Fractals.Complex
 import Fractals.Definitions
 import Fractals.Math
-import Fractals.Render
 import qualified Data.Vector.Storable.Mutable as VS
 import qualified Data.Vector.Unboxed.Mutable as VU
-
-type Filler pixel m = (Int -> pixel) -> Definition -> Int -> R -> Area -> m ()
 
 class Pixel a => Storage m s a where
   writeStorage :: s (PixelBaseComponent a) -> Int -> a -> m ()
@@ -74,22 +74,32 @@ instance Storage IO VS.IOVector PixelRGB8 where
     VS.unsafeWrite vec (n+1) g
     VS.unsafeWrite vec (n+2) b
 
-{-# INLINE fillStorage #-}
-fillStorage :: forall m s a. (Pixel a, Monad m, Storage m s a)
-            => s (PixelBaseComponent a)
-            -> Filler a m
-fillStorage s = helper n (writeStorage s)
+{-# INLINE fill #-}
+-- |Render a square image using a monadic write function.
+--
+-- The write function takes an offset into the storage space and a complex
+-- number.
+fill :: forall m storage pixel. (Pixel pixel, Monad m, Storage m storage pixel)
+  => storage (PixelBaseComponent pixel)
+  -> (Int -> pixel)
+  -> Definition
+  -> Int
+  -> R
+  -> Area
+  -> m ()
+fill storage color def iter maxabs area = go 0 0 x1 y1
   where
-    n = (componentCount :: a -> Int) undefined
+    w = width $ areaScreen area
 
-{-# INLINE helper #-}
-helper :: Monad m
-  => Int
-  -> (Int -> a -> m ())
-  -> Filler a m
-helper n f color def iter maxabs area = loop
-  n
-  (areaScreen area)
-  (areaTopLeft area)
-  (areaDelta area)
-  (\i -> f i . color . def (maxabs, iter))
+    (x1:+y1) = areaTopLeft area
+    (dx:+dy) = areaDelta area
+
+    d = (componentCount :: pixel -> Int) undefined
+    n = d * sizeArea (areaScreen area)
+
+    f i = writeStorage storage i . color . def (maxabs, iter)
+
+    go !i !j !x !y
+      | i == w    = go 0 j x1 (y+dy)
+      | j == n    = return ()
+      | otherwise = f j (x:+y) >> go (i+1) (j+d) (x+dx) y
