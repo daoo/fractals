@@ -43,7 +43,7 @@ prog size = newPtr8 size >>= helper
 
     area = fromAspectCentered size 8 (0 :+ 0)
 
-    fill1 ptr c = fill ptr (toWord . ascii 100) (julia c) iters 4 area
+    fill1 ptr c = fillPtr8 ptr (toWord . ascii 100) (julia c) iters 4 area
       where
         toWord :: Char -> Word8
         toWord = fromIntegral . ord

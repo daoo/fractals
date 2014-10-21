@@ -3,7 +3,7 @@ module Main (main) where
 
 import Codec.Picture.Png
 import Codec.Picture.Types
-import Data.Vector.Storable (Vector, unsafeFreeze)
+import Data.Vector.Storable (unsafeFreeze)
 import Fractals.Area
 import Fractals.Args
 import Fractals.Coloring
@@ -35,17 +35,21 @@ help = "fractals-image PATH " ++ usage
 
 prog :: (FilePath, Fractal) -> IO ()
 prog (path, f) = do
-  v <- newSVectorRgb8 size
-  measureTime $ fill v (coloring (fracIter f))
-    (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
-  v' <- unsafeFreeze v
-  writePng path (Image (width size) (height size) v' :: Image PixelRGB8)
+  p <- newForeignPtr32 size
+  measureTime $ fillForeignPtr32 p
+    (coloring (fracIter f))
+    (fracDef f)
+    (fracIter f)
+    (fracAbs f)
+    (fracArea f)
+  v' <- unsafeFreeze $ unsafeToImage p (sizeArea $ areaScreen $ fracArea f)
+  writePng path (Image (width size) (height size) v' :: Image PixelRGBA8)
 
   where
     size = areaScreen $ fracArea f
 
-coloring :: Int -> Int -> PixelRGB8
-coloring = unsafeColor . palette
+coloring :: Int -> Int -> PackedRGBA
+coloring = unsafeColorRgba palette
 
-palette :: Int -> Vector (PixelBaseComponent PixelRGB8)
-palette = (`mkColorMap` colors1)
+palette :: ColorMap PackedRGBA
+palette = mkColorMap colors1

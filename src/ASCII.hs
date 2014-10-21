@@ -25,7 +25,7 @@ main = do
 prog :: Fractal -> IO ()
 prog f = do
   ptr <- newPtr8 size
-  fill ptr (toWord . ascii (fracIter f))
+  fillPtr8 ptr (toWord . ascii (fracIter f))
     (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
   hPutBuf stdout ptr (sizeArea size)
   where
