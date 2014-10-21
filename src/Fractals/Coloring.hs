@@ -86,45 +86,45 @@ infixr 4 #~
 
 colors1 :: [PixelRGB8]
 colors1 =
-  PixelRGB8 0 10 20 #!
-  PixelRGB8 50 100 240 #:
-  PixelRGB8 20 3 26 #:
-  PixelRGB8 230 60 20 #:
-  PixelRGB8 25 10 9 #:
-  PixelRGB8 230 170 0 #:
-  PixelRGB8 20 40 10 #:
-  PixelRGB8 0 100 0 #:
-  PixelRGB8 5 10 10 #:
-  PixelRGB8 210 70 30 #:
-  PixelRGB8 90 0 50 #:
-  PixelRGB8 180 90 120 #:
-  PixelRGB8 0 20 40 #~
-  PixelRGB8 30 70 200
+  PixelRGB8 0   10  20  #!
+  PixelRGB8 50  100 240 #:
+  PixelRGB8 20  3   26  #:
+  PixelRGB8 230 60  20  #:
+  PixelRGB8 25  10  9   #:
+  PixelRGB8 230 170 0   #:
+  PixelRGB8 20  40  10  #:
+  PixelRGB8 0   100 0   #:
+  PixelRGB8 5   10  10  #:
+  PixelRGB8 210 70  30  #:
+  PixelRGB8 90  0   50  #:
+  PixelRGB8 180 90  120 #:
+  PixelRGB8 0   20  40  #~
+  PixelRGB8 30  70  200
 
 colors2 :: [PixelRGB8]
 colors2 =
-  PixelRGB8 70 0 20 #!
+  PixelRGB8 70  0  20 #!
   PixelRGB8 100 0 100 #:
-  PixelRGB8 255 0 0 #~
+  PixelRGB8 255 0   0 #~
   PixelRGB8 255 200 0
 
 colors3 :: [PixelRGB8]
 colors3 =
-  PixelRGB8 40 70 10 #!
-  PixelRGB8 40 170 10 #:
-  PixelRGB8 100 255 70 #~
+  PixelRGB8 40  70  10  #!
+  PixelRGB8 40  170 10  #:
+  PixelRGB8 100 255 70  #~
   PixelRGB8 255 255 255
 
 colors4 :: [PixelRGB8]
 colors4 =
-  PixelRGB8 0 0 0 #!
-  PixelRGB8 0 0 255 #:
-  PixelRGB8 0 255 255 #:
+  PixelRGB8 0   0   0   #!
+  PixelRGB8 0   0   255 #:
+  PixelRGB8 0   255 255 #:
   PixelRGB8 255 255 255 #~
-  PixelRGB8 0 128 255
+  PixelRGB8 0   128 255
 
 colors5 :: [PixelRGB8]
 colors5 =
-  PixelRGB8 0 0 0 #!
+  PixelRGB8 0   0   0   #!
   PixelRGB8 255 255 255 #~
   PixelRGB8 128 128 128
