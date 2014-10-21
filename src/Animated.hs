@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns, LambdaCase #-}
 module Main (main) where
 
 import Control.Concurrent
@@ -21,29 +21,31 @@ main = getArgs >>= \case
 prog :: Size -> IO ()
 prog size = newPtr8 size >>= helper
   where
-    helper ptr = go 0 1
+    helper !ptr = go 0 1
       where
-        go i d
-          | i <= 0    = go 0 1
+        go :: Int -> Int -> IO ()
+        go !i !d
+          | i < 0     = go 0 1
           | i > steps = go steps (-1)
           | otherwise = do
             fill1 ptr (lerpFractional steps (a, b) i)
             put ptr
-            threadDelay (round $ delay * 1000000.0)
+            threadDelay delay
             go (i+d) d
 
-    steps = 100
-    iters = 100
-    fps   = 100
-    delay = (1.0 :: Double) / (realToFrac (fps :: Int))
-    cells = sizeArea size
+    steps, iters, delay, cells :: Int
+    !steps = 100
+    !iters = 100
+    !delay = 10000
+    !cells = sizeArea size
 
-    a = (-2.0) :+ 2.0
-    b = 2.0    :+ (-2.0)
+    a, b :: Complex R
+    !a = (-2.0) :+ 2.0
+    !b = 2.0    :+ (-2.0)
 
     area = fromAspectCentered size 8 (0 :+ 0)
 
-    fill1 ptr c = fillPtr8 ptr (toWord . ascii 100) (julia c) iters 4 area
+    fill1 !ptr !c = fillPtr8 ptr (toWord . ascii 100) (julia c) iters 4 area
       where
         toWord :: Char -> Word8
         toWord = fromIntegral . ord
