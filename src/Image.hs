@@ -45,7 +45,7 @@ prog (path, f) = do
     size = areaScreen $ fracArea f
 
 coloring :: Int -> Int -> PixelRGB8
-coloring = unsafeColor palette
+coloring = unsafeColor . palette
 
-palette :: Vector (PixelBaseComponent PixelRGB8)
-palette = mkColorMap colors1
+palette :: Int -> Vector (PixelBaseComponent PixelRGB8)
+palette = (`mkColorMap` colors1)

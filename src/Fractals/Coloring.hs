@@ -47,13 +47,18 @@ greyscale :: Int -- ^Maximum number of iterations
 greyscale m i = fromIntegral $ unsafeScaleInt m 255 i
 
 {-# INLINE unsafeColor #-}
-unsafeColor :: Vector (PixelBaseComponent PixelRGB8) -> Int -> Int -> PixelRGB8
-unsafeColor p m i
-  | m == i    = unsafePixelAt p 0
-  | otherwise = unsafePixelAt p ((i*3) `remInt` V.length p)
+unsafeColor :: Vector (PixelBaseComponent PixelRGB8) -> Int -> PixelRGB8
+unsafeColor p i = unsafePixelAt p (i*3)
 
-mkColorMap :: [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
-mkColorMap = fromList . concatMap (\(PixelRGB8 r g b) -> [r,g,b])
+mkColorMap :: Int -> [PixelRGB8] -> Vector (PixelBaseComponent PixelRGB8)
+mkColorMap m p = fromList $ concatMap (conv . index) [0..m]
+  where
+    p' = fromList $ concatMap conv p
+
+    conv (PixelRGB8 r g b) = [r, g, b]
+
+    index i | i == m    = unsafePixelAt p' 0
+            | otherwise = unsafePixelAt p' ((i*3) `remInt` V.length p')
 
 {-# INLINE interpolate #-}
 interpolate :: PixelRGB8 -> PixelRGB8 -> [PixelRGB8]
