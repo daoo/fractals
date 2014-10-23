@@ -19,7 +19,7 @@ library
     Fractals.Math
     Fractals.Storage
     Fractals.Utility
-  build-depends: base, vector, JuicyPixels
+  build-depends: base, vector
   default-language: Haskell2010
 
 executable fractals-ascii
