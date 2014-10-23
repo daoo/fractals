@@ -16,7 +16,6 @@ module Fractals.Definitions
 
 import Fractals.Complex
 import Fractals.Math (square)
-import Numeric.FastMath ()
 
 type Definition = (R, Int) -> Complex R -> Int
 
