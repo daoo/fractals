@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, MagicHash #-}
 -- |Definitions of some fractals.
 --
 -- Note that these have specialized hand-optimized implementations rather than
@@ -14,6 +14,7 @@ module Fractals.Definitions
   , julia
   ) where
 
+import GHC.Base
 import Fractals.Complex
 import Fractals.Math (square)
 
@@ -44,13 +45,11 @@ julia !c !t !p = iterations t p (\z -> z * z + c)
 
 {-# INLINE check #-}
 check :: (R, Int) -> (R, Int) -> Bool
-check (!ma, !mi) (!a, !i) = a >= ma || i >= mi
+check (D# ma, I# mi) (D# a, I# i) = tagToEnum# ((a >=## ma) `orI#` (i >=# mi))
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
 iterations :: (R, Int) -> Complex R -> (Complex R -> Complex R) -> Int
-iterations (!maxAbs, !maxIter) !z0 !f = go 0 z0
+iterations !t !z0 !f = go 0 z0
   where
-    go !i !z
-      | i >= maxIter || magnitudeSquared z >= maxAbs = i
-      | otherwise                                    = go (i + 1) (f z)
+    go !i !z = if check t (magnitudeSquared z, i) then i else go (i+1) (f z)
