@@ -46,7 +46,15 @@ burningShip !t !p = iterations t (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
 
 {-# INLINE julia #-}
 julia :: Complex R -> Definition
-julia !c !t !p = iterations t p (\z -> z * z + c)
+julia !c !t !p = go 0 p
+  where
+    go :: Int -> Complex R -> Int
+    go !i (a:+b) = if check t (abs2, i) then i else go (i+1) (z2 + c)
+      where
+        a2 = a*a
+        b2 = b*b
+        z2 = (a2-b2) :+ (2*a*b)
+        abs2 = a2+b2
 
 {-# INLINE check #-}
 check :: (R, Int) -> (R, Int) -> Bool
