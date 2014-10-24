@@ -2,8 +2,6 @@
 module Main (main) where
 
 import Control.Concurrent
-import Data.Char
-import Data.Word
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
@@ -48,9 +46,6 @@ prog size = newPtr8 size >>= helper
 
     area = fromAspectCentered size 8 (0 :+ 0)
 
-    fill1 !ptr !c = fillPtr8 ptr (toWord . ascii iters) (julia c) iters maxabs area
-      where
-        toWord :: Char -> Word8
-        toWord = fromIntegral . ord
+    fill1 !ptr !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
 
     put ptr = hPutBuf stdout ptr cells

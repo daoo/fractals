@@ -3,6 +3,7 @@ module Fractals.Coloring
   (
     -- * ASCII
     ascii
+  , asciiWord8
     -- * Greyscale
   , greyscale
     -- * Palettes
@@ -41,6 +42,10 @@ ascii m i = case unsafeScaleInt m 10 i of
   9  -> '&'
   10 -> '$'
   _  -> 'E'
+
+{-# INLINE asciiWord8 #-}
+asciiWord8 :: Int -> Int -> Word8
+asciiWord8 m i = fromIntegral $ ord $ ascii m i
 
 {-# INLINE greyscale #-}
 -- |Find a single channel 8-bit color representation of a number of iterations.
