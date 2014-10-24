@@ -151,6 +151,7 @@ lerpFractionals s range = go 0
 
     f = lerpFractional (s-1) range . fromIntegral
 
+{-# INLINE square #-}
 -- |Square a number.
 --
 -- prop> square 0 == 0
@@ -160,6 +161,7 @@ lerpFractionals s range = go 0
 square :: Num a => a -> a
 square x = x * x
 
+{-# INLINE unsafeScaleInt #-}
 -- |Scale an int from one integer range to another.
 --
 -- Both ranges are inclusive, start at 0 and ends at the given number. This
