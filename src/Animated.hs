@@ -24,7 +24,7 @@ prog !size = newPtr8 size >>= helper
         go :: Int -> Int -> IO ()
         go !i !d = do
           fill1 ptr (lerpFractional steps (a, b) i)
-          put ptr
+          putFrame cells ptr
           threadDelay delay
           let i' = i+d
           if | i' < 0    -> go 0 1
@@ -48,4 +48,16 @@ prog !size = newPtr8 size >>= helper
 
     fill1 !ptr !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
 
-    put !ptr = hPutBuf stdout ptr cells
+{-# INLINE putFrame #-}
+-- | Print a "frame" to stdout.
+--
+-- A newline is printed first, it won't be shown but speeds up the program
+-- considerably. Presumably the terminal handles its buffers per line and needs
+-- to do lots of reallocation if we continuously write to the same line.
+--
+-- Also stdout is flushed after the write so that the results are visible immediately.
+putFrame :: Int -> Ptr Word8 -> IO ()
+putFrame !n !ptr = do
+  hPutChar stdout '\n'
+  hPutBuf stdout ptr n
+  hFlush stdout
