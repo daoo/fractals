@@ -1,23 +1,9 @@
-
 build:
-	@cabal build --ghc-options="-Wall -O -fno-ignore-asserts"
-
-check:
-	@cabal build --ghc-options="-Wall -c" fractals
-	@cabal build --ghc-options="-Wall -c" fractals-image
-
-prof:
-	@cabal clean
-	@cabal configure --enable-library-profiling --enable-executable-profiling
-	@cabal build --ghc-options="-Wall -prof -fprof-auto"
-
-optimal:
-	@cabal clean
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts"
+	@cabal build --ghc-options="-Wall"
 
 mandelbrot:
 	@cabal clean
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -DMANDELBROT" fractals-image fractals-ascii
+	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -DMANDELBROT" fractals-image
 
 llvm:
 	@cabal clean
