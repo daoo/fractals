@@ -34,7 +34,7 @@ prog !size = newPtr8 size >>= helper
     steps, iters, delay, cells :: Int
     !steps = 200
     !iters = 10
-    !delay = 10000
+    !delay = 30000
     !cells = sizeArea size
 
     maxabs :: R
