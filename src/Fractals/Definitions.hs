@@ -20,9 +20,11 @@ import Fractals.Math (square)
 
 type Definition = (R, Int) -> Complex R -> Int
 
+{-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
 mandelbrot !a !t !p = iterations t (0:+0) (\z -> z ^ a + p)
 
+{-# INLINE mandelbrot2 #-}
 mandelbrot2 :: Definition
 mandelbrot2 !t !p = go 0 (0:+0)
   where
@@ -34,12 +36,15 @@ mandelbrot2 !t !p = go 0 (0:+0)
         z2 = (a2-b2) :+ (2*a*b)
         abs2 = a2+b2
 
+{-# INLINE mandelbrot3 #-}
 mandelbrot3 :: Definition
 mandelbrot3 !t !p = iterations t (0:+0) (\z -> z * z * z + p)
 
+{-# INLINE burningShip #-}
 burningShip :: Definition
 burningShip !t !p = iterations t (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
 
+{-# INLINE julia #-}
 julia :: Complex R -> Definition
 julia !c !t !p = iterations t p (\z -> z * z + c)
 
