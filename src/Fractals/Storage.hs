@@ -52,23 +52,23 @@ fillPtr32 ptr = fill (pokeElemOff ptr)
 -- The write function takes an offset into the storage space and a complex
 -- number.
 fill :: Monad m => (Int -> a -> m ()) -> Filler a m
-fill write color def iter maxabs area = outer 0 y1
+fill !write !color !def !iter !maxabs !area = outer 0 y1
   where
-    w = width $ areaScreen area
+    !w = width $ areaScreen area
 
-    (x1:+y1) = areaTopLeft area
-    (dx:+dy) = areaDelta area
+    !(x1:+y1) = areaTopLeft area
+    !(dx:+dy) = areaDelta area
 
-    n = sizeArea (areaScreen area)
+    !n = sizeArea (areaScreen area)
 
-    f i = write i . color . def (maxabs, iter)
+    f !i = write i . color . def (maxabs, iter)
 
     outer !i !y
       | i < n     = inner i x1 >> outer m (y+dy)
       | otherwise = return ()
 
         where
-          m = i+w
+          !m = i+w
 
           inner !j !x
             | j < m     = f j (x:+y) >> inner (j+1) (x+dx)

@@ -17,7 +17,7 @@ main = getArgs >>= \case
   _      -> error "Usage: fractals-ascii-animated WIDTH HEIGHT"
 
 prog :: Size -> IO ()
-prog size = newPtr8 size >>= helper
+prog !size = newPtr8 size >>= helper
   where
     helper !ptr = go 0 1
       where
@@ -32,13 +32,13 @@ prog size = newPtr8 size >>= helper
              | otherwise -> go i' d
 
     steps, iters, delay, cells :: Int
-    !steps = 500
-    !iters = 100
+    !steps = 200
+    !iters = 10
     !delay = 10000
     !cells = sizeArea size
 
     maxabs :: R
-    maxabs = 4
+    !maxabs = 4
 
     a, b :: Complex R
     !a = (-2.0) :+ 2.0
@@ -48,4 +48,4 @@ prog size = newPtr8 size >>= helper
 
     fill1 !ptr !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
 
-    put ptr = hPutBuf stdout ptr cells
+    put !ptr = hPutBuf stdout ptr cells
