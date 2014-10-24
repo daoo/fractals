@@ -2,6 +2,8 @@
 module Main (main) where
 
 import Control.Concurrent
+import Data.Word
+import Foreign.Ptr
 import Fractals.Area
 import Fractals.Coloring
 import Fractals.Complex
