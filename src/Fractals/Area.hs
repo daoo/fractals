@@ -73,7 +73,7 @@ resizePlane topleft plane@(pw:+ph) area = Area screen plane topleft delta
     delta  = (pw / w) :+ (- ph / h)
 
 {-# INLINE screenToPlane #-}
-screenToPlane :: Area -> Point -> Complex R
+screenToPlane :: Area -> Vec -> Complex R
 screenToPlane area (Vec x y) = areaTopLeft area + (x'*dx :+ y'*dy)
   where
     x' = fromIntegral x

@@ -42,6 +42,11 @@ executable fractals-opengl
   build-depends: fractals, base, mtl, bytestring, array, OpenGL, GLFW-b, stm
   default-language: Haskell2010
 
+executable fractals-gloss
+  main-is: src/Gloss.hs
+  build-depends: fractals, base, gloss
+  default-language: Haskell2010
+
 test-suite fractals-doctest
   type: exitcode-stdio-1.0
   hs-source-dirs: tests

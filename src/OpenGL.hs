@@ -278,7 +278,7 @@ data Env = Env
   , envProgramScreen  :: !GL.Program
   }
 
-data Mode = Idle | Zoom Point
+data Mode = Idle | Zoom Vec
   deriving Show
 
 data State = State
@@ -295,7 +295,7 @@ data State = State
 stateWindowSize :: State -> Size
 stateWindowSize s = mkSize (stateWindowWidth s) (stateWindowHeight s)
 
-stateMousePos :: State -> Point
+stateMousePos :: State -> Vec
 stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
 
 type Context = RWST Env () State IO

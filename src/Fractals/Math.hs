@@ -3,7 +3,6 @@ module Fractals.Math
   (
   -- * Vector
     Vec(Vec)
-  , Point
 
   -- * Size
   , Size(width, height)
@@ -47,9 +46,6 @@ import GHC.Base
 data Vec = Vec !Int !Int
   deriving Show
 
--- |A 'Point' is isomorphic to a 'Vec'.
-type Point = Vec
-
 -- |Defintion of addition for 'Vec'.
 --
 -- Provieded as a new operator because implementing 'Num' is non-trivial.
@@ -75,12 +71,12 @@ sizeArea (Size w h) = w * h
 -- In any 2 dimensional interpretation of a rectangle the first point ('rectA')
 -- is always top left and the second point ('rectB') is always bottom right.
 data Rectangle = Rectangle
-  { rectA :: !Point -- ^Top left point
-  , rectB :: !Point -- ^Bottom right point
+  { rectA :: !Vec -- ^Top left point
+  , rectB :: !Vec -- ^Bottom right point
   } deriving Show
 
 -- |Construct a 'Rectangle' from two points.
-fromPoints :: Point -> Point -> Rectangle
+fromPoints :: Vec -> Vec -> Rectangle
 fromPoints (Vec x1 y1) (Vec x2 y2) =
   Rectangle (Vec xmin ymin) (Vec xmax ymax)
   where
@@ -92,7 +88,7 @@ fromPoints (Vec x1 y1) (Vec x2 y2) =
 
 -- |Find the largest (by area) size that goes through two points and has the
 -- specific aspect ratio.
-findLargest :: Size -> Point -> Point -> Vec
+findLargest :: Size -> Vec -> Vec -> Vec
 findLargest (Size w h) (Vec x1 y1) (Vec x2 y2)
   | rw*rh' < rw'*rh = byh
   | otherwise       = byw
@@ -109,8 +105,8 @@ findLargest (Size w h) (Vec x1 y1) (Vec x2 y2)
 -- |Resize a rectangle to the largest rectangle that goes through the bottom
 -- left point with the specified aspect ratio.
 fixAspect :: Size      -- ^Aspect ratio given by size
-          -> Point     -- ^Point a
-          -> Point     -- ^Point b
+          -> Vec       -- ^Point a
+          -> Vec       -- ^Point b
           -> Rectangle -- ^The largest rectangle containing both point a and b.
 fixAspect aspect a b = fromPoints a (a .+. findLargest aspect a b)
 

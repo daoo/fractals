@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Fractals.Storage
   ( newPtr8
+  , newPtr32
   , newForeignPtr32
   , fillPtr8
   , fillPtr32
@@ -27,6 +28,10 @@ import qualified Data.Vector.Storable.Mutable as VS
 {-# INLINE newPtr8 #-}
 newPtr8 :: Size -> IO (Ptr Word8)
 newPtr8 = mallocArray . sizeArea
+
+{-# INLINE newPtr32 #-}
+newPtr32 :: Size -> IO (Ptr Word32)
+newPtr32 = mallocArray . sizeArea
 
 {-# INLINE newForeignPtr32 #-}
 newForeignPtr32 :: Size -> IO (ForeignPtr Word32)
