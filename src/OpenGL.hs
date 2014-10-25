@@ -9,15 +9,17 @@ import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.RWS.Strict hiding (state)
 import Data.Array.Storable
+import Data.Complex
 import Data.Word
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
 import Foreign.Storable
-import Fractals.Area
-import Fractals.Coloring
-import Fractals.Complex
+import Fractals.Coloring.Greyscale
+import Fractals.Data.Area
+import Fractals.Data.Rectangle
+import Fractals.Data.Size
+import Fractals.Data.Vec2
 import Fractals.Definitions
-import Fractals.Math
 import Fractals.Storage
 import Fractals.Utility
 import qualified Data.ByteString as BS

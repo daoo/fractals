@@ -14,11 +14,10 @@ module Fractals.Definitions
   , julia
   ) where
 
+import Data.Complex
 import GHC.Base
-import Fractals.Complex
-import Fractals.Math (square)
 
-type Definition = (R, Int) -> Complex R -> Int
+type Definition = (Double, Int) -> Complex Double -> Int
 
 {-# INLINE mandelbrot #-}
 mandelbrot :: Int -> Definition
@@ -28,7 +27,7 @@ mandelbrot !a !t !p = iterations t (0:+0) (\z -> z ^ a + p)
 mandelbrot2 :: Definition
 mandelbrot2 !t !p = go 0 (0:+0)
   where
-    go :: Int -> Complex R -> Int
+    go :: Int -> Complex Double -> Int
     go !i (a:+b) = if check t (abs2, i) then i else go (i+1) (z2+p)
       where
         a2 = a*a
@@ -45,10 +44,10 @@ burningShip :: Definition
 burningShip !t !p = iterations t (0:+0) (\(r:+i) -> square (abs r :+ abs i) + p)
 
 {-# INLINE julia #-}
-julia :: Complex R -> Definition
+julia :: Complex Double -> Definition
 julia !c !t !p = go 0 p
   where
-    go :: Int -> Complex R -> Int
+    go :: Int -> Complex Double -> Int
     go !i (a:+b) = if check t (abs2, i) then i else go (i+1) (z2 + c)
       where
         a2 = a*a
@@ -57,12 +56,18 @@ julia !c !t !p = go 0 p
         abs2 = a2+b2
 
 {-# INLINE check #-}
-check :: (R, Int) -> (R, Int) -> Bool
+check :: (Double, Int) -> (Double, Int) -> Bool
 check (D# ma, I# mi) (D# a, I# i) = tagToEnum# ((a >=## ma) `orI#` (i >=# mi))
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
-iterations :: (R, Int) -> Complex R -> (Complex R -> Complex R) -> Int
+iterations :: (Double, Int) -> Complex Double -> (Complex Double -> Complex Double) -> Int
 iterations !t !z0 !f = go 0 z0
   where
-    go !i !z = if check t (magnitudeSquared z, i) then i else go (i+1) (f z)
+    go !i !z = if check t (mag2 z, i) then i else go (i+1) (f z)
+
+mag2 :: Complex Double -> Double
+mag2 (a:+b) = a*a + b*b
+
+square :: Complex Double -> Complex Double
+square z = z * z

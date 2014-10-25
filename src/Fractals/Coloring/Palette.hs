@@ -1,13 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
-module Fractals.Coloring
-  (
-    -- * ASCII
-    ascii
-  , asciiWord8
-    -- * Greyscale
-  , greyscale
-    -- * Palettes
-  , ColorMap
+module Fractals.Coloring.Palette
+  ( ColorMap
   , PackedRGBA
   , mkColorMap
   , unsafeColorRgba
@@ -21,38 +14,8 @@ module Fractals.Coloring
 import Data.Bits
 import Data.Vector.Unboxed as V (Vector, fromList, length, unsafeIndex)
 import Data.Word
-import Fractals.Math
+import Fractals.Lerp
 import GHC.Base
-
-{-# INLINE ascii #-}
--- |Find a ASCII character representation of a number of iterations.
-ascii :: Int -- ^Maximum number of iterations
-      -> Int -- ^Number of iterations for some pixel
-      -> Char
-ascii m i = case unsafeScaleInt m 10 i of
-  0  -> ' '
-  1  -> '-'
-  2  -> '~'
-  3  -> '+'
-  4  -> '*'
-  5  -> '='
-  6  -> '#'
-  7  -> '%'
-  8  -> '@'
-  9  -> '&'
-  10 -> '$'
-  _  -> 'E'
-
-{-# INLINE asciiWord8 #-}
-asciiWord8 :: Int -> Int -> Word8
-asciiWord8 m i = fromIntegral $ ord $ ascii m i
-
-{-# INLINE greyscale #-}
--- |Find a single channel 8-bit color representation of a number of iterations.
-greyscale :: Int -- ^Maximum number of iterations
-          -> Int -- ^Number of iterations for som pixel
-          -> Word8
-greyscale !m !i = fromIntegral $ unsafeScaleInt m 255 i
 
 type RGB = (Word8, Word8, Word8)
 type PackedRGBA = Word32

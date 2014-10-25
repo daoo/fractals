@@ -11,11 +11,16 @@ cabal-version: >=1.10
 library
   hs-source-dirs: src
   exposed-modules:
-    Fractals.Area
     Fractals.Args
-    Fractals.Coloring
-    Fractals.Complex
+    Fractals.Coloring.ASCII
+    Fractals.Coloring.Greyscale
+    Fractals.Coloring.Palette
+    Fractals.Data.Area
+    Fractals.Data.Rectangle
+    Fractals.Data.Size
+    Fractals.Data.Vec2
     Fractals.Definitions
+    Fractals.Lerp
     Fractals.Math
     Fractals.Storage
     Fractals.Utility

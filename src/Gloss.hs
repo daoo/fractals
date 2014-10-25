@@ -1,14 +1,16 @@
 {-# LANGUAGE BangPatterns, LambdaCase #-}
 module Main (main) where
 
+import Data.Complex
 import Data.Monoid
 import Data.Word
 import Foreign.ForeignPtr
-import Fractals.Area
-import Fractals.Coloring
-import Fractals.Complex
+import Fractals.Coloring.Palette
+import Fractals.Data.Area
+import Fractals.Data.Rectangle
+import Fractals.Data.Size
+import Fractals.Data.Vec2
 import Fractals.Definitions
-import Fractals.Math
 import Fractals.Storage
 import Fractals.Utility
 import Graphics.Gloss
@@ -32,7 +34,7 @@ data Mode = Idle | Zoom Vec Vec
 
 data UI = UI
   { uiIter   :: !Int
-  , uiMaxAbs :: !R
+  , uiMaxAbs :: !Double
   , uiArea   :: !Area
   , uiDirty  :: !Bool
   , uiPtr    :: !(ForeignPtr Word32)

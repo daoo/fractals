@@ -4,12 +4,13 @@ module Main (main) where
 import Codec.Picture.Png
 import Codec.Picture.Types
 import Data.Vector.Storable (unsafeFreeze)
-import Fractals.Area
 import Fractals.Args
-import Fractals.Coloring
-import Fractals.Math
+import Fractals.Coloring.Palette
+import Fractals.Data.Area
+import Fractals.Data.Size
 import Fractals.Storage
 import Fractals.Utility
+
 #ifndef MANDELBROT
 import System.Environment
 #endif
@@ -42,7 +43,7 @@ prog (path, f) = do
     (fracIter f)
     (fracAbs f)
     (fracArea f)
-  v' <- unsafeFreeze $ unsafeToImage p (sizeArea $ areaScreen $ fracArea f)
+  v' <- unsafeFreeze $ unsafeToImage p (getArea $ areaScreen $ fracArea f)
   writePng path (Image (width size) (height size) v' :: Image PixelRGBA8)
 
   where

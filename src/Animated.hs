@@ -2,13 +2,14 @@
 module Main (main) where
 
 import Control.Concurrent
+import Data.Complex
 import Data.Word
 import Foreign.Ptr
-import Fractals.Area
-import Fractals.Coloring
-import Fractals.Complex
+import Fractals.Coloring.ASCII
+import Fractals.Data.Area
+import Fractals.Data.Size
 import Fractals.Definitions
-import Fractals.Math
+import Fractals.Lerp
 import Fractals.Storage
 import System.Environment
 import System.IO
@@ -24,25 +25,26 @@ prog !size = newPtr8 size >>= helper
     helper !ptr = go 0 1
       where
         go :: Int -> Int -> IO ()
-        go !i !d = do
-          fill1 ptr (lerpFractional steps (a, b) i)
-          putFrame cells ptr
-          threadDelay delay
-          let i' = i+d
-          if | i' < 0    -> go 0 1
-             | i > steps -> go steps (-1)
-             | otherwise -> go i' d
+        go !i !d
+          | i < 0     = go 0 1
+          | i > steps = go steps (-1)
+          | otherwise = step ptr i >> go (i+d) d
+
+    step ptr i = do
+      fill1 ptr (lerpFractional steps (a, b) i)
+      putFrame cells ptr
+      threadDelay delay
 
     steps, iters, delay, cells :: Int
     !steps = 200
     !iters = 10
     !delay = 30000
-    !cells = sizeArea size
+    !cells = getArea size
 
-    maxabs :: R
+    maxabs :: Double
     !maxabs = 4
 
-    a, b :: Complex R
+    a, b :: Complex Double
     !a = (-2.0) :+ 2.0
     !b = 2.0    :+ (-2.0)
 

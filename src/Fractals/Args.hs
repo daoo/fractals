@@ -7,17 +7,17 @@ module Fractals.Args
   ) where
 
 import Control.Applicative
-import Fractals.Area
-import Fractals.Complex
+import Data.Complex
+import Fractals.Data.Area
+import Fractals.Data.Size
 import Fractals.Definitions
-import Fractals.Math
 import Text.Read
 
 data Fractal = Fractal
-  { fracDef :: Definition
-  , fracIter :: Int
-  , fracAbs :: R
-  , fracArea :: Area
+  { fracDef  :: !Definition
+  , fracIter :: !Int
+  , fracAbs  :: !Double
+  , fracArea :: !Area
   }
 
 exMandelbrot :: Fractal
@@ -26,7 +26,7 @@ exMandelbrot = Fractal mandelbrot2 200 4 (fromAspectCentered (mkSize 1920 1080) 
 readMaybeSize :: String -> String -> Maybe Size
 readMaybeSize w h = mkSize <$> readMaybe w <*> readMaybe h
 
-readMaybeComp :: String -> String -> Maybe (Complex R)
+readMaybeComp :: String -> String -> Maybe (Complex Double)
 readMaybeComp r c = (:+) <$> readMaybe r <*> readMaybe c
 
 readMaybeArea :: String -> String -> String -> String -> String -> Maybe Area

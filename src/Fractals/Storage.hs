@@ -12,32 +12,32 @@ module Fractals.Storage
   , unsafeToImage
   ) where
 
+import Data.Complex
 import Data.Word
 import Foreign.ForeignPtr
 import Foreign.Marshal.Array
 import Foreign.Ptr
 import Foreign.Storable
-import Fractals.Area
-import Fractals.Complex
+import Fractals.Data.Area
+import Fractals.Data.Size
 import Fractals.Definitions
-import Fractals.Math
 import qualified Data.Vector.Storable.Mutable as VS
 
 -- TODO: Freeing of allocated storage
 
 {-# INLINE newPtr8 #-}
 newPtr8 :: Size -> IO (Ptr Word8)
-newPtr8 = mallocArray . sizeArea
+newPtr8 = mallocArray . getArea
 
 {-# INLINE newPtr32 #-}
 newPtr32 :: Size -> IO (Ptr Word32)
-newPtr32 = mallocArray . sizeArea
+newPtr32 = mallocArray . getArea
 
 {-# INLINE newForeignPtr32 #-}
 newForeignPtr32 :: Size -> IO (ForeignPtr Word32)
-newForeignPtr32 = mallocForeignPtrArray . sizeArea
+newForeignPtr32 = mallocForeignPtrArray . getArea
 
-type Filler a m = (Int -> a) -> Definition -> Int -> R -> Area -> m ()
+type Filler a m = (Int -> a) -> Definition -> Int -> Double -> Area -> m ()
 
 {-# INLINE fillForeignPtr32 #-}
 fillForeignPtr32 :: ForeignPtr Word32 -> Filler Word32 IO
@@ -64,7 +64,7 @@ fill !write !color !def !iter !maxabs !area = outer 0 y1
     !(x1:+y1) = areaTopLeft area
     !(dx:+dy) = areaDelta area
 
-    !n = sizeArea (areaScreen area)
+    !n = getArea (areaScreen area)
 
     f !i = write i . color . def (maxabs, iter)
 
