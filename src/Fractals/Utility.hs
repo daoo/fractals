@@ -3,6 +3,7 @@ module Fractals.Utility where
 
 import System.CPUTime
 
+{-# INLINE clampLow #-}
 clampLow :: Ord a => a -> a -> a
 clampLow a x
   | x < a     = a

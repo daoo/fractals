@@ -29,35 +29,37 @@ resizeAreaFromRect area (Rectangle a b) = resizePlane a' s area
 
     transform = screenToPlane area
 
-data Mode = Idle | Zoom Vec Vec
+data Mode = Idle | Zoom (Vec2 Int) (Vec2 Int)
   deriving Show
 
 data UI = UI
   { uiIter   :: !Int
   , uiMaxAbs :: !Double
-  , uiArea   :: !Area
+  , uiPlane  :: !(Extent Double)
   , uiDirty  :: !Bool
   , uiPtr    :: !(ForeignPtr Word32)
 
-  , uiMode      :: !Mode
-  , uiAreaStack :: [Area]
+  , uiScreen     :: !Extent Double
+  , uiMode       :: !Mode
+  , uiPlaneStack :: [Area]
   } deriving Show
 
 defaultUI :: ForeignPtr Word32 -> UI
 defaultUI ptr = UI
   { uiIter   = 100
   , uiMaxAbs = 4
-  , uiArea   = area
+  , uiPlane  = area
   , uiPtr    = ptr
   , uiDirty  = False
 
-  , uiMode      = Idle
-  , uiAreaStack = []
+  , uiMode       = Idle
+  , uiScreen     = undefined
+  , uiPlaneStack = []
   }
 
   where
     defsize = mkSize 800 600
-    area    = fromAspectCentered defsize 4.3 (0:+0)
+    area    = fromAspectCentered defsize 4.3 (0 :* 0)
 
 mapMode :: (Mode -> Mode) -> UI -> UI
 mapMode f ui = ui { uiMode = f (uiMode ui) }
@@ -69,17 +71,17 @@ resizeUI size ui = do
   ptr <- newForeignPtr32 size
   return $ ui
     { uiPtr   = ptr
-    , uiArea  = resizeScreen size (uiArea ui)
+    , uiPlane = resizeScreen size (uiPlane ui)
     , uiDirty = True
 
     , uiMode      = Idle
-    , uiAreaStack = []
+    , uiPlaneStack = []
     }
 
 pushArea :: (Area -> Area) -> UI -> UI
 pushArea f ui = ui
-  { uiArea      = f (uiArea ui)
-  , uiAreaStack = uiArea ui : uiAreaStack ui
+  { uiPlane     = f (uiPlane ui)
+  , uiPlaneStack = uiPlane ui : uiPlaneStack ui
   , uiDirty     = True
   }
 
@@ -98,7 +100,7 @@ redrawUI ui = if uiDirty ui
       mandelbrot2
       (uiIter ui)
       (uiMaxAbs ui)
-      (uiArea ui)
+      (uiPlane ui)
 
     return (ui { uiDirty = False })
 
@@ -119,8 +121,8 @@ main = do
 render :: UI -> IO Picture
 render !ui = return (fractal `mappend` mode)
   where
-    w = width  $ areaScreen $ uiArea ui
-    h = height $ areaScreen $ uiArea ui
+    w = width  $ areaScreen $ uiPlane ui
+    h = height $ areaScreen $ uiPlane ui
 
     fractal = bitmapOfForeignPtr w h (castForeignPtr (uiPtr ui)) False
 
@@ -128,7 +130,7 @@ render !ui = return (fractal `mappend` mode)
       Idle           -> mempty
       Zoom start end -> color red $ rectangle start end
 
-    rectangle (Vec x1 y1) (Vec x2 y2) = lineLoop [(x1', y1'), (x2', y1'), (x2', y2'), (x1', y2')]
+    rectangle (x1 :* y1) (x2 :* y2) = lineLoop [(x1', y1'), (x2', y1'), (x2', y2'), (x1', y2')]
       where
         x1' = fromIntegral x1
         y1' = fromIntegral y1
@@ -137,14 +139,15 @@ render !ui = return (fractal `mappend` mode)
 
 input :: Event -> UI -> IO UI
 input = \case
-  EventKey (MouseButton mb) ms _ mp -> \ui -> return $ case (mb, ms, uiMode ui) of
+  EventKey (MouseButton mb) ms _ mp -> \ui -> case (mb, ms, uiMode ui) of
 
-    (LeftButton  , Down , Idle)           -> doRecenter (roundpos mp) ui
-    (RightButton , Down , Idle)           -> doZoomStart (roundpos mp) ui
-    (RightButton , Up   , Zoom start end) -> doZoomEnd start end ui
-    (_           , Down , Zoom _ _)       -> mapMode (const Idle) ui
+    (LeftButton   , Down , Idle)           -> return $ doRecenter (roundpos mp) ui
+    (RightButton  , Down , Idle)           -> return $ doZoomStart (roundpos mp) ui
+    (RightButton  , Up   , Zoom start end) -> return $ doZoomEnd start end ui
+    (MiddleButton , Down , _)              -> print (roundpos mp) >> return ui
+    (_            , Down , Zoom _ _)       -> return $ mapMode (const Idle) ui
 
-    _ -> ui
+    _ -> return ui
 
   EventKey (SpecialKey KeyEsc) Up _ _ -> \_  -> exitSuccess
   EventKey (Char 'q')          Up _ _ -> \_ -> exitSuccess
@@ -160,7 +163,7 @@ input = \case
   _ -> return
 
   where
-    roundpos (x, y) = Vec (round x) (round y)
+    roundpos (x, y) = round x :* round y
 
     centerArea pos area = setPlaneCenter (screenToPlane area pos) area
 

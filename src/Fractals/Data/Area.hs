@@ -1,19 +1,26 @@
 -- |This module provides a definition of a rendering area. That is the relation
 -- between screen space and fractal space.
-module Fractals.Data.Area
-  ( Area(..)
-  , getAreaCenter
-  , fromRectangle
-  , fromAspectCentered
-  , setPlaneCenter
-  , resizeScreen
-  , resizePlane
-  , screenToPlane
-  ) where
+module Fractals.Data.Area where
 
 import Data.Complex
 import Fractals.Data.Size
 import Fractals.Data.Vec2
+
+-- |An extent is a rectangular part of a 2d plane. It is defined such that adding 'delta' to
+-- 'topLeft' 'size' times will give you the "bottom right" corner.
+data Extent a = Extent
+  { extentTopLeft :: !(Vec2 a)
+  , extentSize    :: !(Vec2 Int)
+  , extentDelta   :: !(Vec2 a)
+  }
+
+{-# INLINE getCenter #-}
+getCenter :: (Num a, Fractional a) => Extent a -> Vec2 a
+getCenter ext = extentTopLeft ext .+. (vfromIntegral (extentSize ext) ./ 2.0)
+
+{-# INLINE transform #-}
+transform :: (Num a, Fractional a) => Extent a -> Extent a -> Vec2 a -> Vec2 a
+transform a b p = extentTopLeft b .+. ((p .-. extentTopLeft a) ./. extentDelta a) .*. extentDelta b
 
 -- |Defines an rendering area.
 -- The rendering area represents which part of the complex plane we are
@@ -74,8 +81,8 @@ resizePlane topleft plane@(pw:+ph) area = Area screen plane topleft delta
     delta  = (pw / w) :+ (- ph / h)
 
 {-# INLINE screenToPlane #-}
-screenToPlane :: Area -> Vec -> Complex Double
-screenToPlane area (Vec x y) = areaTopLeft area + (x'*dx :+ y'*dy)
+screenToPlane :: Area -> Vec2 Int -> Complex Double
+screenToPlane area (x :* y) = areaTopLeft area + (x'*dx :+ y'*dy)
   where
     x' = fromIntegral x
     y' = fromIntegral y

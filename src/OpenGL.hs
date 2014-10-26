@@ -243,7 +243,7 @@ initGL = do
   return (programFractal, programScreen)
 
 strokeRectangle :: Rectangle -> IO ()
-strokeRectangle (Rectangle (Vec x1 y1) (Vec x2 y2)) =
+strokeRectangle (Rectangle (x1 :* y1) (x2 :* y2)) =
   GL.renderPrimitive GL.LineLoop $ do
     GL.color $ GL.Color3 (1.0 :: GL.GLfloat) 0 0
     GL.vertex $ GL.Vertex2 (fromIntegral x1 :: GL.GLfloat) (fromIntegral y1 :: GL.GLfloat)
@@ -280,7 +280,7 @@ data Env = Env
   , envProgramScreen  :: !GL.Program
   }
 
-data Mode = Idle | Zoom Vec
+data Mode = Idle | Zoom (Vec2 Int)
   deriving Show
 
 data State = State
@@ -297,8 +297,8 @@ data State = State
 stateWindowSize :: State -> Size
 stateWindowSize s = mkSize (stateWindowWidth s) (stateWindowHeight s)
 
-stateMousePos :: State -> Vec
-stateMousePos s = Vec (stateMouseX s) (stateMouseY s)
+stateMousePos :: State -> Vec2 Int
+stateMousePos s = stateMouseX s :* stateMouseY s
 
 type Context = RWST Env () State IO
 

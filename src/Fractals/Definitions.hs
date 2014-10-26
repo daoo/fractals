@@ -66,8 +66,10 @@ iterations !t !z0 !f = go 0 z0
   where
     go !i !z = if check t (mag2 z, i) then i else go (i+1) (f z)
 
+{-# INLINE mag2 #-}
 mag2 :: Complex Double -> Double
 mag2 (a:+b) = a*a + b*b
 
+{-# INLINE square #-}
 square :: Complex Double -> Complex Double
 square z = z * z
