@@ -2,16 +2,6 @@ module Fractals.Math where
 
 import GHC.Base
 
-{-# INLINE square #-}
--- |Square a number.
---
--- prop> square 0 == 0
--- prop> square 1 == 1
--- prop> \x -> square (x :: Int) >= 0
--- prop> \x -> square (x :: Int) == square (-x)
-square :: Num a => a -> a
-square x = x * x
-
 {-# INLINE unsafeScaleInt #-}
 -- |Scale an int from one integer range to another.
 --
