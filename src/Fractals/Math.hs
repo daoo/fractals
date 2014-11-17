@@ -2,6 +2,9 @@ module Fractals.Math where
 
 import GHC.Base
 
+-- $setup
+-- >>> import Test.QuickCheck
+
 {-# INLINE unsafeScaleInt #-}
 -- |Scale an int from one integer range to another.
 --
