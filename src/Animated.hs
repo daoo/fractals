@@ -16,24 +16,24 @@ import System.IO
 
 main :: IO ()
 main = getArgs >>= \case
-  [w, h] -> prog $ mkSize (read w) (read h)
+  [w, h] -> let size = mkSize (read w) (read h) in newPtr8 size >>= prog size
   _      -> error "Usage: fractals-ascii-animated WIDTH HEIGHT"
 
-prog :: Size -> IO ()
-prog !size = newPtr8 size >>= helper
+prog :: Size -> Ptr Word8 -> IO ()
+prog !size !ptr = go 0 1
   where
-    helper !ptr = go 0 1
-      where
-        go :: Int -> Int -> IO ()
-        go !i !d
-          | i < 0     = go 0 1
-          | i > steps = go steps (-1)
-          | otherwise = step ptr i >> go (i+d) d
+    go :: Int -> Int -> IO ()
+    go !i !d
+      | i < 0     = go 0 1
+      | i > steps = go steps (-1)
+      | otherwise = frame i >> go (i+d) d
 
-    step ptr i = do
-      fill1 ptr (lerpFractional steps (a, b) i)
+    frame i = do
+      fill1 (lerpFractional steps (a, b) i)
       putFrame cells ptr
       threadDelay delay
+
+    fill1 !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
 
     steps, iters, delay, cells :: Int
     !steps = 200
@@ -49,8 +49,6 @@ prog !size = newPtr8 size >>= helper
     !b = 2.0    :+ (-2.0)
 
     area = fromAspectCentered size 8 (0 :+ 0)
-
-    fill1 !ptr !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
 
 {-# INLINE putFrame #-}
 -- | Print a "frame" to stdout.
