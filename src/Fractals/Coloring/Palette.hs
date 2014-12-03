@@ -31,11 +31,12 @@ mkColorMap = fromList
 
 {-# INLINE pack #-}
 pack :: RGB -> PackedRGBA
-pack (r, g, b) = r' .|. g' .|. b' .|. 255
+pack (r, g, b) = r' .|. g' .|. b' .|. a'
   where
-    r' = fromIntegral r `unsafeShiftL` 24
-    g' = fromIntegral g `unsafeShiftL` 16
-    b' = fromIntegral b `unsafeShiftL` 8
+    r' = fromIntegral r
+    g' = fromIntegral g `unsafeShiftL` 8
+    b' = fromIntegral b `unsafeShiftL` 16
+    a' = 255            `unsafeShiftL` 24
 
 {-# INLINE interpolate #-}
 interpolate :: RGB -> RGB -> [PackedRGBA]
