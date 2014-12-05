@@ -42,12 +42,13 @@ prog (path, f) = do
     (fracDef f)
     (fracIter f)
     (fracAbs f)
-    (fracArea f)
-  v' <- unsafeFreeze $ unsafeToImage p (getArea $ areaScreen $ fracArea f)
+    area
+  v' <- unsafeFreeze $ unsafeToImage p (getArea size)
   writePng path (Image (width size) (height size) v' :: Image PixelRGBA8)
 
   where
-    size = areaScreen $ fracArea f
+    area = fracArea f
+    size = areaScreen area
 
 coloring :: Int -> Int -> PackedRGBA
 coloring = unsafeColorRgba palette

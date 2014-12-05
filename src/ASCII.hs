@@ -26,10 +26,11 @@ prog :: Fractal -> IO ()
 prog f = do
   ptr <- newPtr8 size
   fillPtr8 ptr (toWord . ascii (fracIter f))
-    (fracDef f) (fracIter f) (fracAbs f) (fracArea f)
+    (fracDef f) (fracIter f) (fracAbs f) area
   hPutBuf stdout ptr (getArea size)
   where
-    size = areaScreen $ fracArea f
+    area = fracArea f
+    size = areaScreen area
 
     toWord :: Char -> Word8
     toWord = fromIntegral . ord
