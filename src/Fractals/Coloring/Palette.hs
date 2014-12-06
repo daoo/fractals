@@ -24,9 +24,7 @@ type ColorMap packed = Vector packed
 
 {-# INLINE unsafeColorRgba #-}
 unsafeColorRgba :: Vector PackedRGBA -> Int -> Int -> PackedRGBA
-unsafeColorRgba !v !m !i
-  | i == m    = unsafeIndex v 0
-  | otherwise = unsafeIndex v (i `remInt` V.length v)
+unsafeColorRgba !v !m !i = unsafeIndex v ((i `remInt` m) `remInt` V.length v)
 
 mkColorMap :: [PackedRGBA] -> Vector PackedRGBA
 mkColorMap = fromList
