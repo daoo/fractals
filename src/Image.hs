@@ -3,6 +3,7 @@ module Main (main) where
 
 import Codec.Picture.Png
 import Codec.Picture.Types
+import Control.Exception.Base
 import Data.Vector.Storable (unsafeFreeze)
 import Fractals.Args
 import Fractals.Coloring.Palette
@@ -33,19 +34,14 @@ help = "fractals-image PATH " ++ usage
 
 prog :: FilePath -> Fractal -> IO ()
 prog path f = do
-  p <- newForeignPtr32 size
-  fillForeignPtr32 p (coloring iters) (fracDef f) iters (fracAbs f) area
-  v' <- unsafeFreeze $ unsafeToImage p (getArea size)
-  writePng path (Image (width size) (height size) v' :: Image PixelRGBA8)
+  colors <- evaluate (mkColorMap colors1)
+  ptr    <- newForeignPtr32 size
+  fillForeignPtr32 ptr (unsafeColorRgba colors iters) (fracDef f) iters (fracAbs f) area
+  vec <- unsafeFreeze $ unsafeToImage ptr (getArea size)
+  writePng path (Image (width size) (height size) vec :: Image PixelRGBA8)
 
   where
     iters = fracIter f
 
     area = fracArea f
     size = areaScreen area
-
-coloring :: Int -> Int -> PackedRGBA
-coloring = unsafeColorRgba palette
-
-palette :: ColorMap PackedRGBA
-palette = mkColorMap colors1
