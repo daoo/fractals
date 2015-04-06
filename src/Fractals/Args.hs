@@ -6,7 +6,6 @@ module Fractals.Args
   , usage
   ) where
 
-import Control.Applicative
 import Data.Complex
 import Fractals.Data.Area
 import Fractals.Data.Size

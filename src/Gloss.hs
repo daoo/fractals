@@ -2,7 +2,6 @@
 module Main (main) where
 
 import Data.Complex
-import Data.Monoid
 import Data.Word
 import Foreign.ForeignPtr
 import Fractals.Coloring.Palette

@@ -1,7 +1,5 @@
 module Fractals.Data.Size where
 
-import Data.Word
-
 -- |Definition of the size of a rectangle in 2D space.
 data Size = Size { width :: !Int, height :: !Int }
   deriving Show

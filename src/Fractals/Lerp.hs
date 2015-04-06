@@ -2,7 +2,6 @@
 module Fractals.Lerp where
 
 import Data.Complex
-import Data.Word
 import GHC.Base
 
 -- $setup
