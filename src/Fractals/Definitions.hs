@@ -57,7 +57,7 @@ julia !c !t !p = go 0 p
 
 {-# INLINE check #-}
 check :: (Double, Int) -> (Double, Int) -> Bool
-check (D# ma, I# mi) (D# a, I# i) = tagToEnum# ((a >=## ma) `orI#` (i >=# mi))
+check (ma, mi) (a, i) = i >= mi || a >= ma
 
 {-# INLINE iterations #-}
 -- |Count the number of iterations in a point
