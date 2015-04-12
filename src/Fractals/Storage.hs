@@ -66,7 +66,7 @@ fill !write !color !def !iter !maxabs !area = outer 0 y1
 
     !n = getArea (areaScreen area)
 
-    f !i = write i . color . def (maxabs, iter)
+    f !i = write i . color . boxDefinition def (maxabs, iter)
 
     outer !i !y
       | i < n     = inner i x1 >> outer m (y+dy)

@@ -33,7 +33,7 @@ prog !size !ptr = go 0 1
       putFrame cells ptr
       threadDelay delay
 
-    fill1 !c = fillPtr8 ptr (asciiWord8 iters) (julia c) iters maxabs area
+    fill1 !c = fillPtr8 ptr (asciiWord8 iters) (julia (unboxComplex c)) iters maxabs area
 
     steps, iters, delay, cells :: Int
     !steps = 200
