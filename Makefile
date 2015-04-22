@@ -4,13 +4,17 @@ build:
 mandelbrot:
 	@cabal clean
 	@cabal configure --disable-library-profiling --disable-executable-profiling
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -DMANDELBROT" fractals-image
-	@./dist/build/fractals-image/fractals-image
+	@cabal build --ghc-options="-Wall -O2 -fno-liberate-case -fignore-asserts -DMANDELBROT" fractals-image
+
+release:
+	@cabal clean
+	@cabal configure --disable-library-profiling --disable-executable-profiling
+	@cabal build --ghc-options="-Wall -O2 -fno-liberate-case -fignore-asserts"
 
 llvm:
 	@cabal clean
 	@cabal configure --disable-library-profiling --disable-executable-profiling
-	@cabal build --ghc-options="-Wall -O2 -fignore-asserts -fllvm -optlo-O3 -optlo-march=native -optlo-mattr=native"
+	@cabal build --ghc-options="-Wall -O2 -fno-liberate-case -fignore-asserts -fllvm -optlo-O3 -optlo-march=native -optlo-mattr=native"
 
 doc:
 	@cabal haddock
